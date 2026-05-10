@@ -61,6 +61,3 @@ The exact column lists for each of the four capitals — and the shared context 
 
 The `.xlsx` files in `data/` are the source of truth for the split dataset and are committed directly to the repository. They are non-trivial in size (~50 MB total); if the repo grows further, consider migrating them to Git LFS.
 
-## License
-
-Proprietary — all rights reserved. Not licensed for external use or redistribution.
