@@ -61,7 +61,3 @@ The script will prompt for your export path if it can't find `aida_export.xlsx` 
 | Model rationale & methodology | [`docs/SME_Valuation_Design.pdf`](docs/SME_Valuation_Design.pdf) |
 | Exact column list per capital | top of [`src/split_aida_capitals.py`](src/split_aida_capitals.py) |
 | The data itself | [`data/`](data/) — open `all_capitals_clean_split.xlsx` for a single-file view |
-
-## License
-
-Proprietary — internal use only. Not for external distribution.
