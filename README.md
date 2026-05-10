@@ -1,63 +1,67 @@
-# AIDA — SME 4-Capital Valuation Dataset
+# VIP — SME 4-Capital Valuation
 
-This repository contains the data and tooling used to split an AIDA / Orbis SME export into a **4-Capital strategic valuation model**:
+> A strategic valuation framework that turns raw **AIDA / Orbis** SME exports into four capital pillars: **Financial**, **Technological**, **Human & Organisational**, and **Relational**.
 
-1. Financial Capital
-2. Technological Capital
-3. Human & Organisational Capital
-4. Relational Capital
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active-2ea44f)
+![License](https://img.shields.io/badge/License-Proprietary-red)
+![Data](https://img.shields.io/badge/Dataset-~53MB-blueviolet)
 
-A shared block of *context columns* (company identifiers, sector codes, peer group, etc.) is included in every per-capital file and on every sheet of the combined workbook.
+---
 
-## Repository layout
+## Overview
+
+Italian SME data from AIDA comes as one wide spreadsheet with hundreds of mixed columns. This project splits that export into four focused workbooks — one per capital — each carrying a shared block of *context columns* (company identifiers, sector codes, peer group). The result is a clean, model-aligned dataset the team can analyse, score, and value against.
+
+## The Four Capitals
+
+| | Capital | What it covers |
+|---|---|---|
+| 🟦 | **Financial** | Profitability, growth, liquidity, leverage, cash-flow quality |
+| 🟪 | **Technological** | Fixed & intangible assets, R&D spend, IP, capex intensity |
+| 🟧 | **Human & Organisational** | Workforce, productivity, governance, group structure |
+| 🟩 | **Relational** | Customers, suppliers, geographic reach, brand, networks |
+
+> Every per-capital file also carries the shared **Context** block (company name, ATECO/NACE codes, peer group, size, etc.) so each file is self-contained for analysis.
+
+## Repository Layout
 
 ```
-AIDA/
-├── README.md
-├── .gitignore
-├── requirements.txt
-├── data/
-│   ├── all_capitals_clean_split.xlsx        # Combined multi-sheet workbook
-│   ├── context_columns.xlsx                  # Context columns only
-│   ├── financial_capital.xlsx                # Context + Financial Capital
-│   ├── technological_capital.xlsx            # Context + Technological Capital
-│   ├── human_organisational_capital.xlsx     # Context + Human & Organisational
-│   └── relational_capital.xlsx               # Context + Relational Capital
-├── docs/
-│   └── SME_Valuation_Design.pdf              # Design document for the model
-└── src/
-    └── split_aida_capitals.py                # Splitter script
+VIP/
+├── 📂 data/    split spreadsheets — one per capital + a combined multi-sheet workbook
+├── 📂 docs/    SME_Valuation_Design.pdf — the design document for the model
+├── 📂 src/     split_aida_capitals.py — the splitter script
+├── 📄 requirements.txt
+└── 📄 .gitignore
 ```
 
-## Setup
+## Quick Start
+
+**1. Install dependencies**
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate    # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Regenerating the per-capital files
+**2. Regenerate the splits from a new AIDA export**
 
-The files in `data/` were produced by `src/split_aida_capitals.py` from a consolidated AIDA export. To regenerate them from a new export:
+```bash
+cd src
+python split_aida_capitals.py
+```
 
-1. Place your raw AIDA export at the path configured in the script (default: `aida_export.xlsx` in the working directory), or pass the path interactively when prompted.
-2. Run the script:
+The script will prompt for your export path if it can't find `aida_export.xlsx` in the working directory. Outputs land in `./capital_split_outputs/` (gitignored) — move them into `data/` to update the tracked dataset. Column matching is whitespace-tolerant, so it copes with the embedded newlines AIDA likes to put in headers.
 
-   ```bash
-   cd src
-   python split_aida_capitals.py
-   ```
+## Where to Look Next
 
-3. Outputs are written to `./capital_split_outputs/` (gitignored). Move them into `data/` to update the tracked dataset.
+| Need | File |
+|---|---|
+| Model rationale & methodology | [`docs/SME_Valuation_Design.pdf`](docs/SME_Valuation_Design.pdf) |
+| Exact column list per capital | top of [`src/split_aida_capitals.py`](src/split_aida_capitals.py) |
+| The data itself | [`data/`](data/) — open `all_capitals_clean_split.xlsx` for a single-file view |
 
-The script is whitespace-tolerant when matching column headers (it handles newlines embedded in AIDA-exported headers) and prints a summary of which columns were found vs. missing for each capital group.
+## License
 
-## Column groups
-
-The exact column lists for each of the four capitals — and the shared context block — are defined at the top of `src/split_aida_capitals.py`. Edit them there if your export's schema changes.
-
-## Notes on data files
-
-The `.xlsx` files in `data/` are the source of truth for the split dataset and are committed directly to the repository. They are non-trivial in size (~50 MB total); if the repo grows further, consider migrating them to Git LFS.
-
+Proprietary — internal use only. Not for external distribution.
