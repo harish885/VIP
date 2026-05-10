@@ -4,7 +4,6 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active-2ea44f)
-![License](https://img.shields.io/badge/License-Proprietary-red)
 ![Data](https://img.shields.io/badge/Dataset-~53MB-blueviolet)
 
 ---
