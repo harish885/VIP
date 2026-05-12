@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { Search, Building2, MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Building2, MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { createServiceClient } from '@/lib/supabase/service';
 import { searchCompanies, type AidaSnapshot } from '@/lib/aida';
+import { SearchBar } from '@/components/companies/search-bar';
 
 export const metadata = { title: 'Companies · VIP' };
 export const dynamic = 'force-dynamic';
@@ -47,27 +48,14 @@ export default async function CompaniesPage({
         </div>
       )}
 
-      {/* Search box */}
-      <form action="/companies" method="GET" className="d-section">
-        <div className="relative">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-faint"
-          />
-          <input
-            type="search"
-            name="q"
-            defaultValue={q}
-            autoFocus
-            placeholder="Search by company name…"
-            className="w-full rounded-xl border border-line bg-bg-2/40 py-3.5 pl-11 pr-4 font-mono text-[13px] text-text placeholder:text-text-faint focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
-          />
-        </div>
+      {/* Search box — typeahead with debounced suggestions */}
+      <div className="d-section">
+        <SearchBar initialQuery={q} />
         <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-          <span>{q ? `Results for "${q}"` : 'Top companies by latest revenue'}</span>
+          <span>{q ? `Server results for "${q}"` : 'Top companies by latest revenue'}</span>
           <span>{results.length} shown</span>
         </div>
-      </form>
+      </div>
 
       {/* Result grid */}
       <div className="d-section mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
