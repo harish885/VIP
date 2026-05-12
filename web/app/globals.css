@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =================================================================
+   DESIGN TOKENS — mirrors the cinematic site, exposed as RGB
+   triples so Tailwind's <alpha-value> opacity modifier works.
+================================================================= */
+@layer base {
+  :root {
+    /* Surfaces (dark) */
+    --bg:           5   7   13;       /* #05070d */
+    --bg-1:         10  14  26;       /* #0a0e1a */
+    --bg-2:         15  20  34;       /* #0f1422 */
+    --bg-3:         22  28  46;       /* #161c2e */
+
+    /* Glass surfaces use rgba directly via utilities */
+    --surface:      'rgba(20, 26, 44, 0.55)';
+    --surface-2:    'rgba(28, 36, 58, 0.6)';
+
+    /* Borders */
+    --line:         35  42  59;       /* #232a3b ~rgba 0.08 white-on-dark */
+    --line-2:       45  53  72;
+    --line-faint:   24  30  44;
+
+    /* Text */
+    --ink:          236 240 247;
+    --ink-soft:     205 211 225;
+    --text:         236 240 247;
+    --text-dim:     153 163 178;
+    --text-faint:    90 100 121;
+
+    /* Accents */
+    --gold:         245 165  36;      /* #f5a524 */
+    --gold-2:       253 186 116;      /* #fdba74 */
+    --cyan:           6 182 212;      /* #06b6d4 */
+    --cyan-2:       103 232 249;      /* #67e8f9 */
+    --purple:       168  85 247;      /* #a855f7 */
+    --purple-2:     192 132 252;      /* #c084fc */
+    --green:         34 197  94;      /* #22c55e */
+    --green-2:       74 222 128;      /* #4ade80 */
+    --red:          239  68  68;
+    --amber:        245 158  11;
+    --orange:       249 115  22;
+    --blue:          59 130 246;
+
+    /* Capital colors */
+    --cap-fin:       59 130 246;      /* blue */
+    --cap-tech:     168  85 247;      /* purple */
+    --cap-human:    249 115  22;      /* orange */
+    --cap-rel:       34 197  94;      /* green */
+
+    /* Eases */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans;
+    background-color: rgb(var(--bg));
+    overflow-x: hidden;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+  }
+
+  ::selection {
+    background-color: rgb(var(--gold));
+    color: rgb(var(--bg));
+  }
+}
+
+/* =================================================================
+   COMPONENT UTILITIES
+================================================================= */
+@layer components {
+  /* Glass surface — translucent panel with backdrop blur */
+  .glass {
+    background-color: rgba(20, 26, 44, 0.55);
+    border: 1px solid rgb(var(--line) / 1);
+    border-radius: 1.125rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .glass-strong {
+    background-color: rgba(28, 36, 58, 0.6);
+    border: 1px solid rgb(var(--line-2) / 1);
+    border-radius: 1.25rem;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* Eyebrow label */
+  .eyebrow {
+    @apply inline-block font-mono font-bold uppercase tracking-eyebrow;
+    font-size: 0.625rem;
+  }
+
+  /* Section header common pattern */
+  .section-h2 {
+    @apply font-serif font-normal leading-none tracking-tight;
+    font-size: clamp(2.125rem, 5vw, 4rem);
+  }
+
+  /* Headline gradient (white → muted) */
+  .text-gradient-headline {
+    background-image: linear-gradient(135deg, #ffffff 0%, #b8c0d0 60%, #6b7280 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Gold gradient accent (used inside headings) */
+  .text-gradient-gold {
+    background-image: linear-gradient(135deg, rgb(var(--gold)) 0%, rgb(var(--gold-2)) 50%, #ffd28a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-style: italic;
+  }
+
+  /* =================================================================
+     REVEAL — fade-up on scroll-into-view
+     Used everywhere on the marketing surface in place of GSAP.
+     Toggle via `.is-visible` (set by useReveal hook).
+  ================================================================= */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Stagger children inside a revealed section. Add `data-i="0..N"` to
+     each child to position it in the stagger sequence. */
+  .reveal > [data-i] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.is-visible > [data-i="0"] { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
+  .reveal.is-visible > [data-i="1"] { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+  .reveal.is-visible > [data-i="2"] { transition-delay: 0.19s; opacity: 1; transform: translateY(0); }
+  .reveal.is-visible > [data-i="3"] { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
+  .reveal.is-visible > [data-i="4"] { transition-delay: 0.33s; opacity: 1; transform: translateY(0); }
+  .reveal.is-visible > [data-i="5"] { transition-delay: 0.40s; opacity: 1; transform: translateY(0); }
+}
+
+/* =================================================================
+   REDUCED MOTION
+================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

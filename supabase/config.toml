@@ -1,0 +1,69 @@
+# Supabase CLI configuration for the VIP project.
+# Generated for Phase 03 of the VIP build plan.
+# Re-runnable: `supabase start` boots a local Postgres + GoTrue + Studio.
+
+project_id = "vip"
+
+[api]
+enabled = true
+port = 54321
+# `vip` holds all our app objects; `public` stays empty but exposed for any
+# Supabase-managed extensions that drop helpers there.
+schemas = ["public", "vip"]
+# search_path order matters when an unqualified name could match in both schemas;
+# vip comes first so app objects win.
+extra_search_path = ["vip", "public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost:54321"
+openai_api_key = "env(OPENAI_API_KEY)"
+
+[inbucket]
+enabled = true
+port = 54324
+admin_email = "admin@email.com"
+
+[storage]
+enabled = false
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false  # Set true in prod; false locally to skip OTP
+secure_password_change = true
+max_frequency = "1s"
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[edge_runtime]
+enabled = true
+inspector_port = 8083
+
+[analytics]
+enabled = false

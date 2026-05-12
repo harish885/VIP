@@ -1,0 +1,10 @@
+-- supabase/seed.sql
+--
+-- Runs automatically after `supabase db reset` to populate dev data.
+--
+-- We deliberately keep this empty: the 14,999-SME calibration set is loaded
+-- by the Python ingestion script (`src/ingest_aida.py`), not by SQL seed,
+-- because the data lives in an .xlsx file and Python+pandas is the cleanest
+-- way to handle it.
+--
+-- To seed: see PHASE_03_SETUP.md, step 5.

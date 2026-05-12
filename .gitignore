@@ -68,3 +68,17 @@ capital_split_outputs/
 *.log
 *.tmp
 tmp/
+
+# Secrets / local config
+.env
+.env.local
+web/.env.local
+
+# Node / Next.js
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+
+# Claude Code state
+.claude/
