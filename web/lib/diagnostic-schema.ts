@@ -153,6 +153,10 @@ export const EMPTY_DIAGNOSTIC: Partial<DiagnosticInput> = {
   q_distinctive_assets_score: 3,
   q_ma_history: 1,
   distinctive_assets: '',
+  // Classificatory defaults — keep the form submittable even if the user
+  // does not touch the bottom section.
+  stated_objective: 'growth',
+  time_horizon: '24m',
 };
 
 // =============================================================================

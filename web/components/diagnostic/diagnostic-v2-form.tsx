@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useForm, FormProvider, Controller, useFormContext } from 'react-hook-form';
+import {
+  useForm,
+  FormProvider,
+  Controller,
+  useFormContext,
+  type FieldErrors,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Sparkles, ChevronRight } from 'lucide-react';
+import { Sparkles, ChevronRight, AlertTriangle } from 'lucide-react';
 import {
   DiagnosticSchema,
   EMPTY_DIAGNOSTIC,
@@ -53,20 +59,42 @@ export function DiagnosticV2Form({ taxCode, companyName }: DiagnosticV2FormProps
     });
   }
 
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+
   function onSubmit(values: DiagnosticInput) {
     setServerError(null);
+    setMissingFields([]);
     startTransition(async () => {
-      const result = await submitCompanyDiagnosticAction(taxCode, values);
-      if (!result.ok) {
-        setServerError(result.error);
+      try {
+        const result = await submitCompanyDiagnosticAction(taxCode, values);
+        if (result && !result.ok) {
+          setServerError(result.error);
+        }
+        // On success the server action calls redirect() which throws an
+        // internal Next signal; the browser navigates and we never reach here.
+      } catch (e) {
+        const msg = (e as Error).message ?? 'Unknown error';
+        // Re-throw NEXT_REDIRECT so Next.js handles the navigation.
+        if (msg.includes('NEXT_REDIRECT')) throw e;
+        setServerError(msg);
       }
-      // redirect happens server-side
     });
+  }
+
+  function onInvalid(errors: FieldErrors<DiagnosticInput>) {
+    const fields = Object.keys(errors) as Array<keyof DiagnosticInput>;
+    setMissingFields(fields.map(String));
+    // Scroll to the first error.
+    const first = fields[0];
+    if (first) {
+      const el = document.querySelector(`[data-field="${first}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-[820px] px-6 py-10">
+      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="mx-auto max-w-[820px] px-6 py-10">
         {/* Header */}
         <header className="d-section mb-6">
           <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
@@ -107,6 +135,17 @@ export function DiagnosticV2Form({ taxCode, companyName }: DiagnosticV2FormProps
 
         {/* Submit */}
         <div className="d-section mt-10 flex flex-col gap-3">
+          {missingFields.length > 0 && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber/30 bg-amber/[0.08] px-4 py-3 text-[13px] text-amber">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              <div>
+                <div className="font-semibold">Some answers are missing.</div>
+                <div className="mt-1 text-text-dim">
+                  Required: {missingFields.join(', ')}
+                </div>
+              </div>
+            </div>
+          )}
           {serverError && (
             <div className="rounded-lg border border-red-500/30 bg-red-500/[0.08] px-4 py-3 text-[13px] text-red-300">
               {serverError}
@@ -156,7 +195,7 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
   const error = formState.errors[qKey]?.message;
 
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-black/20 p-4 md:grid-cols-[1fr_auto]">
+    <div data-field={qKey} className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-black/20 p-4 md:grid-cols-[1fr_auto]">
       <div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
@@ -194,7 +233,7 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
 function ClassificatoryRow() {
   const { control, formState } = useFormContext<DiagnosticInput>();
   return (
-    <div className="rounded-xl border border-line bg-black/20 p-4">
+    <div data-field="stated_objective" className="rounded-xl border border-line bg-black/20 p-4">
       <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
         Q15–Q16 · Classificatory
       </div>
