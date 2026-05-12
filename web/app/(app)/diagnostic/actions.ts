@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { DiagnosticSchema, type DiagnosticInput } from '@/lib/diagnostic-schema';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
-import { runScoring } from '@/lib/scoring';
+import { runScoring, buildRecommendations, computeValuation, getSectorMultiple } from '@/lib/scoring';
 
 export type SubmitResult = { ok: true; submissionId?: string } | { ok: false; error: string };
 
@@ -132,19 +132,34 @@ export async function submitDiagnosticAction(input: DiagnosticInput): Promise<Su
     return { ok: false, error: `Scoring failed: ${(e as Error).message}` };
   }
 
-  const { error: vErr } = await service
+  // ---------------------------------------------------------------------------
+  // 4b) Recommendations (Phase 08) — re-uses the same valuation math so
+  //     V_potential below matches Σ top-3 uplifts shown on the dashboard.
+  // ---------------------------------------------------------------------------
+  const recommendations = buildRecommendations({ scoring, naceCode });
+  const totalUpliftPct = recommendations.reduce((sum, r) => sum + r.v_uplift_pct, 0);
+
+  const refinedValuation = computeValuation({
+    ebitda_eur: data.ebitda,
+    m_sector: getSectorMultiple({ naceCode, sector: data.sector }),
+    sqf: scoring.composite.sqf,
+    gf: scoring.growth.gf,
+    top3_uplift_pct_sum: totalUpliftPct,
+  });
+
+  const { data: valuationRow, error: vErr } = await service
     .from('valuations')
     .insert({
       user_id: user?.id ?? null,
       submission_id: submission.id,
       company_id: companyId,
-      v_current_eur: scoring.valuation.v_current_eur,
-      v_potential_eur: scoring.valuation.v_potential_eur,
-      v_low_eur: scoring.valuation.v_low_eur,
-      v_high_eur: scoring.valuation.v_high_eur,
-      value_gap_pct: scoring.valuation.value_gap_pct,
+      v_current_eur: refinedValuation.v_current_eur,
+      v_potential_eur: refinedValuation.v_potential_eur,
+      v_low_eur: refinedValuation.v_low_eur,
+      v_high_eur: refinedValuation.v_high_eur,
+      value_gap_pct: refinedValuation.value_gap_pct,
       ebitda_norm: data.ebitda,
-      m_sector: scoring.valuation.m_sector,
+      m_sector: refinedValuation.m_sector,
       sqf: scoring.composite.sqf,
       gf: scoring.growth.gf,
       quality_score: scoring.quality_score,
@@ -155,10 +170,30 @@ export async function submitDiagnosticAction(input: DiagnosticInput): Promise<Su
       cap_human: scoring.capitals.human,
       cap_relational: scoring.capitals.relational,
       flags: scoring.flags,
-    });
+    })
+    .select('id')
+    .single();
 
-  if (vErr) {
-    return { ok: false, error: `Could not save valuation: ${vErr.message}` };
+  if (vErr || !valuationRow) {
+    return { ok: false, error: `Could not save valuation: ${vErr?.message ?? 'unknown'}` };
+  }
+
+  if (recommendations.length > 0) {
+    const recoRows = recommendations.map((r) => ({
+      user_id: user?.id ?? null,
+      valuation_id: valuationRow.id,
+      rank: r.rank,
+      title: r.title,
+      description: r.description,
+      capital_impact: r.capital_impact,
+      v_uplift_pct: r.v_uplift_pct,
+      rov_score: r.rov_score,
+      time_horizon_months: r.time_to_impact_months,
+    }));
+    const { error: rErr } = await service.from('recommendations').insert(recoRows);
+    if (rErr) {
+      console.warn('[diagnostic] recommendations insert failed:', rErr.message);
+    }
   }
 
   // ---------------------------------------------------------------------------

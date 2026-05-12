@@ -104,3 +104,5 @@ export { aggregateCapitals, composeScores, scalabilityIndex } from './aggregate'
 export { computeGrowthFactor, computeValuation } from './valuation';
 export { deriveFragilityFlags, riskIndex } from './flags';
 export { getSectorMultiple, lookupBaseMultiple, applyIlliquidityDiscount } from './sector-multiples';
+export { buildRecommendations, type RecommendationOutput } from './recommendations';
+export { ACTION_CATALOGUE, type ActionCatalogueEntry } from './action-catalogue';
