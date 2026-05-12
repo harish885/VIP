@@ -13,8 +13,10 @@ import {
   SECTORS,
   LIFECYCLES,
   TIME_HORIZONS,
+  STATED_OBJECTIVES,
   type DiagnosticInput,
 } from '@/lib/diagnostic-schema';
+import { DEMO_SCORING_INPUT, type ScoringInput } from '@/lib/scoring/company-input';
 
 export type CapitalKey = 'fin' | 'tech' | 'human' | 'rel';
 export type RiskIndex = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -78,8 +80,8 @@ export interface DashboardData {
   levers: DashboardLever[];
   /** NACE code for the company — drives sector-multiple lookup in the sim. */
   naceCode: string | null;
-  /** Baseline diagnostic inputs the simulation panel mutates client-side. */
-  simulationBaseline: DiagnosticInput;
+  /** Baseline scoring input the simulation panel mutates client-side. */
+  simulationBaseline: ScoringInput;
   source: 'demo' | 'submission';
   submittedHighlight?: boolean;
 }
@@ -110,7 +112,7 @@ export function fromDemo(): DashboardData {
     actions: DEMO_ACTIONS.map((a) => ({ ...a })),
     levers:  DEMO_LEVERS.map((l) => ({ ...l })),
     naceCode: DEMO_COMPANY.nace_code,
-    simulationBaseline: { ...EXAMPLE_DIAGNOSTIC },
+    simulationBaseline: { ...DEMO_SCORING_INPUT },
     source:  'demo',
   };
 }
@@ -255,34 +257,40 @@ export function fromValuationRow(opts: FromRealOptions): DashboardData {
 }
 
 // =============================================================================
-// Build a usable DiagnosticInput from a persisted submission + company.
+// Build a usable ScoringInput from a persisted submission + company.
 // Used as the baseline for the Phase 09 simulation engine.
 // =============================================================================
 function buildBaseline(
   company: CompanyRowLike & Partial<CompanyExtras>,
   submission: SubmissionRowLike | null,
-): DiagnosticInput {
-  const base = EXAMPLE_DIAGNOSTIC;
+): ScoringInput {
+  const demo = DEMO_SCORING_INPUT;
   return {
-    revenue_y_1: submission?.revenue_y_1 ?? base.revenue_y_1,
-    revenue_y_2: submission?.revenue_y_2 ?? base.revenue_y_2,
-    revenue_y_3: submission?.revenue_y_3 ?? base.revenue_y_3,
-    ebitda: submission?.ebitda ?? base.ebitda,
-    recurring_revenue_pct: submission?.recurring_revenue_pct ?? base.recurring_revenue_pct,
-    top3_client_concentration: submission?.top3_client_concentration ?? base.top3_client_concentration,
-    tech_investment_ratio_pct: submission?.tech_investment_ratio_pct ?? base.tech_investment_ratio_pct,
-    founder_dependency: clamp15(submission?.founder_dependency ?? base.founder_dependency),
-    management_structure: clamp15(submission?.management_structure ?? base.management_structure),
-    digital_maturity: clamp15(submission?.digital_maturity ?? base.digital_maturity),
-    client_portfolio_quality: clamp15(submission?.client_portfolio_quality ?? base.client_portfolio_quality),
-    business_scalability: clamp15(submission?.business_scalability ?? base.business_scalability),
-    network_partnerships: clamp15(submission?.network_partnerships ?? base.network_partnerships),
+    ...demo,
+    revenue_y_1: submission?.revenue_y_1 ?? demo.revenue_y_1,
+    revenue_y_2: submission?.revenue_y_2 ?? demo.revenue_y_2,
+    revenue_y_3: submission?.revenue_y_3 ?? demo.revenue_y_3,
+    ebitda: submission?.ebitda ?? demo.ebitda,
+    ebitda_margin_pct: demo.ebitda_margin_pct,
+    recurring_revenue_pct: submission?.recurring_revenue_pct ?? demo.recurring_revenue_pct,
+    top3_client_concentration: submission?.top3_client_concentration ?? demo.top3_client_concentration,
+    tech_investment_ratio_pct: submission?.tech_investment_ratio_pct ?? demo.tech_investment_ratio_pct,
+    founder_dependency: clamp15(submission?.founder_dependency ?? demo.founder_dependency),
+    management_structure: clamp15(submission?.management_structure ?? demo.management_structure),
+    digital_maturity: clamp15(submission?.digital_maturity ?? demo.digital_maturity),
+    client_portfolio_quality: clamp15(submission?.client_portfolio_quality ?? demo.client_portfolio_quality),
+    business_scalability: clamp15(submission?.business_scalability ?? demo.business_scalability),
+    network_partnerships: clamp15(submission?.network_partnerships ?? demo.network_partnerships),
     sector: coerceSector(company.sector),
     lifecycle_stage: coerceLifecycle(company.lifecycle_stage),
     distinctive_assets: company.distinctive_assets ?? '',
-    stated_objective: company.stated_objective ?? base.stated_objective,
+    stated_objective: coerceObjective(company.stated_objective),
     time_horizon: coerceHorizon(company.time_horizon ?? null),
   };
+}
+
+function coerceObjective(s: string | null | undefined): DiagnosticInput['stated_objective'] {
+  return (STATED_OBJECTIVES.find((x) => x === s) ?? 'growth') as DiagnosticInput['stated_objective'];
 }
 
 function clamp15(n: number | null): 1 | 2 | 3 | 4 | 5 {
@@ -292,12 +300,12 @@ function clamp15(n: number | null): 1 | 2 | 3 | 4 | 5 {
   return v as 2 | 3 | 4;
 }
 
-function coerceSector(s: string | null): DiagnosticInput['sector'] {
-  return (SECTORS.find((x) => x === s) ?? 'Manufacturing') as DiagnosticInput['sector'];
+function coerceSector(s: string | null): NonNullable<DiagnosticInput['sector']> {
+  return (SECTORS.find((x) => x === s) ?? 'Manufacturing') as NonNullable<DiagnosticInput['sector']>;
 }
 
-function coerceLifecycle(s: string | null): DiagnosticInput['lifecycle_stage'] {
-  return (LIFECYCLES.find((x) => x === s) ?? 'Maturity') as DiagnosticInput['lifecycle_stage'];
+function coerceLifecycle(s: string | null): NonNullable<DiagnosticInput['lifecycle_stage']> {
+  return (LIFECYCLES.find((x) => x === s) ?? 'Maturity') as NonNullable<DiagnosticInput['lifecycle_stage']>;
 }
 
 function coerceHorizon(s: string | null): DiagnosticInput['time_horizon'] {

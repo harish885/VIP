@@ -10,11 +10,11 @@
  *
  * Exits 1 if the Top-3 does not contain those three IDs.
  */
-import { EXAMPLE_DIAGNOSTIC } from '../lib/diagnostic-schema';
 import { runScoring, buildRecommendations } from '../lib/scoring';
+import { DEMO_SCORING_INPUT } from '../lib/scoring/company-input';
 
 async function main() {
-  const scoring = await runScoring(EXAMPLE_DIAGNOSTIC, { naceCode: '282' });
+  const scoring = await runScoring(DEMO_SCORING_INPUT, { naceCode: '282' });
   const recos = buildRecommendations({ scoring, naceCode: '282' });
 
   console.log('--- ACME Top-3 recommendations ---');

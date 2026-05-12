@@ -10,7 +10,7 @@
  * valuations; the ranker just picks the strongest three.
  */
 import type { ScoringResult, CapitalKey } from './types';
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
+import type { StatedObjective } from '@/lib/diagnostic-schema';
 
 export interface ActionCatalogueEntry {
   /** Stable identifier — survives across catalogue edits. */
@@ -28,7 +28,7 @@ export interface ActionCatalogueEntry {
    * Stated-objective weights. Each user's `stated_objective` boosts ROV
    * for actions aligned with that objective.
    */
-  objective_weights?: Partial<Record<DiagnosticInput['stated_objective'], number>>;
+  objective_weights?: Partial<Record<StatedObjective, number>>;
   /** Predicate — should this action be a candidate for this profile? */
   fires_when: (r: ScoringResult) => boolean;
 }
@@ -45,7 +45,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_sqf: 0.12,
     effort_score: 2,
     time_to_impact_months: 18,
-    objective_weights: { prepare_exit: 1.5, grow_value: 1.75, raise_capital: 1.2 },
+    objective_weights: { exit_preparation: 1.5, growth: 1.75, investor_readiness: 1.2 },
     fires_when: (r) => r.inputs.top3_client_concentration > 40,
   },
   {
@@ -56,7 +56,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_gf: 0.15,
     effort_score: 3,
     time_to_impact_months: 12,
-    objective_weights: { raise_capital: 1.3, grow_value: 1.3, prepare_exit: 1.1 },
+    objective_weights: { investor_readiness: 1.3, growth: 1.3, exit_preparation: 1.1 },
     fires_when: (r) => r.inputs.recurring_revenue_pct < 35,
   },
   {
@@ -68,7 +68,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_gf: 0.05,
     effort_score: 4,
     time_to_impact_months: 18,
-    objective_weights: { grow_value: 1.2 },
+    objective_weights: { growth: 1.2 },
     fires_when: (r) => r.percentiles.network < 60 && r.inputs.business_scalability >= 3,
   },
 
@@ -83,8 +83,9 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_sqf: 0.08,
     effort_score: 2,
     time_to_impact_months: 24,
-    objective_weights: { succession: 1.4, prepare_exit: 1.2, grow_value: 1.3 },
-    fires_when: (r) => r.inputs.founder_dependency >= 3 || r.inputs.management_structure <= 3,
+    objective_weights: { succession: 1.4, exit_preparation: 1.2, growth: 1.3 },
+    // New Q5 scale: low score = high founder dependency. Fire when ≤ 3.
+    fires_when: (r) => r.inputs.founder_dependency <= 3 || r.inputs.management_structure <= 3,
   },
   {
     id: 'governance_upgrade',
@@ -94,7 +95,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_sqf: 0.05,
     effort_score: 2,
     time_to_impact_months: 12,
-    objective_weights: { prepare_exit: 1.3, raise_capital: 1.25 },
+    objective_weights: { exit_preparation: 1.3, investor_readiness: 1.25 },
     fires_when: (r) => r.percentiles.management < 60,
   },
 
@@ -110,7 +111,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_gf: 0.04,
     effort_score: 4,
     time_to_impact_months: 18,
-    objective_weights: { grow_value: 1.15, raise_capital: 1.1 },
+    objective_weights: { growth: 1.15, investor_readiness: 1.1 },
     fires_when: (r) => r.inputs.digital_maturity <= 3,
   },
   {
@@ -121,7 +122,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_gf: 0.08,
     effort_score: 3,
     time_to_impact_months: 24,
-    objective_weights: { grow_value: 1.2, raise_capital: 1.15 },
+    objective_weights: { growth: 1.2, investor_readiness: 1.15 },
     fires_when: (r) => r.inputs.tech_investment_ratio_pct < 3,
   },
 
@@ -136,7 +137,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_sqf: 0.07,
     effort_score: 3,
     time_to_impact_months: 12,
-    objective_weights: { grow_value: 1.0, raise_capital: 1.15, prepare_exit: 1.1 },
+    objective_weights: { growth: 1.0, investor_readiness: 1.15, exit_preparation: 1.1 },
     fires_when: (r) => r.metrics.ebitda_margin_pct < 7,
   },
   {
@@ -147,7 +148,7 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     delta_sqf: 0.06,
     effort_score: 2,
     time_to_impact_months: 18,
-    objective_weights: { prepare_exit: 1.2, raise_capital: 1.1 },
+    objective_weights: { exit_preparation: 1.2, investor_readiness: 1.1 },
     fires_when: (r) => r.flags.includes('over_leveraged'),
   },
 ];

@@ -1,21 +1,49 @@
 import { z } from 'zod';
 
 /**
- * Diagnostic schema — the 17 inputs the entrepreneur fills in to get a
- * valuation. Used by the multi-step form on /diagnostic and (eventually)
- * the scoring Edge Function on the server.
+ * Diagnostic schema — Pivot edition.
  *
- * Mirrors the columns on vip.submissions (with two derived fields —
- * revenue_cagr_pct and ebitda_margin_pct — computed in `deriveMetrics`
- * below rather than asked for directly).
+ * Aligned with the Value_Intelligence_Questionnaire+contextdata.docx PoC
+ * (20 questions). All scored questions are 1–5 Likert; classificatory
+ * questions are enums.
+ *
+ * Quantitative inputs (revenue history, EBITDA, margin, R&D ratio,
+ * recurring revenue, top-3 client concentration) are NOT collected here
+ * any more — they are pulled from the AIDA snapshot for the selected
+ * company at submission time.
+ *
+ * Backwards-compatible: every field on the old schema either survived as
+ * one of the new questions (Q5/Q6/Q9/Q12/Q14 etc.) or is now optional
+ * with a sensible default (sector, distinctive_assets text).
  */
 
 // =============================================================================
-// CORE SCHEMA
+// Enums (classificatory questions Q15, Q16, Q20)
 // =============================================================================
 
-export const LIFECYCLES = ['Early', 'Growth', 'Maturity', 'Decline'] as const;
 export const TIME_HORIZONS = ['12m', '24m', '36m', '60m'] as const;
+export type TimeHorizon = (typeof TIME_HORIZONS)[number];
+
+export const STATED_OBJECTIVES = [
+  'growth',
+  'profitability',
+  'exit_preparation',
+  'investor_readiness',
+  'succession',
+  'organisational_strengthening',
+] as const;
+export type StatedObjective = (typeof STATED_OBJECTIVES)[number];
+
+export const OBJECTIVE_LABELS: Record<StatedObjective, string> = {
+  growth: 'Growth',
+  profitability: 'Profitability improvement',
+  exit_preparation: 'Exit preparation',
+  investor_readiness: 'Investor readiness',
+  succession: 'Continuity / succession',
+  organisational_strengthening: 'Organisational strengthening',
+};
+
+export const LIFECYCLES = ['Early', 'Growth', 'Maturity', 'Decline'] as const;
 
 export const SECTORS = [
   'Manufacturing',
@@ -28,141 +56,442 @@ export const SECTORS = [
   'Other',
 ] as const;
 
+// Kept for downstream code that still imports it — the new questionnaire
+// uses STATED_OBJECTIVES instead.
 export const OBJECTIVES = [
-  { value: 'grow_value',     label: 'Grow company value before exit' },
-  { value: 'prepare_exit',   label: 'Prepare for an exit / sale' },
-  { value: 'raise_capital',  label: 'Raise growth capital' },
-  { value: 'evaluate_target',label: 'Evaluate an acquisition target' },
-  { value: 'succession',     label: 'Succession planning' },
-  { value: 'diagnostic',     label: 'Periodic health check' },
+  { value: 'growth',                       label: 'Growth' },
+  { value: 'profitability',                label: 'Profitability improvement' },
+  { value: 'exit_preparation',             label: 'Exit preparation' },
+  { value: 'investor_readiness',           label: 'Investor readiness' },
+  { value: 'succession',                   label: 'Continuity / succession' },
+  { value: 'organisational_strengthening', label: 'Organisational strengthening' },
 ] as const;
 
+// =============================================================================
+// SCHEMA — 20 PoC questions
+// =============================================================================
+
+const likert = z.number().int().min(1).max(5);
+
 export const DiagnosticSchema = z.object({
-  // ---- Quantitative (7 fields, 6 conceptual inputs — revenue 3y is one) ----
-  revenue_y_1: z.number({ invalid_type_error: 'Required' }).min(0, 'Must be ≥ 0'),
-  revenue_y_2: z.number({ invalid_type_error: 'Required' }).min(0, 'Must be ≥ 0'),
-  revenue_y_3: z.number({ invalid_type_error: 'Required' }).min(0, 'Must be ≥ 0'),
-  ebitda:      z.number({ invalid_type_error: 'Required' }),
-  recurring_revenue_pct:     z.number().min(0, '≥ 0').max(100, '≤ 100'),
-  top3_client_concentration: z.number().min(0, '≥ 0').max(100, '≤ 100'),
-  tech_investment_ratio_pct: z.number().min(0, '≥ 0').max(100, '≤ 100'),
+  // ---- Section 1 · Technological Capital (Q1-Q4) ----------------------------
+  /** Q1 — digitalization of core processes */
+  digital_maturity:        likert,
+  /** Q2 — automation of repetitive tasks */
+  q_automation:            likert,
+  /** Q3 — integration of enabling systems (ERP/CRM/…) */
+  q_enabling_systems:      likert,
+  /** Q4 — proprietary tech / IP / codified know-how */
+  q_distinctive_tech_assets: likert,
 
-  // ---- Qualitative · 1–5 (6 fields) ----
-  founder_dependency:       z.number().int().min(1).max(5),
-  management_structure:     z.number().int().min(1).max(5),
-  digital_maturity:         z.number().int().min(1).max(5),
-  client_portfolio_quality: z.number().int().min(1).max(5),
-  business_scalability:     z.number().int().min(1).max(5),
-  network_partnerships:     z.number().int().min(1).max(5),
+  // ---- Section 2 · Human & Organisational Capital (Q5-Q8) -------------------
+  /** Q5 — founder dependency (1 = severely affected, 5 = minimally) */
+  founder_dependency:      likert,
+  /** Q6 — strength of second management line */
+  management_structure:    likert,
+  /** Q7 — process formalisation / maturity */
+  q_process_maturity:      likert,
+  /** Q8 — transferability of ownership */
+  q_transferability:       likert,
 
-  // ---- Contextual (5 fields) ----
-  sector:             z.enum(SECTORS),
-  lifecycle_stage:    z.enum(LIFECYCLES),
-  distinctive_assets: z.string().max(200).optional().or(z.literal('')),
-  stated_objective:   z.string().min(1, 'Pick an objective'),
-  time_horizon:       z.enum(TIME_HORIZONS),
+  // ---- Section 3 · Relational Capital (Q9-Q12) -----------------------------
+  /** Q9 — client portfolio quality & diversification */
+  client_portfolio_quality: likert,
+  /** Q10 — strategic partnerships */
+  q_strategic_partnerships: likert,
+  /** Q11 — reputation / market recognition */
+  q_reputation:            likert,
+  /** Q12 — network / ecosystem position */
+  network_partnerships:    likert,
+
+  // ---- Section 4 · Growth Quality & Context (Q13-Q14) ----------------------
+  /** Q13 — quality of growth (episodic vs organic) */
+  q_quality_of_growth:     likert,
+  /** Q14 — business model scalability */
+  business_scalability:    likert,
+
+  // ---- Section 5 · Classificatory + extended context (Q15-Q20) -------------
+  /** Q15 — entrepreneur's main objective over 24–36 months */
+  stated_objective:        z.enum(STATED_OBJECTIVES),
+  /** Q16 — declared time horizon */
+  time_horizon:            z.enum(TIME_HORIZONS),
+  /** Q17 — business lifecycle stage (1–5 maturity scale) */
+  q_lifecycle_score:       likert,
+  /** Q18 — strength of distinctive assets */
+  q_distinctive_assets_score: likert,
+  /** Q19 — M&A / exit history */
+  q_ma_history:            likert,
+
+  // ---- Optional free-text context that the form still supports -------------
+  distinctive_assets:      z.string().max(200).optional().or(z.literal('')),
+  sector:                  z.enum(SECTORS).optional(),
+  lifecycle_stage:         z.enum(LIFECYCLES).optional(),
 });
 
 export type DiagnosticInput = z.infer<typeof DiagnosticSchema>;
 
 // =============================================================================
-// DEFAULTS (empty form)
+// Defaults
 // =============================================================================
 
 export const EMPTY_DIAGNOSTIC: Partial<DiagnosticInput> = {
-  revenue_y_1: undefined,
-  revenue_y_2: undefined,
-  revenue_y_3: undefined,
-  ebitda: undefined,
-  recurring_revenue_pct: undefined,
-  top3_client_concentration: undefined,
-  tech_investment_ratio_pct: undefined,
-
+  digital_maturity: 3,
+  q_automation: 3,
+  q_enabling_systems: 3,
+  q_distinctive_tech_assets: 3,
   founder_dependency: 3,
   management_structure: 3,
-  digital_maturity: 3,
+  q_process_maturity: 3,
+  q_transferability: 3,
   client_portfolio_quality: 3,
-  business_scalability: 3,
+  q_strategic_partnerships: 3,
+  q_reputation: 3,
   network_partnerships: 3,
-
+  q_quality_of_growth: 3,
+  business_scalability: 3,
+  q_lifecycle_score: 3,
+  q_distinctive_assets_score: 3,
+  q_ma_history: 1,
   distinctive_assets: '',
 };
 
 // =============================================================================
-// EXAMPLE VALUES — for the "Fill with example" button (ACME profile)
+// EXAMPLE VALUES — same ACME profile as before, expressed in the new schema
 // =============================================================================
 
 export const EXAMPLE_DIAGNOSTIC: DiagnosticInput = {
-  revenue_y_1: 6_200_000,
-  revenue_y_2: 7_100_000,
-  revenue_y_3: 8_400_000,
-  ebitda: 750_000,
-  recurring_revenue_pct: 18,
-  top3_client_concentration: 60,
-  tech_investment_ratio_pct: 1.2,
-
-  founder_dependency: 4,        // Heavy reliance on founder
-  management_structure: 3,      // OK but thin
-  digital_maturity: 2,          // Behind
-  client_portfolio_quality: 3,  // Concentrated
-  business_scalability: 4,      // Decent
-  network_partnerships: 3,      // Average
-
+  // Tech
+  digital_maturity: 2,
+  q_automation: 2,
+  q_enabling_systems: 2,
+  q_distinctive_tech_assets: 3,
+  // Human & Org
+  founder_dependency: 2,            // Q5 reversed scale: 2 = strongly affected
+  management_structure: 3,
+  q_process_maturity: 3,
+  q_transferability: 2,
+  // Relational
+  client_portfolio_quality: 2,
+  q_strategic_partnerships: 3,
+  q_reputation: 4,
+  network_partnerships: 3,
+  // Growth
+  q_quality_of_growth: 3,
+  business_scalability: 4,
+  // Context
+  stated_objective: 'growth',
+  time_horizon: '24m',
+  q_lifecycle_score: 4,
+  q_distinctive_assets_score: 4,
+  q_ma_history: 1,
+  distinctive_assets: 'Patent on cooling-coil design; 3 long-term automotive OEM contracts',
   sector: 'Manufacturing',
   lifecycle_stage: 'Maturity',
-  distinctive_assets: 'Patent on cooling-coil design; 3 long-term automotive OEM contracts',
-  stated_objective: 'grow_value',
-  time_horizon: '24m',
 };
 
 // =============================================================================
-// DERIVED METRICS — computed from the raw inputs above
+// LIKERT LABELS — used by the form's rating component
 // =============================================================================
+
+export const LIKERT_LABELS: Record<keyof typeof QUESTIONS, readonly [string, string, string, string, string]> = {} as never;
 
 /**
- * From the 3 revenue years + EBITDA, derive the two ratios the scoring
- * engine needs: revenue CAGR and EBITDA margin.
+ * Full question metadata — labels, options, sections.
+ * The form renders by walking this object.
  */
-export function deriveMetrics(input: DiagnosticInput) {
-  const { revenue_y_1, revenue_y_3, ebitda } = input;
-  const cagr =
-    revenue_y_1 > 0 && revenue_y_3 > 0
-      ? (Math.pow(revenue_y_3 / revenue_y_1, 1 / 2) - 1) * 100
-      : 0;
-  const margin = revenue_y_3 > 0 ? (ebitda / revenue_y_3) * 100 : 0;
-  return {
-    revenue_cagr_pct: round1(cagr),
-    ebitda_margin_pct: round1(margin),
-  };
-}
+export const QUESTIONS = {
+  // ---- Tech --------
+  digital_maturity: {
+    section: 'Technological Capital',
+    n: 'Q1',
+    title: 'Digitalization of core processes',
+    hint: 'Operations, administration, reporting, sales — how digital are they?',
+    options: [
+      'Mostly manual',
+      'Some processes digitalized, but fragmented',
+      'Core processes partially digitalized',
+      'Core processes well digitalized',
+      'Core processes widely digitalized and integrated',
+    ],
+  },
+  q_automation: {
+    section: 'Technological Capital',
+    n: 'Q2',
+    title: 'Automation',
+    hint: 'How much of the repetitive / administrative work runs without human touch?',
+    options: [
+      'Almost not automated',
+      'Slightly automated',
+      'Partially automated',
+      'Largely automated',
+      'Widely automated',
+    ],
+  },
+  q_enabling_systems: {
+    section: 'Technological Capital',
+    n: 'Q3',
+    title: 'Enabling systems',
+    hint: 'ERP, CRM, production, reporting — how integrated are they?',
+    options: [
+      'No relevant or fully disconnected systems',
+      'Systems exist but are highly disconnected',
+      'Systems partially integrated',
+      'Systems well integrated across functions',
+      'Integrated digital backbone used regularly',
+    ],
+  },
+  q_distinctive_tech_assets: {
+    section: 'Technological Capital',
+    n: 'Q4',
+    title: 'Distinctive technological assets',
+    hint: 'Proprietary data, software, IP, codified know-how.',
+    options: [
+      'No relevant distinctive assets',
+      'Limited / weakly structured',
+      'Some distinctive assets exist',
+      'Distinctive assets are clearly present',
+      'Strong and strategically relevant',
+    ],
+  },
 
-function round1(n: number) {
-  return Math.round(n * 10) / 10;
-}
+  // ---- Human & Org --------
+  founder_dependency: {
+    section: 'Human & Organisational Capital',
+    n: 'Q5',
+    title: 'Founder dependency',
+    hint: 'If the founder were out for 3 months, how much would operations suffer?',
+    /** Note: scored "minimal dependency = 5". 1 = very severely affected. */
+    options: [
+      'Very severely affected',
+      'Strongly affected',
+      'Moderately affected',
+      'Slightly affected',
+      'Minimal / negligible impact',
+    ],
+  },
+  management_structure: {
+    section: 'Human & Organisational Capital',
+    n: 'Q6',
+    title: 'Management structure',
+    hint: 'Second line of management — how strong is it?',
+    options: [
+      'Almost absent',
+      'Very weak',
+      'Partially present',
+      'Well present',
+      'Very solid and clearly defined',
+    ],
+  },
+  q_process_maturity: {
+    section: 'Human & Organisational Capital',
+    n: 'Q7',
+    title: 'Process maturity',
+    hint: 'How formalised and documented are the main processes?',
+    options: [
+      'Barely formalized',
+      'Weakly formalized',
+      'Partially formalized',
+      'Well formalized',
+      'Highly formalized and standardized',
+    ],
+  },
+  q_transferability: {
+    section: 'Human & Organisational Capital',
+    n: 'Q8',
+    title: 'Transferability',
+    hint: 'How easily could the company change owner / leadership team?',
+    options: [
+      'Very difficult to transfer',
+      'Difficult',
+      'Moderately transferable',
+      'Fairly transferable',
+      'Highly transferable',
+    ],
+  },
 
-// =============================================================================
-// FIELD LABEL MAP — for the review step
-// =============================================================================
+  // ---- Relational --------
+  client_portfolio_quality: {
+    section: 'Relational Capital',
+    n: 'Q9',
+    title: 'Client portfolio quality & diversification',
+    hint: 'How diversified and stable is the client base?',
+    options: [
+      'Very concentrated and fragile',
+      'Rather concentrated',
+      'Moderately diversified',
+      'Well diversified',
+      'Very well diversified and stable',
+    ],
+  },
+  q_strategic_partnerships: {
+    section: 'Relational Capital',
+    n: 'Q10',
+    title: 'Strategic partnerships',
+    hint: 'Are the partnerships truly value-creating (access, distribution, innovation)?',
+    options: [
+      'No relevant partnerships',
+      'Weak / operational only',
+      'Some useful partnerships',
+      'Strong strategic partnerships',
+      'Very strong and strategically relevant',
+    ],
+  },
+  q_reputation: {
+    section: 'Relational Capital',
+    n: 'Q11',
+    title: 'Reputation / market recognition',
+    hint: 'How recognised is the company in its market / niche?',
+    options: [
+      'Hardly recognized',
+      'Weakly recognized',
+      'Moderately recognized',
+      'Well recognized',
+      'Strongly recognized / strong reputation',
+    ],
+  },
+  network_partnerships: {
+    section: 'Relational Capital',
+    n: 'Q12',
+    title: 'Network / ecosystem position',
+    hint: 'Position within the supply chain / ecosystem.',
+    options: [
+      'Weak or peripheral',
+      'Limited position',
+      'Fair position',
+      'Good position',
+      'Strong and defensible',
+    ],
+  },
 
-export const FIELD_LABELS: Record<keyof DiagnosticInput, string> = {
-  revenue_y_1: 'Revenue · 3 years ago',
-  revenue_y_2: 'Revenue · 2 years ago',
-  revenue_y_3: 'Revenue · last year',
-  ebitda: 'EBITDA',
-  recurring_revenue_pct: 'Recurring revenue %',
-  top3_client_concentration: 'Top-3 client concentration %',
-  tech_investment_ratio_pct: 'Tech investment / revenue %',
+  // ---- Growth --------
+  q_quality_of_growth: {
+    section: 'Growth Quality & Context',
+    n: 'Q13',
+    title: 'Quality of growth',
+    hint: 'In recent years, growth has been mostly…',
+    options: [
+      'Episodic / single-client driven',
+      'Rather irregular',
+      'Mixed',
+      'Fairly stable and organic',
+      'Very stable, organic, repeatable',
+    ],
+  },
+  business_scalability: {
+    section: 'Growth Quality & Context',
+    n: 'Q14',
+    title: 'Business model scalability',
+    hint: 'Can the model grow without a proportional cost / complexity increase?',
+    options: [
+      'Very low scalability',
+      'Low scalability',
+      'Moderate scalability',
+      'Fairly scalable',
+      'Highly scalable',
+    ],
+  },
 
-  founder_dependency: 'Founder dependency',
-  management_structure: 'Management structure',
-  digital_maturity: 'Digital maturity',
-  client_portfolio_quality: 'Client portfolio quality',
-  business_scalability: 'Business model scalability',
-  network_partnerships: 'Network & partnerships',
+  // ---- Extended context (Q17-Q19) --------
+  q_lifecycle_score: {
+    section: 'Contextual Inputs',
+    n: 'Q17',
+    title: 'Business lifecycle stage',
+    hint: 'Which option best describes the company today?',
+    options: [
+      'Early structuring / still building a repeatable model',
+      'Stable but founder-centric and operationally immature',
+      'Established and moderately structured',
+      'Mature and well-structured',
+      'Highly structured and strategically ready for scale or exit',
+    ],
+  },
+  q_distinctive_assets_score: {
+    section: 'Contextual Inputs',
+    n: 'Q18',
+    title: 'Distinctive assets',
+    hint: 'Proprietary know-how, IP, exclusive capabilities, certifications, niche position.',
+    options: [
+      'No clearly distinctive assets',
+      'Limited or weakly defendable',
+      'Some meaningful distinctive assets',
+      'Strong distinctive assets',
+      'Highly distinctive and strategically defensible',
+    ],
+  },
+  q_ma_history: {
+    section: 'Contextual Inputs',
+    n: 'Q19',
+    title: 'Prior M&A / exit exposure',
+    hint: 'Has the company already been through transactions or integrations?',
+    options: [
+      'No relevant M&A or exit exposure',
+      'Informal / exploratory only',
+      'Some limited transaction or integration experience',
+      'Relevant transaction / structured integration experience',
+      'Strong prior M&A / exit experience',
+    ],
+  },
+} as const satisfies Record<string, {
+  section: string;
+  n: string;
+  title: string;
+  hint: string;
+  options: readonly [string, string, string, string, string];
+}>;
 
-  sector: 'Sector',
-  lifecycle_stage: 'Lifecycle stage',
-  distinctive_assets: 'Distinctive assets',
-  stated_objective: 'Stated objective',
-  time_horizon: 'Time horizon',
+export type QuestionKey = keyof typeof QUESTIONS;
+
+export const QUESTION_SECTIONS = [
+  'Technological Capital',
+  'Human & Organisational Capital',
+  'Relational Capital',
+  'Growth Quality & Context',
+  'Contextual Inputs',
+] as const;
+export type QuestionSection = (typeof QUESTION_SECTIONS)[number];
+
+/** Convenience: which fields belong to which section, in display order. */
+export const QUESTIONS_BY_SECTION: Record<QuestionSection, QuestionKey[]> = {
+  'Technological Capital':           ['digital_maturity', 'q_automation', 'q_enabling_systems', 'q_distinctive_tech_assets'],
+  'Human & Organisational Capital':  ['founder_dependency', 'management_structure', 'q_process_maturity', 'q_transferability'],
+  'Relational Capital':              ['client_portfolio_quality', 'q_strategic_partnerships', 'q_reputation', 'network_partnerships'],
+  'Growth Quality & Context':        ['q_quality_of_growth', 'business_scalability'],
+  'Contextual Inputs':               ['q_lifecycle_score', 'q_distinctive_assets_score', 'q_ma_history'],
 };
+
+// =============================================================================
+// Field labels for the review step
+// =============================================================================
+export const FIELD_LABELS: Record<keyof DiagnosticInput, string> = {
+  digital_maturity:              'Q1 · Digitalization',
+  q_automation:                  'Q2 · Automation',
+  q_enabling_systems:            'Q3 · Enabling systems',
+  q_distinctive_tech_assets:     'Q4 · Distinctive tech assets',
+  founder_dependency:            'Q5 · Founder dependency',
+  management_structure:          'Q6 · Management structure',
+  q_process_maturity:            'Q7 · Process maturity',
+  q_transferability:             'Q8 · Transferability',
+  client_portfolio_quality:      'Q9 · Client portfolio',
+  q_strategic_partnerships:      'Q10 · Strategic partnerships',
+  q_reputation:                  'Q11 · Reputation',
+  network_partnerships:          'Q12 · Network position',
+  q_quality_of_growth:           'Q13 · Quality of growth',
+  business_scalability:          'Q14 · Scalability',
+  stated_objective:              'Q15 · Stated objective',
+  time_horizon:                  'Q16 · Time horizon',
+  q_lifecycle_score:             'Q17 · Lifecycle',
+  q_distinctive_assets_score:    'Q18 · Distinctive assets',
+  q_ma_history:                  'Q19 · M&A history',
+  distinctive_assets:            'Notes · Distinctive assets',
+  sector:                        'Sector',
+  lifecycle_stage:               'Lifecycle (legacy)',
+};
+
+// =============================================================================
+// Legacy compatibility — `deriveMetrics` used to derive CAGR + margin from
+// the now-removed quantitative inputs. Kept as an empty stub so nothing
+// importing it breaks. AIDA snapshot supplies these now.
+// =============================================================================
+export function deriveMetrics(_input: DiagnosticInput) {
+  return { revenue_cagr_pct: 0, ebitda_margin_pct: 0 };
+}

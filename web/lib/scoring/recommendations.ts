@@ -12,8 +12,8 @@
  *
  * The top three are then ranked and re-sorted 1..3 by ΔV%.
  */
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
 import type { ScoringResult, CapitalKey } from './types';
+import type { StatedObjective } from '@/lib/diagnostic-schema';
 import { computeValuation } from './valuation';
 import { getSectorMultiple } from './sector-multiples';
 import { ACTION_CATALOGUE, type ActionCatalogueEntry } from './action-catalogue';
@@ -74,7 +74,7 @@ export function buildRecommendations({
     const deltaVPct = (deltaVEur / baseV) * 100;
 
     const objectiveWeight =
-      entry.objective_weights?.[scoring.inputs.stated_objective as DiagnosticInput['stated_objective']] ?? 1.0;
+      entry.objective_weights?.[scoring.inputs.stated_objective as StatedObjective] ?? 1.0;
 
     const rovScore = (deltaVPct / (entry.effort_score * entry.time_to_impact_months)) * objectiveWeight;
 

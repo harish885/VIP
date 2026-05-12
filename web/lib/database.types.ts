@@ -43,6 +43,7 @@ export type Database = {
           province: string | null
           sector: string | null
           stated_objective: string | null
+          tax_code: string | null
           time_horizon: string | null
           updated_at: string
           user_id: string | null
@@ -54,6 +55,7 @@ export type Database = {
           lifecycle_stage?: string | null
           ma_exit_history?: string | null
           nace_code?: string | null
+          tax_code?: string | null
           name: string
           province?: string | null
           sector?: string | null
@@ -69,6 +71,7 @@ export type Database = {
           lifecycle_stage?: string | null
           ma_exit_history?: string | null
           nace_code?: string | null
+          tax_code?: string | null
           name?: string
           province?: string | null
           sector?: string | null
@@ -327,6 +330,17 @@ export type Database = {
           id: string
           management_structure: number | null
           network_partnerships: number | null
+          q_automation: number | null
+          q_distinctive_assets_score: number | null
+          q_distinctive_tech_assets: number | null
+          q_enabling_systems: number | null
+          q_lifecycle_score: number | null
+          q_ma_history: number | null
+          q_process_maturity: number | null
+          q_quality_of_growth: number | null
+          q_reputation: number | null
+          q_strategic_partnerships: number | null
+          q_transferability: number | null
           recurring_revenue_pct: number | null
           revenue_cagr_pct: number | null
           revenue_y_1: number | null
@@ -348,6 +362,17 @@ export type Database = {
           id?: string
           management_structure?: number | null
           network_partnerships?: number | null
+          q_automation?: number | null
+          q_distinctive_assets_score?: number | null
+          q_distinctive_tech_assets?: number | null
+          q_enabling_systems?: number | null
+          q_lifecycle_score?: number | null
+          q_ma_history?: number | null
+          q_process_maturity?: number | null
+          q_quality_of_growth?: number | null
+          q_reputation?: number | null
+          q_strategic_partnerships?: number | null
+          q_transferability?: number | null
           recurring_revenue_pct?: number | null
           revenue_cagr_pct?: number | null
           revenue_y_1?: number | null
@@ -369,6 +394,17 @@ export type Database = {
           id?: string
           management_structure?: number | null
           network_partnerships?: number | null
+          q_automation?: number | null
+          q_distinctive_assets_score?: number | null
+          q_distinctive_tech_assets?: number | null
+          q_enabling_systems?: number | null
+          q_lifecycle_score?: number | null
+          q_ma_history?: number | null
+          q_process_maturity?: number | null
+          q_quality_of_growth?: number | null
+          q_reputation?: number | null
+          q_strategic_partnerships?: number | null
+          q_transferability?: number | null
           recurring_revenue_pct?: number | null
           revenue_cagr_pct?: number | null
           revenue_y_1?: number | null

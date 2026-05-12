@@ -6,7 +6,7 @@
  *   · the dashboard view (Phase 07)
  *   · the client-side simulation engine (Phase 09 — re-uses valuation.ts)
  */
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
+import type { ScoringInput } from './company-input';
 
 export type CapitalKey = 'financial' | 'technological' | 'human' | 'relational';
 
@@ -88,7 +88,7 @@ export interface ValuationOutputs {
 
 /** Final output of the scoring pipeline — what gets written to vip.valuations. */
 export interface ScoringResult {
-  inputs: DiagnosticInput;
+  inputs: ScoringInput;
   metrics: DerivedMetrics;
   percentiles: PercentileRanks;
   capitals: CapitalScores;

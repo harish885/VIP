@@ -13,11 +13,11 @@
  * not currently collect — we approximate from EBITDA margin instead so
  * the flag still meaningfully fires for thin-margin operators.
  */
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
+import type { ScoringInput } from './company-input';
 import type { DerivedMetrics, FragilityFlag, RiskIndex } from './types';
 
 export function deriveFragilityFlags(
-  input: DiagnosticInput,
+  input: ScoringInput,
   metrics: DerivedMetrics,
 ): FragilityFlag[] {
   const fired: FragilityFlag[] = [];
@@ -25,7 +25,8 @@ export function deriveFragilityFlags(
   if (input.top3_client_concentration > 50) {
     fired.push('client_concentration');
   }
-  if (input.founder_dependency >= 5) {
+  // Q5 scale: 1 = severely affected (high dependency), 5 = minimally affected.
+  if (input.founder_dependency <= 1) {
     fired.push('founder_dependency');
   }
   if (input.digital_maturity <= 1) {

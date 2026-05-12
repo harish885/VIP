@@ -29,6 +29,24 @@ Academic project (Master in Data Science for Management, Cattolica). Final exam 
 | 07 | Dashboard wired to real valuations | ✅ done |
 | 08 | Recommendation engine + ROV ranking | ✅ done |
 | 09 | Simulation Engine + polish (local-only delivery) | ✅ done |
+| 10 | **Pivot** — company search + per-company dashboard + 20-Q questionnaire | ✅ done |
+
+## Pivot overview (post-Phase-09)
+
+User-facing flow is now company-centric instead of free-form:
+
+```
+/  →  /companies  →  /companies/[taxCode]  →  /companies/[taxCode]/diagnostic  →  /companies/[taxCode]?submitted=…
+```
+
+Key changes:
+
+- **/companies** — search bar over the 14 999 AIDA SMEs (`vip.aida_company_snapshot` view).
+- **/companies/[taxCode]** — per-company dashboard. AIDA factsheet always visible; if a diagnostic has run for this company, the full `DashboardView` renders with real V / capitals / Top-3 / simulation. Otherwise a "Run diagnostic" CTA.
+- **Diagnostic questionnaire** — rebuilt against the 20-question PoC in `Value_Intelligence_Questionnaire+contextdata.docx`. Pure qualitative (1–5). Quantitative data is pulled from the AIDA snapshot at submission time, not typed by the entrepreneur.
+- **`vip.companies.tax_code`** links each user company to its AIDA row.
+- **`web/lib/scoring/company-input.ts`** bridges questionnaire + AIDA → the existing `runScoring` engine. Old 6-qualitative + 7-quant inputs are still produced internally (concentration / recurring revenue proxied off Q9 + Q13, tech ratio off AIDA R&D when available).
+- **Old `/diagnostic` route** redirects to `/companies` — there's no longer a free-form path.
 
 Full deliverables + acceptance criteria per phase: **`docs/VIP_Build_Plan.pdf` § 14**.
 

@@ -13,12 +13,12 @@
  *
  * Exits 1 on calibration miss so the script can be wired into CI later.
  */
-import { EXAMPLE_DIAGNOSTIC } from '../lib/diagnostic-schema';
 import { DEMO_VALUATION } from '../lib/demo-data';
 import { runScoring } from '../lib/scoring';
+import { DEMO_SCORING_INPUT } from '../lib/scoring/company-input';
 
 async function main() {
-  const result = await runScoring(EXAMPLE_DIAGNOSTIC, { naceCode: '282' });
+  const result = await runScoring(DEMO_SCORING_INPUT, { naceCode: '282' });
 
   const tolerance = (actual: number, expected: number, pct: number) => {
     const diff = Math.abs(actual - expected) / Math.max(1, expected);

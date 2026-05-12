@@ -29,13 +29,16 @@ const LIFECYCLE_MODIFIERS: Record<string, number> = {
 
 export function computeGrowthFactor(input: {
   revenue_cagr_2y_pct: number;
-  lifecycle_stage: DiagnosticInput['lifecycle_stage'];
+  lifecycle_stage: NonNullable<DiagnosticInput['lifecycle_stage']> | string;
   business_scalability: number;  // 1–5
 }): GrowthFactor {
   const cagrFrac = clamp(input.revenue_cagr_2y_pct / 100, -0.3, 0.5);
   const gf_base = 1.0 + cagrFrac * 0.4;
 
-  const lifecycle_modifier = LIFECYCLE_MODIFIERS[input.lifecycle_stage] ?? 1.0;
+  const lifecycle_modifier: number =
+    typeof input.lifecycle_stage === 'string' && LIFECYCLE_MODIFIERS[input.lifecycle_stage] !== undefined
+      ? LIFECYCLE_MODIFIERS[input.lifecycle_stage]!
+      : 1.0;
   const scalability_modifier = 0.92 + (clamp(input.business_scalability, 1, 5) - 1) * 0.03;
   //   1 → 0.92   2 → 0.95   3 → 0.98   4 → 1.01   5 → 1.04
 

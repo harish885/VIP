@@ -17,8 +17,7 @@
  */
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Sliders } from 'lucide-react';
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
-import { runScoring, type ScoringResult } from '@/lib/scoring';
+import { runScoring, type ScoringResult, type ScoringInput } from '@/lib/scoring';
 
 const LEVERS = [
   { key: 'concentration', label: 'Top-3 client concentration', min: 0, max: 80,  step: 1,   unit: '%', input: 'top3_client_concentration' },
@@ -31,13 +30,13 @@ const LEVERS = [
   max: number;
   step: number;
   unit: string;
-  input: keyof DiagnosticInput;
+  input: keyof ScoringInput;
 }>;
 
 type LeverKey = (typeof LEVERS)[number]['key'];
 
 export interface SimulationPanelProps {
-  baseline: DiagnosticInput;
+  baseline: ScoringInput;
   /** V from the persisted/initial scoring result — the comparison anchor. */
   vCurrentEur: number;
   /** Sum of the persisted Top-3 ΔV% (so the "all levers at target" preview
@@ -64,7 +63,7 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      const next: DiagnosticInput = {
+      const next: ScoringInput = {
         ...baseline,
         top3_client_concentration: values.concentration,
         recurring_revenue_pct:     values.recurring,

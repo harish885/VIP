@@ -18,7 +18,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/database.types';
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
+import type { ScoringInput } from './company-input';
 import type { ScoringResult } from './types';
 
 import { deriveMetrics } from './metrics';
@@ -38,7 +38,7 @@ export interface ScoringContext {
 }
 
 export async function runScoring(
-  input: DiagnosticInput,
+  input: ScoringInput,
   ctx: ScoringContext = {},
 ): Promise<ScoringResult> {
   // Stage 1
@@ -106,3 +106,4 @@ export { deriveFragilityFlags, riskIndex } from './flags';
 export { getSectorMultiple, lookupBaseMultiple, applyIlliquidityDiscount } from './sector-multiples';
 export { buildRecommendations, type RecommendationOutput } from './recommendations';
 export { ACTION_CATALOGUE, type ActionCatalogueEntry } from './action-catalogue';
+export { buildScoringInput, type ScoringInput } from './company-input';

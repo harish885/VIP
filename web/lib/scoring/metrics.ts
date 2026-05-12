@@ -14,10 +14,10 @@
  * Bounds: every metric falls inside finite, well-defined ranges so the
  * downstream weighted mean is meaningful even on extreme inputs.
  */
-import type { DiagnosticInput } from '@/lib/diagnostic-schema';
+import type { ScoringInput } from './company-input';
 import type { DerivedMetrics } from './types';
 
-export function deriveMetrics(input: DiagnosticInput): DerivedMetrics {
+export function deriveMetrics(input: ScoringInput): DerivedMetrics {
   const cagr = computeCagr2y(input.revenue_y_1, input.revenue_y_3);
   const margin = computeEbitdaMargin(input.ebitda, input.revenue_y_3);
 
@@ -29,7 +29,8 @@ export function deriveMetrics(input: DiagnosticInput): DerivedMetrics {
     client_concentration_inv: round1(100 - input.top3_client_concentration),
     tech_investment_ratio_pct: round1(input.tech_investment_ratio_pct),
 
-    founder_independence_pct: qualitativeToPct(input.founder_dependency, /*invert*/ true),
+    // New Q5: 5 = minimal founder dependency (good). No inversion needed.
+    founder_independence_pct: qualitativeToPct(input.founder_dependency),
     management_score_pct:     qualitativeToPct(input.management_structure),
     digital_maturity_pct:     qualitativeToPct(input.digital_maturity),
     client_portfolio_quality_pct: qualitativeToPct(input.client_portfolio_quality),
