@@ -64,17 +64,17 @@ export type ServiceClient = SupabaseClient<Database, 'vip'>;
 
 const SNAPSHOT_VIEW = 'aida_company_snapshot' as const;
 
+export type SearchOutcome =
+  | { ok: true; results: AidaSnapshot[] }
+  | { ok: false; error: 'schema_not_exposed' | 'view_missing' | 'other'; message: string };
+
 export async function searchCompanies(
   service: ServiceClient,
   q: string,
   limit = 25,
-): Promise<AidaSnapshot[]> {
+): Promise<SearchOutcome> {
   const trimmed = q.trim();
-  // Match on company name (case-insensitive), fall back to tax_code prefix.
   const builder = service
-    // The generated types don't know about the view (it's not a table);
-    // cast through `as unknown` so the typed schema stays clean while we
-    // still get a typed result by stating it inline.
     .from(SNAPSHOT_VIEW as unknown as 'context')
     .select(
       `tax_code, company_name, province, ateco_2007_code, ateco_2007_description,
@@ -88,8 +88,29 @@ export async function searchCompanies(
     : builder.ilike('company_name', `%${trimmed}%`).order('company_name');
 
   const { data, error } = await filtered;
-  if (error || !data) return [];
-  return data as unknown as AidaSnapshot[];
+  if (error) {
+    console.error('[aida.searchCompanies] query failed:', error);
+    if (error.code === 'PGRST106') {
+      return {
+        ok: false,
+        error: 'schema_not_exposed',
+        message:
+          'Supabase: the `vip` schema is not exposed. ' +
+          'Open the Supabase Dashboard → Settings → API → Exposed schemas → add "vip", then save.',
+      };
+    }
+    if (error.code === '42P01') {
+      return {
+        ok: false,
+        error: 'view_missing',
+        message:
+          'Supabase: the `vip.aida_company_snapshot` view is missing. Apply ' +
+          'supabase/migrations/20260512100000_company_search_and_v2_questionnaire.sql.',
+      };
+    }
+    return { ok: false, error: 'other', message: error.message };
+  }
+  return { ok: true, results: (data ?? []) as unknown as AidaSnapshot[] };
 }
 
 export async function getCompanySnapshot(
@@ -101,6 +122,15 @@ export async function getCompanySnapshot(
     .select('*')
     .eq('tax_code', taxCode)
     .single();
-  if (error || !data) return null;
-  return data as unknown as AidaSnapshot;
+  if (error) {
+    console.error('[aida.getCompanySnapshot] failed for', taxCode, error);
+    if (error.code === 'PGRST106') {
+      console.error(
+        '[aida.getCompanySnapshot] The `vip` schema is not exposed. ' +
+        'Supabase Dashboard → Settings → API → Exposed schemas → add "vip".',
+      );
+    }
+    return null;
+  }
+  return (data ?? null) as unknown as AidaSnapshot | null;
 }

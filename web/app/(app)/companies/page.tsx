@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, Building2, MapPin, Users, TrendingUp } from 'lucide-react';
+import { Search, Building2, MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { createServiceClient } from '@/lib/supabase/service';
 import { searchCompanies, type AidaSnapshot } from '@/lib/aida';
 
@@ -20,7 +20,9 @@ export default async function CompaniesPage({
 }) {
   const q = (searchParams?.q ?? '').trim();
   const service = createServiceClient();
-  const results = await searchCompanies(service, q, 30);
+  const outcome = await searchCompanies(service, q, 30);
+  const results = outcome.ok ? outcome.results : [];
+  const setupError = outcome.ok ? null : outcome;
 
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
@@ -33,6 +35,17 @@ export default async function CompaniesPage({
           Pick one to open its dashboard and run the strategic diagnostic.
         </p>
       </div>
+
+      {/* Setup error banner */}
+      {setupError && (
+        <div className="d-section mb-4 flex items-start gap-3 rounded-2xl border border-amber/40 bg-amber/[0.08] px-4 py-3 text-[13px] text-amber">
+          <AlertTriangle size={18} strokeWidth={2.25} className="mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <div className="font-semibold">Database setup incomplete</div>
+            <div className="mt-1 text-text-dim">{setupError.message}</div>
+          </div>
+        </div>
+      )}
 
       {/* Search box */}
       <form action="/companies" method="GET" className="d-section">
