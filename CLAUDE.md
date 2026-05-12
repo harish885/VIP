@@ -28,7 +28,7 @@ Academic project (Master in Data Science for Management, Cattolica). Final exam 
 | 06 | Scoring pipeline — submission → valuation (shared TS module) | ✅ done |
 | 07 | Dashboard wired to real valuations | ✅ done |
 | 08 | Recommendation engine + ROV ranking | ✅ done |
-| **09** | **Simulation Engine + polish (local-only delivery)** | **NEXT** |
+| 09 | Simulation Engine + polish (local-only delivery) | ✅ done |
 
 Full deliverables + acceptance criteria per phase: **`docs/VIP_Build_Plan.pdf` § 14**.
 

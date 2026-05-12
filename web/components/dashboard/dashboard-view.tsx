@@ -4,10 +4,11 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
-import { Sparkles, AlertTriangle, TrendingUp, Sliders, PenLine, CheckCircle2 } from 'lucide-react';
+import { Sparkles, AlertTriangle, TrendingUp, PenLine, CheckCircle2 } from 'lucide-react';
 import { animateCount, REVEAL_EASE } from '@/lib/animation';
 import { cn } from '@/lib/cn';
 import { fromDemo, type DashboardData } from '@/lib/dashboard-data';
+import { SimulationPanel as InteractiveSimulationPanel } from '@/components/dashboard/simulation-panel';
 
 // Register at module scope so it's available before useLayoutEffect.
 if (typeof window !== 'undefined') {
@@ -141,7 +142,7 @@ export function DashboardView({ data }: DashboardViewProps = {}) {
         {/* ===== Capital scores + Simulation ===== */}
         <div className="d-section mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
           <CapitalScoresPanel />
-          <SimulationPanel />
+          <SimulationSection />
         </div>
 
         <Footer />
@@ -544,86 +545,19 @@ function CapitalScoresPanel() {
 }
 
 // -----------------------------------------------------------------------------
-// Simulation — Phase 09 adds interactivity. For Phase 07 we render the same
-// teaser but driven by the current valuation's levers + V_potential.
+// Simulation — Phase 09. Real interactive sliders driven by the shared
+// scoring math. Component lives in simulation-panel.tsx; this wrapper
+// pulls baseline + V from the DashboardContext.
 // -----------------------------------------------------------------------------
-function SimulationPanel() {
-  const { valuation, levers } = useDashboard();
+function SimulationSection() {
+  const { simulationBaseline, valuation } = useDashboard();
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-bg-2/60 to-purple/[0.06] p-6">
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: 'radial-gradient(ellipse 70% 50% at 80% 20%, rgba(168, 85, 247, 0.10), transparent 60%)',
-        }}
-      />
-      <div className="relative">
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
-            Simulation Engine
-          </h4>
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-purple/[0.15] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-purple">
-            <Sliders size={10} /> Preview
-          </span>
-        </div>
-
-        <p className="mb-5 text-[13.5px] leading-relaxed text-text-dim">
-          What if you moved each lever to its target? The model recomputes V live —
-          interactive sliders ship in Phase 09.
-        </p>
-
-        <div className="space-y-3">
-          {levers.map((l) => (
-            <div key={l.key} className="rounded-lg border border-line bg-black/20 p-3">
-              <div className="mb-1.5 flex items-baseline justify-between font-mono text-[11px]">
-                <span className="text-text">{l.label}</span>
-                <span className="text-text-faint">
-                  <span className="text-amber">{l.current}{l.unit}</span>
-                  {' → '}
-                  <span className="text-green">{l.target}{l.unit}</span>
-                </span>
-              </div>
-              <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-                <div
-                  className="absolute left-0 top-0 h-full bg-amber/70"
-                  style={{ width: `${normaliseLever(l.current, l.key)}%` }}
-                />
-                <div
-                  className="absolute top-0 h-full w-px bg-green"
-                  style={{ left: `${normaliseLever(l.target, l.key)}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-center justify-between rounded-lg border border-purple/25 bg-purple/[0.08] px-4 py-3">
-          <div>
-            <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-purple">
-              Combined effect
-            </div>
-            <div className="mt-0.5 text-[13px] text-text-dim">
-              All three levers at target →
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-mono text-[22px] font-bold text-green" style={{ textShadow: '0 0 12px rgba(34, 197, 94, 0.4)' }}>
-              €{(valuation.v_potential_eur / 1_000_000).toFixed(1)}M
-            </div>
-            <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-              V<sub>potential</sub>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <InteractiveSimulationPanel
+      baseline={simulationBaseline}
+      vCurrentEur={valuation.v_current_eur}
+      vPotentialEur={valuation.v_potential_eur}
+    />
   );
-}
-
-function normaliseLever(value: number, key: string): number {
-  if (key === 'rd_intensity') return Math.min(100, value * 20);
-  return Math.min(100, value);
 }
 
 // -----------------------------------------------------------------------------

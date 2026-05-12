@@ -8,6 +8,13 @@
  * The view itself stays unaware of where the numbers came from.
  */
 import { DEMO_COMPANY, DEMO_VALUATION, DEMO_ACTIONS, DEMO_LEVERS } from '@/lib/demo-data';
+import {
+  EXAMPLE_DIAGNOSTIC,
+  SECTORS,
+  LIFECYCLES,
+  TIME_HORIZONS,
+  type DiagnosticInput,
+} from '@/lib/diagnostic-schema';
 
 export type CapitalKey = 'fin' | 'tech' | 'human' | 'rel';
 export type RiskIndex = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -69,6 +76,10 @@ export interface DashboardData {
   valuation: DashboardValuation;
   actions: DashboardAction[];
   levers: DashboardLever[];
+  /** NACE code for the company — drives sector-multiple lookup in the sim. */
+  naceCode: string | null;
+  /** Baseline diagnostic inputs the simulation panel mutates client-side. */
+  simulationBaseline: DiagnosticInput;
   source: 'demo' | 'submission';
   submittedHighlight?: boolean;
 }
@@ -98,6 +109,8 @@ export function fromDemo(): DashboardData {
     },
     actions: DEMO_ACTIONS.map((a) => ({ ...a })),
     levers:  DEMO_LEVERS.map((l) => ({ ...l })),
+    naceCode: DEMO_COMPANY.nace_code,
+    simulationBaseline: { ...EXAMPLE_DIAGNOSTIC },
     source:  'demo',
   };
 }
@@ -134,9 +147,19 @@ export interface CompanyRowLike {
 }
 
 export interface SubmissionRowLike {
+  revenue_y_1: number | null;
+  revenue_y_2: number | null;
+  revenue_y_3: number | null;
+  ebitda: number | null;
   recurring_revenue_pct: number | null;
   top3_client_concentration: number | null;
   tech_investment_ratio_pct: number | null;
+  founder_dependency: number | null;
+  management_structure: number | null;
+  digital_maturity: number | null;
+  client_portfolio_quality: number | null;
+  business_scalability: number | null;
+  network_partnerships: number | null;
 }
 
 export interface RecommendationRowLike {
@@ -148,8 +171,14 @@ export interface RecommendationRowLike {
   time_horizon_months: number | null;
 }
 
+export interface CompanyExtras {
+  stated_objective: string | null;
+  time_horizon: string | null;
+  distinctive_assets: string | null;
+}
+
 export interface FromRealOptions {
-  company: CompanyRowLike;
+  company: CompanyRowLike & Partial<CompanyExtras>;
   valuation: ValuationRowLike;
   submission?: SubmissionRowLike | null;
   recommendations?: RecommendationRowLike[];
@@ -189,6 +218,8 @@ export function fromValuationRow(opts: FromRealOptions): DashboardData {
     return { ...l, current: current ?? l.current };
   });
 
+  const simulationBaseline = buildBaseline(company, submission ?? null);
+
   return {
     company: {
       name: company.name,
@@ -216,9 +247,61 @@ export function fromValuationRow(opts: FromRealOptions): DashboardData {
     },
     actions,
     levers,
+    naceCode: company.nace_code,
+    simulationBaseline,
     source: 'submission',
     submittedHighlight: opts.submittedHighlight,
   };
+}
+
+// =============================================================================
+// Build a usable DiagnosticInput from a persisted submission + company.
+// Used as the baseline for the Phase 09 simulation engine.
+// =============================================================================
+function buildBaseline(
+  company: CompanyRowLike & Partial<CompanyExtras>,
+  submission: SubmissionRowLike | null,
+): DiagnosticInput {
+  const base = EXAMPLE_DIAGNOSTIC;
+  return {
+    revenue_y_1: submission?.revenue_y_1 ?? base.revenue_y_1,
+    revenue_y_2: submission?.revenue_y_2 ?? base.revenue_y_2,
+    revenue_y_3: submission?.revenue_y_3 ?? base.revenue_y_3,
+    ebitda: submission?.ebitda ?? base.ebitda,
+    recurring_revenue_pct: submission?.recurring_revenue_pct ?? base.recurring_revenue_pct,
+    top3_client_concentration: submission?.top3_client_concentration ?? base.top3_client_concentration,
+    tech_investment_ratio_pct: submission?.tech_investment_ratio_pct ?? base.tech_investment_ratio_pct,
+    founder_dependency: clamp15(submission?.founder_dependency ?? base.founder_dependency),
+    management_structure: clamp15(submission?.management_structure ?? base.management_structure),
+    digital_maturity: clamp15(submission?.digital_maturity ?? base.digital_maturity),
+    client_portfolio_quality: clamp15(submission?.client_portfolio_quality ?? base.client_portfolio_quality),
+    business_scalability: clamp15(submission?.business_scalability ?? base.business_scalability),
+    network_partnerships: clamp15(submission?.network_partnerships ?? base.network_partnerships),
+    sector: coerceSector(company.sector),
+    lifecycle_stage: coerceLifecycle(company.lifecycle_stage),
+    distinctive_assets: company.distinctive_assets ?? '',
+    stated_objective: company.stated_objective ?? base.stated_objective,
+    time_horizon: coerceHorizon(company.time_horizon ?? null),
+  };
+}
+
+function clamp15(n: number | null): 1 | 2 | 3 | 4 | 5 {
+  const v = Math.round(n ?? 3);
+  if (v <= 1) return 1;
+  if (v >= 5) return 5;
+  return v as 2 | 3 | 4;
+}
+
+function coerceSector(s: string | null): DiagnosticInput['sector'] {
+  return (SECTORS.find((x) => x === s) ?? 'Manufacturing') as DiagnosticInput['sector'];
+}
+
+function coerceLifecycle(s: string | null): DiagnosticInput['lifecycle_stage'] {
+  return (LIFECYCLES.find((x) => x === s) ?? 'Maturity') as DiagnosticInput['lifecycle_stage'];
+}
+
+function coerceHorizon(s: string | null): DiagnosticInput['time_horizon'] {
+  return (TIME_HORIZONS.find((x) => x === s) ?? '24m') as DiagnosticInput['time_horizon'];
 }
 
 // =============================================================================

@@ -59,17 +59,60 @@ python split_aida_capitals.py
 
 The script will prompt for your export path if it can't find `aida_export.xlsx` in the working directory. Outputs land in `./capital_split_outputs/` (gitignored) — move them into `data/` to update the tracked dataset. Column matching is whitespace-tolerant, so it copes with the embedded newlines AIDA likes to put in headers.
 
-## The Web App (Phase 02 — full marketing surface live)
+## The Web App — Phases 00 → 09 shipped
 
-The production codebase lives in [`web/`](web/) — Next.js 14 (App Router) + TypeScript + Tailwind + GSAP + Lenis. Phase 02 ships all ten cinematic scenes ported from `index.html` as React components.
+The production codebase lives in [`web/`](web/) — Next.js 14 (App Router) + TypeScript strict + Tailwind + GSAP for radar / count-ups / capital bars.
+
+Status table is in [`CLAUDE.md`](CLAUDE.md). Headline:
+
+| Layer | What ships |
+|---|---|
+| Marketing site | 10 scenes, fade-up on scroll |
+| 4-step diagnostic | Zod + React Hook Form, 17 inputs |
+| Scoring pipeline | `web/lib/scoring/` — 6 stages, shared TS module |
+| Dashboard | Async server component reading `vip.valuations` |
+| Recommendations | ROV-ranked Top-3 written to `vip.recommendations` |
+| Simulation | Live sliders, V recomputes client-side in < 1 ms |
+
+### Run it locally (no Vercel, no GitHub push required)
+
+**1. One-time setup** — applies migrations + ingests the 14 999-row calibration set.
+Follow [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md). Then apply the Phase 06 migration:
 
 ```bash
+# Inside your Supabase project (cloud or local)
+psql "$DATABASE_URL" -f supabase/migrations/20260512000000_demo_mode_and_percentile.sql
+```
+
+(The scoring engine still runs with synthetic priors if you skip this — only the *peer-percentile* lookup and *demo-mode anonymous writes* require it.)
+
+**2. Web app**
+
+```bash
+cp web/.env.example web/.env.local       # paste your Supabase URL + keys
 cd web
 npm install
 npm run dev          # http://localhost:3000
 ```
 
-Full details in [`web/README.md`](web/README.md). The phased roadmap is in [`docs/VIP_Build_Plan.pdf`](docs/VIP_Build_Plan.pdf).
+**3. Try the full loop**
+
+1. Open `http://localhost:3000` → click **Open Dashboard** → land on the seeded ACME view.
+2. Click **Run new diagnostic** → fill the 4 steps (or hit **Fill with example** for the ACME profile).
+3. Submit → the server action scores your inputs, writes a `vip.valuations` row, and redirects to `/dashboard?submitted=…`.
+4. Dashboard renders your numbers, your Top-3 recommendations, and your interactive simulation sliders.
+
+**4. Verify**
+
+```bash
+cd web
+npm run type-check         # tsc --noEmit, strict + noUncheckedIndexedAccess
+npm run lint               # next lint
+npx tsx scripts/calibrate-acme.ts             # ACME scoring lands ±10% of demo
+npx tsx scripts/calibrate-recommendations.ts  # Top-3 = client_conc, recurring, mgmt
+```
+
+Auth is intentionally bypassed — `ENFORCE_AUTH_GUARDS = false` in [`web/lib/supabase/middleware.ts`](web/lib/supabase/middleware.ts). Demo submissions persist anonymously via a service-role write and a short-lived httpOnly cookie. Flip the flag to re-enable the (already-built) auth pages.
 
 ## Database (Phase 03 — Supabase schema + ingestion)
 

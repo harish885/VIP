@@ -133,13 +133,21 @@ async function assembleData(
 ): Promise<DashboardData> {
   const { data: company } = await service
     .from('companies')
-    .select('name, sector, nace_code, province, lifecycle_stage')
+    .select(
+      `name, sector, nace_code, province, lifecycle_stage,
+       distinctive_assets, stated_objective, time_horizon`,
+    )
     .eq('id', valuation.company_id)
     .single();
 
   const { data: submission } = await service
     .from('submissions')
-    .select('recurring_revenue_pct, top3_client_concentration, tech_investment_ratio_pct')
+    .select(
+      `revenue_y_1, revenue_y_2, revenue_y_3, ebitda,
+       recurring_revenue_pct, top3_client_concentration, tech_investment_ratio_pct,
+       founder_dependency, management_structure, digital_maturity,
+       client_portfolio_quality, business_scalability, network_partnerships`,
+    )
     .eq('id', valuation.submission_id)
     .single();
 
