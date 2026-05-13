@@ -53,11 +53,17 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
   }, []);
 
   // Fetch suggestions whenever the query changes (debounced).
-  // Empty query → fetch top results (sorted by latest revenue) so the
-  // dropdown still has something useful on focus, matching the inline copy.
+  // Empty query → no fetch, dropdown shows a prompt instead. Keeps the
+  // entry experience calm and deliberate.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     abortRef.current?.abort();
+    if (q.trim().length === 0) {
+      setItems([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
       const ctrl = new AbortController();

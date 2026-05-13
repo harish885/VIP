@@ -1,15 +1,13 @@
 import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 
 /**
- * Authenticated-app layout (currently in demo mode — no auth required).
- *
- * Renders a slim top bar with the brand + a "Demo Mode" pill.
- * When we re-enable auth, swap the pill for the user's name + sign-out.
+ * App shell — slim chrome with brand on the left and a methodology link
+ * on the right. Auth pill removed; we keep the experience product-focused.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen">
-      {/* Background — very subtle warm wash that suits the light theme */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0"
@@ -21,11 +19,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      {/* Top bar */}
       <header className="relative z-10 border-b border-line bg-bg-1/85 backdrop-blur-glass">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4">
           <Link
-            href="/"
+            href="/companies"
             className="flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-text transition-opacity hover:opacity-80"
           >
             <span className="block h-[18px] w-[18px] rounded-[4px] bg-gradient-to-br from-gold to-gold-soft" />
@@ -33,15 +30,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan/30 bg-cyan/[0.07] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
-              <span className="block h-1.5 w-1.5 rounded-full bg-cyan" />
-              Demo Mode
-            </span>
             <Link
-              href="/"
-              className="rounded-md border border-line bg-bg-1 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-dim transition-all hover:border-line-2 hover:text-text"
+              href="/method"
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text"
             >
-              ← Back to site
+              <BookOpen size={13} />
+              How scores are calculated
             </Link>
           </div>
         </div>

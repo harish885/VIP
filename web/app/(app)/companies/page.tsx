@@ -29,7 +29,13 @@ export default async function CompaniesPage({
 }) {
   const q = (searchParams?.q ?? '').trim();
   const service = createServiceClient();
-  const outcome = await searchCompanies(service, q, 20);
+
+  // We don't want a static top-N list on first visit — only fetch when the
+  // user actually queries. The typeahead still handles in-place suggestions
+  // for any partial input via /api/companies/search.
+  const outcome = q.length > 0
+    ? await searchCompanies(service, q, 20)
+    : { ok: true as const, results: [] };
   const results = outcome.ok ? outcome.results : [];
   const setupError = outcome.ok ? null : outcome;
 
@@ -64,28 +70,41 @@ export default async function CompaniesPage({
         <SearchBar initialQuery={q} />
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[11.5px] text-text-faint">
-        <span>{q ? `Showing matches for "${q}"` : 'Top companies by latest revenue'}</span>
-        <span>{results.length} of 14 999</span>
-      </div>
+      {q.length > 0 && (
+        <>
+          <div className="mt-2 flex items-center justify-between text-[11.5px] text-text-faint">
+            <span>Showing matches for &quot;{q}&quot;</span>
+            <span>{results.length} of 14 999</span>
+          </div>
 
-      <ul className="mt-4 overflow-hidden rounded-2xl border border-line bg-bg-1 divide-y divide-line-faint">
-        {results.length === 0 ? (
-          <li className="px-6 py-10 text-center text-[13px] text-text-dim">
-            {q
-              ? <>No companies match <span className="font-mono text-amber">{q}</span>. Try a shorter substring — AIDA names use “S.R.L.”, “S.P.A.” suffixes.</>
-              : 'No companies returned.'}
-          </li>
-        ) : (
-          results.map((c) => (
-            <CompanyRow
-              key={c.tax_code}
-              c={c}
-              status={diagnosisStatusFor(statusMap.get(c.tax_code) ?? null)}
-            />
-          ))
-        )}
-      </ul>
+          <ul className="mt-4 overflow-hidden rounded-2xl border border-line bg-bg-1 divide-y divide-line-faint">
+            {results.length === 0 ? (
+              <li className="px-6 py-10 text-center text-[13px] text-text-dim">
+                No companies match <span className="font-mono text-amber">{q}</span>. Try a shorter substring — AIDA names use &ldquo;S.R.L.&rdquo;, &ldquo;S.P.A.&rdquo; suffixes.
+              </li>
+            ) : (
+              results.map((c) => (
+                <CompanyRow
+                  key={c.tax_code}
+                  c={c}
+                  status={diagnosisStatusFor(statusMap.get(c.tax_code) ?? null)}
+                />
+              ))
+            )}
+          </ul>
+        </>
+      )}
+
+      {q.length === 0 && !setupError && (
+        <div className="mt-8 rounded-2xl border border-dashed border-line bg-bg-2/30 px-6 py-12 text-center">
+          <p className="text-[13.5px] text-text-dim">
+            Start typing in the search box above to find a company by name.
+          </p>
+          <p className="mt-1 text-[12px] text-text-faint">
+            14 999 Italian SMEs in NACE 28xx are indexed.
+          </p>
+        </div>
+      )}
 
       <p className="mt-6 font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
         Source · AIDA / Bureau van Dijk · Italian SMEs · last available year

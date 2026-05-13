@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -13,11 +13,13 @@ import {
   ListTodo,
   LayoutGrid,
   BookOpen,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { DashboardData } from '@/lib/dashboard-data';
 import { SimulationPanel } from '@/components/dashboard/simulation-panel';
 import type { DiagnosisStatus } from '@/lib/company-loader';
+import { resetCompanyAction } from '@/app/(app)/companies/[taxCode]/reset/action';
 
 type Tab = 'overview' | 'actions' | 'scenario' | 'method';
 
@@ -173,6 +175,7 @@ function WorkspaceHero({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-start gap-2">
+          {source === 'submission' && <ResetButton taxCode={taxCode} />}
           <Link
             href={`/companies/${encodeURIComponent(taxCode)}/diagnostic`}
             className="inline-flex items-center gap-1.5 rounded-md border border-gold/50 bg-gold/[0.10] px-4 py-2 text-[12.5px] font-semibold text-gold transition-colors hover:bg-gold/[0.18]"
@@ -235,6 +238,57 @@ function WorkspaceHero({
         </div>
       )}
     </section>
+  );
+}
+
+function ResetButton({ taxCode }: { taxCode: string }) {
+  const [pending, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleClick() {
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 4000);
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      try {
+        await resetCompanyAction(taxCode);
+      } catch (e) {
+        const msg = (e as Error).message ?? '';
+        if (msg.includes('NEXT_REDIRECT')) throw e;
+        setError(msg || 'Reset failed.');
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={pending}
+        title={
+          confirming
+            ? 'Click again to confirm reset'
+            : 'Clear this diagnostic and return to the AIDA snapshot'
+        }
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-md border px-3.5 py-2 text-[12.5px] font-medium transition-colors disabled:opacity-60',
+          confirming
+            ? 'border-red/50 bg-red/[0.10] text-red hover:bg-red/[0.18]'
+            : 'border-line bg-bg-1 text-text-dim hover:border-line-2 hover:text-text',
+        )}
+      >
+        <RotateCcw size={13} />
+        {pending ? 'Resetting…' : confirming ? 'Click to confirm' : 'Reset'}
+      </button>
+      {error && (
+        <span className="text-[11px] text-red">{error}</span>
+      )}
+    </div>
   );
 }
 
