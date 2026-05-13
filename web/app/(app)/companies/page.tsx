@@ -1,18 +1,26 @@
 import Link from 'next/link';
-import { Building2, MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { ArrowRight, AlertTriangle, MapPin } from 'lucide-react';
 import { createServiceClient } from '@/lib/supabase/service';
 import { searchCompanies, type AidaSnapshot } from '@/lib/aida';
 import { SearchBar } from '@/components/companies/search-bar';
+import {
+  loadLatestComputedAtByTaxCode,
+  diagnosisStatusFor,
+  type DiagnosisStatus,
+} from '@/lib/company-loader';
 
 export const metadata = { title: 'Companies · VIP' };
 export const dynamic = 'force-dynamic';
 
 /**
- * /companies
+ * /companies — search workspace.
  *
- * Search-first entry point. Lists all 14 999 AIDA SMEs, narrowable by name.
- * The header search box submits via the standard GET-then-render pattern so
- * results stay shareable through URL.
+ * Typeahead search dropdown handles "find by name". The page also
+ * shows a compact list (top 20 by latest revenue, or filtered by ?q=)
+ * so users can browse and so server rendering still works without JS.
+ *
+ * Each row carries a diagnosis status badge derived from the latest
+ * valuation associated with that tax_code.
  */
 export default async function CompaniesPage({
   searchParams,
@@ -21,26 +29,30 @@ export default async function CompaniesPage({
 }) {
   const q = (searchParams?.q ?? '').trim();
   const service = createServiceClient();
-  const outcome = await searchCompanies(service, q, 30);
+  const outcome = await searchCompanies(service, q, 20);
   const results = outcome.ok ? outcome.results : [];
   const setupError = outcome.ok ? null : outcome;
 
+  const statusMap = await loadLatestComputedAtByTaxCode(
+    service,
+    results.map((r) => r.tax_code),
+  );
+
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-10">
-      <div className="d-section mb-6">
-        <h1 className="font-serif text-[36px] font-medium leading-tight tracking-tight">
-          Find a company
+    <div className="mx-auto max-w-[1080px] px-6 pb-16 pt-8">
+      <header className="max-w-[640px]">
+        <h1 className="font-serif text-[34px] font-medium leading-[1.05] tracking-tight text-text">
+          Pick a company to value.
         </h1>
         <p className="mt-2 text-[14px] text-text-dim">
-          Search the AIDA calibration set — 14 999 Italian SMEs in NACE 28xx.
-          Pick one to open its dashboard and run the strategic diagnostic.
+          Search the AIDA calibration set — 14&nbsp;999 Italian SMEs. Open one
+          to see its strategic picture, or run the diagnostic to score it.
         </p>
-      </div>
+      </header>
 
-      {/* Setup error banner */}
       {setupError && (
-        <div className="d-section mb-4 flex items-start gap-3 rounded-2xl border border-amber/40 bg-amber/[0.08] px-4 py-3 text-[13px] text-amber">
-          <AlertTriangle size={18} strokeWidth={2.25} className="mt-0.5 shrink-0" />
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber/40 bg-amber/[0.08] px-4 py-3 text-[13px] text-amber">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
           <div className="flex-1">
             <div className="font-semibold">Database setup incomplete</div>
             <div className="mt-1 text-text-dim">{setupError.message}</div>
@@ -48,102 +60,113 @@ export default async function CompaniesPage({
         </div>
       )}
 
-      {/* Search box — typeahead with debounced suggestions */}
-      <div className="d-section">
+      <div className="mt-6">
         <SearchBar initialQuery={q} />
-        <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-          <span>{q ? `Server results for "${q}"` : 'Top companies by latest revenue'}</span>
-          <span>{results.length} shown</span>
-        </div>
       </div>
 
-      {/* Result grid */}
-      <div className="d-section mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {results.length === 0 && (
-          <div className="col-span-full rounded-2xl border border-line bg-bg-2/40 px-6 py-12 text-center text-[14px] text-text-dim">
-            No companies match <span className="font-mono text-amber">{q || '(empty query)'}</span>.
-            Try a shorter substring — AIDA names use “S.R.L.”, “S.P.A.” suffixes.
-          </div>
+      <div className="mt-2 flex items-center justify-between text-[11.5px] text-text-faint">
+        <span>{q ? `Showing matches for "${q}"` : 'Top companies by latest revenue'}</span>
+        <span>{results.length} of 14 999</span>
+      </div>
+
+      <ul className="mt-4 overflow-hidden rounded-2xl border border-line bg-bg-1 divide-y divide-line-faint">
+        {results.length === 0 ? (
+          <li className="px-6 py-10 text-center text-[13px] text-text-dim">
+            {q
+              ? <>No companies match <span className="font-mono text-amber">{q}</span>. Try a shorter substring — AIDA names use “S.R.L.”, “S.P.A.” suffixes.</>
+              : 'No companies returned.'}
+          </li>
+        ) : (
+          results.map((c) => (
+            <CompanyRow
+              key={c.tax_code}
+              c={c}
+              status={diagnosisStatusFor(statusMap.get(c.tax_code) ?? null)}
+            />
+          ))
         )}
-        {results.map((c) => (
-          <CompanyCard key={c.tax_code} c={c} />
-        ))}
-      </div>
+      </ul>
 
-      <div className="d-section mt-10 border-t border-line pt-4 font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-        Source: AIDA / Bureau van Dijk · Italian SMEs · last available year
-      </div>
+      <p className="mt-6 font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
+        Source · AIDA / Bureau van Dijk · Italian SMEs · last available year
+      </p>
     </div>
   );
 }
 
 // =============================================================================
-// Card
-// =============================================================================
-function CompanyCard({ c }: { c: AidaSnapshot }) {
-  const revenueMnEUR = c.revenue_last_thk !== null ? c.revenue_last_thk / 1000 : null;
-  const ebitdaMnEUR  = c.ebitda_last_thk  !== null ? c.ebitda_last_thk  / 1000 : null;
-
+function CompanyRow({ c, status }: { c: AidaSnapshot; status: DiagnosisStatus }) {
   return (
-    <Link
-      href={`/companies/${encodeURIComponent(c.tax_code)}`}
-      className="group relative overflow-hidden rounded-2xl border border-line bg-bg-2/40 p-5 transition-all hover:-translate-y-0.5 hover:border-cyan/30 hover:bg-bg-2/60"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan/30 to-blue/30 text-cyan">
-            <Building2 size={18} />
-          </span>
-          <div className="min-w-0">
-            <div className="truncate font-mono text-[12.5px] font-semibold text-text">
+    <li>
+      <Link
+        href={`/companies/${encodeURIComponent(c.tax_code)}`}
+        className="group flex flex-wrap items-center gap-4 px-5 py-4 transition-colors hover:bg-bg-2/50"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[14px] font-medium text-text">
               {c.company_name}
-            </div>
-            <div className="mt-0.5 flex items-center gap-2 font-mono text-[10px] text-text-faint">
-              {c.province && (
-                <span className="inline-flex items-center gap-1">
-                  <MapPin size={9} /> {c.province}
-                </span>
-              )}
-              {c.nace_rev_2 && <span>· NACE {c.nace_rev_2}</span>}
-            </div>
+            </span>
+            <StatusPill status={status} />
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-text-faint">
+            {c.province && (
+              <span className="inline-flex items-center gap-1">
+                <MapPin size={10} /> {c.province}
+              </span>
+            )}
+            {c.nace_rev_2 && <span>NACE {c.nace_rev_2}</span>}
+            {c.ateco_2007_description && (
+              <span className="max-w-[260px] truncate">{c.ateco_2007_description}</span>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-line-faint pt-3 font-mono">
-        <CardStat
-          label="Revenue"
-          value={revenueMnEUR !== null ? `€${revenueMnEUR.toFixed(1)}M` : '—'}
+        <div className="flex shrink-0 items-baseline gap-5 text-right">
+          <Metric label="Revenue" value={mEUR(c.revenue_last_thk, 1, 'M')} />
+          <Metric label="EBITDA" value={mEUR(c.ebitda_last_thk, 2, 'M')} />
+          <Metric
+            label="Margin"
+            value={c.ebitda_margin_pct !== null ? `${c.ebitda_margin_pct.toFixed(1)}%` : '—'}
+          />
+        </div>
+        <ArrowRight
+          size={14}
+          className="shrink-0 text-text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-text-dim"
         />
-        <CardStat
-          label="EBITDA"
-          value={ebitdaMnEUR !== null ? `€${ebitdaMnEUR.toFixed(2)}M` : '—'}
-        />
-        <CardStat
-          label="Margin"
-          value={c.ebitda_margin_pct !== null ? `${c.ebitda_margin_pct.toFixed(1)}%` : '—'}
-        />
-      </div>
-
-      <div className="mt-3 flex items-center justify-between font-mono text-[10px]">
-        <span className="inline-flex items-center gap-1 text-text-faint">
-          <Users size={9} /> {c.employees !== null ? Math.round(c.employees) : '—'} emp.
-        </span>
-        <span className="inline-flex items-center gap-1 text-cyan opacity-0 transition-opacity group-hover:opacity-100">
-          Open dashboard <TrendingUp size={10} />
-        </span>
-      </div>
-    </Link>
+      </Link>
+    </li>
   );
 }
 
-function CardStat({ label, value }: { label: string; value: string }) {
+function StatusPill({ status }: { status: DiagnosisStatus }) {
+  const map: Record<DiagnosisStatus, { label: string; cls: string }> = {
+    not_diagnosed: { label: 'Not diagnosed', cls: 'border-text-faint/40 bg-bg-2/60 text-text-faint' },
+    diagnosed:     { label: 'Diagnosed',     cls: 'border-cyan/40 bg-cyan/[0.07] text-cyan' },
+    recent:        { label: 'Updated',       cls: 'border-green/40 bg-green/[0.07] text-green' },
+  };
+  if (status === 'not_diagnosed') return null;
+  const { label, cls } = map[status];
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-eyebrow ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="font-mono text-[9px] uppercase tracking-eyebrow text-text-faint">
-        {label}
-      </div>
+      <div className="font-mono text-[9.5px] uppercase tracking-eyebrow text-text-faint">{label}</div>
       <div className="mt-0.5 font-mono text-[13px] font-semibold text-text">{value}</div>
     </div>
   );
+}
+
+function mEUR(thk: number | null, decimals: number, suffix: 'M' | 'K'): string {
+  if (thk === null) return '—';
+  const eur = thk * 1000;
+  if (suffix === 'M') return `€${(eur / 1_000_000).toFixed(decimals)}M`;
+  return `€${Math.round(eur / 1000).toLocaleString()}K`;
 }

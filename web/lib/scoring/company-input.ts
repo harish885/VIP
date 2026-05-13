@@ -59,16 +59,18 @@ export interface BuildOptions {
 
 export function buildScoringInput({ diagnostic, snapshot }: BuildOptions): ScoringInput {
   // ---- Revenue history (k EUR in AIDA → EUR for scoring) -------------------
-  const revLast = (snapshot.revenue_last_thk ?? snapshot.revenue_2024_thk ?? 0) * 1000;
-  const rev2024 = (snapshot.revenue_2024_thk ?? snapshot.revenue_last_thk ?? 0) * 1000;
-  const rev2023 = (snapshot.revenue_2023_thk ?? rev2024) * 1; // already k * 1000 below
-  const rev2022 = (snapshot.revenue_2022_thk ?? snapshot.revenue_2023_thk ?? 0) * 1000;
-  // Three-point series: revenue_y_1 = oldest, revenue_y_3 = newest.
-  const revY1 = (snapshot.revenue_2022_thk ?? 0) * 1000 || rev2022 || revLast;
-  const revY2 = (snapshot.revenue_2023_thk ?? 0) * 1000 || revLast;
-  const revY3 = revLast || revY2 || revY1 || 0;
+  // AIDA exposes thousands of EUR; the scoring engine works in EUR.
+  // Build the 3-point series newest → oldest with deterministic carry-back so
+  // CAGR stays computable when a single year is missing.
+  const revLast = thkToEur(snapshot.revenue_last_thk);
+  const rev2024 = thkToEur(snapshot.revenue_2024_thk) || revLast;
+  const rev2023 = thkToEur(snapshot.revenue_2023_thk) || rev2024;
+  const rev2022 = thkToEur(snapshot.revenue_2022_thk) || rev2023;
+  const revY3 = revLast || rev2024 || rev2023 || rev2022; // newest
+  const revY2 = rev2023 || revY3;
+  const revY1 = rev2022 || revY2;                          // oldest
 
-  const ebitda = (snapshot.ebitda_last_thk ?? snapshot.ebitda_2024_thk ?? 0) * 1000;
+  const ebitda = thkToEur(snapshot.ebitda_last_thk) || thkToEur(snapshot.ebitda_2024_thk);
   const margin =
     snapshot.ebitda_margin_pct ?? (revY3 > 0 ? (ebitda / revY3) * 100 : 0);
 
@@ -102,9 +104,6 @@ export function buildScoringInput({ diagnostic, snapshot }: BuildOptions): Scori
   const sector: ScoringSector =
     (diagnostic.sector as ScoringSector | undefined) ?? 'Manufacturing';
 
-  // Avoid the unused-binding lint when k-conversions diverge.
-  void rev2024; void rev2023; void rev2022;
-
   return {
     ...diagnostic,
     revenue_y_1: revY1,
@@ -126,6 +125,9 @@ export function buildScoringInput({ diagnostic, snapshot }: BuildOptions): Scori
 function linMap(x: number, x0: number, x1: number, y0: number, y1: number): number {
   const t = (clamp(x, x0, x1) - x0) / (x1 - x0);
   return y0 + t * (y1 - y0);
+}
+function thkToEur(n: number | null | undefined): number {
+  return n == null ? 0 : n * 1000;
 }
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));

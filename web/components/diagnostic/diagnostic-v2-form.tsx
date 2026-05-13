@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
 import {
   useForm,
   FormProvider,
@@ -9,7 +10,14 @@ import {
   type FieldErrors,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Sparkles, ChevronRight, AlertTriangle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Sparkles,
+  ChevronRight,
+  AlertTriangle,
+} from 'lucide-react';
 import {
   DiagnosticSchema,
   EMPTY_DIAGNOSTIC,
@@ -22,10 +30,22 @@ import {
   OBJECTIVE_LABELS,
   type DiagnosticInput,
   type QuestionKey,
+  type QuestionSection,
 } from '@/lib/diagnostic-schema';
 import { RatingDots } from '@/components/diagnostic/rating-dots';
 import { submitCompanyDiagnosticAction } from '@/app/(app)/companies/[taxCode]/diagnostic/actions';
 import { cn } from '@/lib/cn';
+
+// =============================================================================
+// Stepper definition
+// =============================================================================
+const STEPS: Array<{ section: QuestionSection; label: string; eyebrow: string }> = [
+  { section: 'Technological Capital',          label: 'Technology',  eyebrow: 'Section 01' },
+  { section: 'Human & Organisational Capital', label: 'Team',        eyebrow: 'Section 02' },
+  { section: 'Relational Capital',             label: 'Relations',   eyebrow: 'Section 03' },
+  { section: 'Growth Quality & Context',       label: 'Growth',      eyebrow: 'Section 04' },
+  { section: 'Contextual Inputs',              label: 'Context',     eyebrow: 'Section 05' },
+];
 
 export interface DiagnosticV2FormProps {
   taxCode: string;
@@ -33,22 +53,36 @@ export interface DiagnosticV2FormProps {
 }
 
 /**
- * Pivot edition — single-page diagnostic.
+ * Diagnostic form — guided stepper.
  *
- * 19 questions in 5 sections + the 2 classificatory questions (objective &
- * horizon) shown inline with the Contextual Inputs. Quantitative inputs
- * are pulled from the AIDA snapshot by the server action — the user never
- * types revenue or EBITDA here.
+ * 19 scored 1-5 questions plus 2 classificatory inputs, presented one
+ * section at a time. Per-step Zod validation gates "Continue".
+ * Quantitative data is pulled from AIDA server-side at submission time.
  */
 export function DiagnosticV2Form({ taxCode, companyName }: DiagnosticV2FormProps) {
+  const [stepIndex, setStepIndex] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<DiagnosticInput>({
     resolver: zodResolver(DiagnosticSchema),
     mode: 'onTouched',
     defaultValues: EMPTY_DIAGNOSTIC as DiagnosticInput,
   });
+
+  const totalSteps = STEPS.length;
+  const isLast = stepIndex === totalSteps - 1;
+  const step = STEPS[stepIndex]!;
+  const sectionKeys = QUESTIONS_BY_SECTION[step.section];
+
+  const fieldsForStep: Array<keyof DiagnosticInput> = useMemo(() => {
+    const base: Array<keyof DiagnosticInput> = [...sectionKeys];
+    if (step.section === 'Contextual Inputs') {
+      base.push('stated_objective', 'time_horizon');
+    }
+    return base;
+  }, [sectionKeys, step.section]);
 
   function fillExample() {
     Object.entries(EXAMPLE_DIAGNOSTIC).forEach(([k, v]) => {
@@ -59,22 +93,33 @@ export function DiagnosticV2Form({ taxCode, companyName }: DiagnosticV2FormProps
     });
   }
 
-  const [missingFields, setMissingFields] = useState<string[]>([]);
+  async function handleContinue() {
+    const ok = await form.trigger(fieldsForStep);
+    if (!ok) return;
+    setStepIndex((i) => Math.min(i + 1, totalSteps - 1));
+    scrollTop();
+  }
 
-  function onSubmit(values: DiagnosticInput) {
+  function handleBack() {
+    setStepIndex((i) => Math.max(i - 1, 0));
+    scrollTop();
+  }
+
+  function scrollTop() {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  async function onSubmit(values: DiagnosticInput) {
     setServerError(null);
-    setMissingFields([]);
     startTransition(async () => {
       try {
         const result = await submitCompanyDiagnosticAction(taxCode, values);
-        if (result && !result.ok) {
-          setServerError(result.error);
-        }
-        // On success the server action calls redirect() which throws an
-        // internal Next signal; the browser navigates and we never reach here.
+        if (result && !result.ok) setServerError(result.error);
+        // Success → server redirect throws NEXT_REDIRECT, handled below.
       } catch (e) {
         const msg = (e as Error).message ?? 'Unknown error';
-        // Re-throw NEXT_REDIRECT so Next.js handles the navigation.
         if (msg.includes('NEXT_REDIRECT')) throw e;
         setServerError(msg);
       }
@@ -82,133 +127,213 @@ export function DiagnosticV2Form({ taxCode, companyName }: DiagnosticV2FormProps
   }
 
   function onInvalid(errors: FieldErrors<DiagnosticInput>) {
-    const fields = Object.keys(errors) as Array<keyof DiagnosticInput>;
-    setMissingFields(fields.map(String));
-    // Scroll to the first error.
-    const first = fields[0];
-    if (first) {
-      const el = document.querySelector(`[data-field="${first}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Jump to the first step containing an error.
+    const errorKeys = Object.keys(errors);
+    if (errorKeys.length === 0) return;
+    for (let i = 0; i < STEPS.length; i += 1) {
+      const inSection = QUESTIONS_BY_SECTION[STEPS[i]!.section];
+      const includesContext =
+        STEPS[i]!.section === 'Contextual Inputs' &&
+        (errorKeys.includes('stated_objective') || errorKeys.includes('time_horizon'));
+      if (inSection.some((k) => errorKeys.includes(k)) || includesContext) {
+        setStepIndex(i);
+        scrollTop();
+        return;
+      }
     }
   }
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="mx-auto max-w-[820px] px-6 py-10">
-        {/* Header */}
-        <header className="d-section mb-6">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
+      <div ref={containerRef} className="mx-auto max-w-[820px] px-6 pb-16 pt-8">
+        <div className="mb-4">
+          <Link
+            href={`/companies/${encodeURIComponent(taxCode)}`}
+            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-text-faint transition-colors hover:text-text-dim"
+          >
+            <ArrowLeft size={13} /> Back to company
+          </Link>
+        </div>
+
+        <header className="mb-6">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
             Diagnostic · {companyName}
           </div>
-          <h1 className="mt-2 font-serif text-[34px] font-medium leading-tight tracking-tight">
-            Twenty honest questions.
+          <h1 className="mt-2 font-serif text-[30px] font-medium leading-[1.1] tracking-tight text-text">
+            A few honest questions about how the company really runs.
           </h1>
-          <p className="mt-2 max-w-[640px] text-[14px] text-text-dim">
-            Quantitative data is pulled from AIDA automatically. Answer the
-            qualitative side — score 1 to 5 on each statement — and we will
-            return the company&apos;s strategic valuation, capital scorecard, risk
-            index and Top-3 priority actions.
+          <p className="mt-2 max-w-[640px] text-[13.5px] leading-relaxed text-text-dim">
+            We pull the financial side from AIDA automatically. You answer the
+            qualitative side — 19 short ratings — and we produce the company&apos;s
+            strategic value, capital scorecard, and a Top-3 of priority actions.
           </p>
-          <div className="mt-4 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={fillExample}
-              className="inline-flex items-center gap-1.5 rounded-md border border-amber/30 bg-amber/[0.10] px-3 py-1.5 font-mono text-[10.5px] font-bold uppercase tracking-eyebrow text-amber transition-all hover:-translate-y-0.5 hover:bg-amber/[0.18]"
-            >
-              <Sparkles size={11} /> Fill with example (ACME)
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={fillExample}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-amber/30 bg-amber/[0.08] px-3 py-1.5 text-[12px] font-medium text-amber transition-colors hover:bg-amber/[0.18]"
+          >
+            <Sparkles size={12} /> Try with example answers
+          </button>
         </header>
 
-        {/* Question sections */}
-        {QUESTION_SECTIONS.map((section, sIdx) => (
-          <section key={section} className="d-section mb-8">
-            <SectionHeader index={sIdx + 1} title={section} />
-            <div className="space-y-3 rounded-2xl border border-line bg-bg-2/40 p-5">
-              {QUESTIONS_BY_SECTION[section].map((qKey) => (
-                <RatingRow key={qKey} qKey={qKey} />
-              ))}
-              {section === 'Contextual Inputs' && <ClassificatoryRow />}
-            </div>
-          </section>
-        ))}
+        <ProgressBar stepIndex={stepIndex} totalSteps={totalSteps} />
 
-        {/* Submit */}
-        <div className="d-section mt-10 flex flex-col gap-3">
-          {missingFields.length > 0 && (
-            <div className="flex items-start gap-3 rounded-lg border border-amber/30 bg-amber/[0.08] px-4 py-3 text-[13px] text-amber">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+          className="mt-6 rounded-2xl border border-line bg-bg-1 p-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+        >
+          <div className="mb-5 flex items-baseline justify-between">
+            <div>
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+                {step.eyebrow} · Step {stepIndex + 1} of {totalSteps}
+              </div>
+              <h2 className="mt-1 font-serif text-[22px] font-medium tracking-tight text-text">
+                {step.label}
+              </h2>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {sectionKeys.map((qKey) => (
+              <RatingRow key={qKey} qKey={qKey} />
+            ))}
+            {step.section === 'Contextual Inputs' && <ClassificatoryRow />}
+          </div>
+
+          {serverError && (
+            <div className="mt-6 flex items-start gap-3 rounded-lg border border-red/30 bg-red/[0.08] px-4 py-3 text-[13px] text-red">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />
               <div>
-                <div className="font-semibold">Some answers are missing.</div>
-                <div className="mt-1 text-text-dim">
-                  Required: {missingFields.join(', ')}
-                </div>
+                <div className="font-semibold">We couldn&apos;t save the diagnostic.</div>
+                <div className="mt-1 text-text-dim">{serverError}</div>
               </div>
             </div>
           )}
-          {serverError && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/[0.08] px-4 py-3 text-[13px] text-red-300">
-              {serverError}
+
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={stepIndex === 0 || pending}
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3.5 py-2 text-[12.5px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text disabled:opacity-40"
+            >
+              <ArrowLeft size={13} /> Back
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-text-faint">
+                {stepIndex + 1} / {totalSteps}
+              </span>
+              {!isLast ? (
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-cyan/40 bg-cyan/[0.10] px-4 py-2 text-[12.5px] font-semibold text-cyan transition-colors hover:bg-cyan/[0.18]"
+                >
+                  Continue <ArrowRight size={13} />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-gold/50 bg-gold/[0.18] px-4 py-2 text-[12.5px] font-semibold text-gold transition-colors hover:bg-gold/[0.28] disabled:opacity-60"
+                >
+                  {pending ? 'Scoring…' : 'Submit & see results'}
+                  <ChevronRight size={13} />
+                </button>
+              )}
             </div>
-          )}
-          <button
-            type="submit"
-            disabled={pending}
-            className="group inline-flex items-center justify-center gap-2 rounded-xl border border-gold/40 bg-gold/[0.18] px-6 py-4 font-mono text-[12px] font-bold uppercase tracking-eyebrow text-gold transition-all hover:-translate-y-0.5 hover:bg-gold/[0.28] disabled:opacity-60"
-          >
-            {pending ? 'Scoring…' : 'Submit & score'}
-            <ChevronRight size={14} strokeWidth={2.5} />
-          </button>
-          <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-            On submit we compute V, the 4-capital scorecard, the Top-3 actions, and the value gap.
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </FormProvider>
   );
 }
 
 // =============================================================================
-// Section header
+// Progress bar
 // =============================================================================
-function SectionHeader({ index, title }: { index: number; title: string }) {
+function ProgressBar({ stepIndex, totalSteps }: { stepIndex: number; totalSteps: number }) {
   return (
-    <div className="mb-3 flex items-baseline justify-between">
-      <div>
-        <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
-          Section {String(index).padStart(2, '0')}
-        </div>
-        <h2 className="mt-0.5 font-serif text-[20px] font-medium tracking-tight">{title}</h2>
+    <div>
+      <div className="flex items-center justify-between">
+        {STEPS.map((s, i) => {
+          const done = i < stepIndex;
+          const active = i === stepIndex;
+          return (
+            <div key={s.section} className="flex flex-1 items-center">
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    'flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-mono font-semibold transition-colors',
+                    done && 'border-gold bg-gold text-bg-1',
+                    active && !done && 'border-gold text-gold',
+                    !done && !active && 'border-line text-text-faint',
+                  )}
+                >
+                  {done ? <Check size={12} /> : i + 1}
+                </span>
+                <span
+                  className={cn(
+                    'hidden text-[12px] font-medium md:inline',
+                    active ? 'text-text' : 'text-text-faint',
+                  )}
+                >
+                  {s.label}
+                </span>
+              </div>
+              {i < totalSteps - 1 && (
+                <span
+                  className={cn(
+                    'mx-2 h-px flex-1 transition-colors md:mx-3',
+                    i < stepIndex ? 'bg-gold' : 'bg-line',
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 // =============================================================================
-// One scored row (Q1–Q14, Q17–Q19)
+// Rating row (one scored question)
 // =============================================================================
 function RatingRow({ qKey }: { qKey: QuestionKey }) {
   const q = QUESTIONS[qKey];
   const { control, watch, formState } = useFormContext<DiagnosticInput>();
   const v = watch(qKey) as number | undefined;
-  const optionLabel = typeof v === 'number' ? q.options[v - 1] : 'Pick a score';
+  const optionLabel = typeof v === 'number' ? q.options[v - 1] : null;
   const error = formState.errors[qKey]?.message;
 
   return (
-    <div data-field={qKey} className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-bg-2/60 p-4 md:grid-cols-[1fr_auto]">
+    <div
+      data-field={qKey}
+      className={cn(
+        'grid grid-cols-1 gap-3 rounded-xl border bg-bg-2/40 p-4 transition-colors md:grid-cols-[1fr_auto]',
+        error ? 'border-red/40' : 'border-line',
+      )}
+    >
       <div>
         <div className="flex items-baseline gap-2">
-          <span className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
             {q.n}
           </span>
-          <span className="font-serif text-[16px] font-medium text-text">{q.title}</span>
+          <span className="text-[15px] font-medium text-text">{q.title}</span>
         </div>
-        <div className="mt-1 max-w-[480px] text-[13px] text-text-dim">{q.hint}</div>
-        <div className="mt-2 font-mono text-[11px] text-amber">
-          {typeof v === 'number' ? `${v} — ${optionLabel}` : optionLabel}
+        <div className="mt-1 max-w-[480px] text-[12.5px] text-text-dim">{q.hint}</div>
+        <div
+          className={cn(
+            'mt-2 text-[12px]',
+            optionLabel ? 'text-text-dim' : 'text-text-faint',
+          )}
+        >
+          {optionLabel ? <><span className="font-mono text-amber">{v}</span> · {optionLabel}</> : 'Tap 1–5 to answer'}
         </div>
         {error && (
-          <div className="mt-1 font-mono text-[10.5px] text-red-400">{String(error)}</div>
+          <div className="mt-1 text-[12px] text-red">{String(error)}</div>
         )}
       </div>
       <Controller
@@ -216,7 +341,7 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
         name={qKey}
         render={({ field }) => (
           <RatingDots
-            value={Number(field.value ?? 3)}
+            value={Number(field.value ?? 0)}
             onChange={field.onChange}
             lowLabel="1"
             highLabel="5"
@@ -228,23 +353,26 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
 }
 
 // =============================================================================
-// Classificatory inputs — stated_objective + time_horizon (Q15, Q16)
+// Classificatory row (stated_objective + time_horizon)
 // =============================================================================
 function ClassificatoryRow() {
   const { control, formState } = useFormContext<DiagnosticInput>();
   return (
-    <div data-field="stated_objective" className="rounded-xl border border-line bg-bg-2/60 p-4">
-      <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
-        Q15–Q16 · Classificatory
+    <div
+      data-field="stated_objective"
+      className="rounded-xl border border-line bg-bg-2/40 p-4"
+    >
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+        Q15 · Q16 · Direction & timing
       </div>
       <p className="mt-1 text-[12.5px] text-text-dim">
-        Used to prioritise the Top-3 actions and interpret the value gap.
+        Tells the model which actions to prioritise.
       </p>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
-            Primary objective (24–36 m)
+          <label className="mb-2 block text-[11.5px] font-semibold text-text-dim">
+            Primary objective (next 24–36 months)
           </label>
           <Controller
             control={control}
@@ -252,12 +380,8 @@ function ClassificatoryRow() {
             render={({ field }) => (
               <select
                 {...field}
-                className={cn(
-                  'w-full rounded-lg border border-line bg-bg/60 px-3 py-2.5 font-mono text-[12.5px] text-text',
-                  'focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30',
-                )}
+                className="w-full rounded-md border border-line bg-bg-1 px-3 py-2.5 text-[13px] text-text focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
               >
-                <option value="">Pick an objective…</option>
                 {STATED_OBJECTIVES.map((o) => (
                   <option key={o} value={o}>{OBJECTIVE_LABELS[o]}</option>
                 ))}
@@ -265,14 +389,14 @@ function ClassificatoryRow() {
             )}
           />
           {formState.errors.stated_objective && (
-            <div className="mt-1 font-mono text-[10.5px] text-red-400">
+            <div className="mt-1 text-[12px] text-red">
               {String(formState.errors.stated_objective?.message)}
             </div>
           )}
         </div>
 
         <div>
-          <label className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
+          <label className="mb-2 block text-[11.5px] font-semibold text-text-dim">
             Time horizon
           </label>
           <Controller
@@ -290,10 +414,10 @@ function ClassificatoryRow() {
                       type="button"
                       onClick={() => field.onChange(h)}
                       className={cn(
-                        'flex-1 rounded-lg border px-2 py-2 font-mono text-[11px] font-bold uppercase tracking-eyebrow transition-all',
+                        'flex-1 rounded-md border px-2 py-2 text-[12px] font-medium transition-colors',
                         active
-                          ? 'border-cyan/50 bg-cyan/[0.15] text-cyan'
-                          : 'border-line bg-bg/40 text-text-dim hover:border-line-2',
+                          ? 'border-cyan/50 bg-cyan/[0.10] text-cyan'
+                          : 'border-line bg-bg-1 text-text-dim hover:border-line-2',
                       )}
                     >
                       {label}
@@ -304,7 +428,7 @@ function ClassificatoryRow() {
             )}
           />
           {formState.errors.time_horizon && (
-            <div className="mt-1 font-mono text-[10.5px] text-red-400">
+            <div className="mt-1 text-[12px] text-red">
               {String(formState.errors.time_horizon?.message)}
             </div>
           )}

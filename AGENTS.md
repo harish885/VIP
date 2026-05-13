@@ -1,0 +1,198 @@
+# VIP — Value Intelligence Platform
+
+Briefing for Codex. **Read this first**, then `docs/VIP_Build_Plan.pdf` if you need depth.
+
+## What this project is
+
+A digital decision assistant for **SME entrepreneurs**. They answer a 17-input questionnaire, the model returns:
+
+1. **Estimated enterprise value** (V) and a range
+2. **Value Gap** — distance from current V to optimised potential V
+3. **Quality Score** + **Risk Index** + four per-capital scores
+4. **Top 3 priority actions** ranked by Return on Value (ROV)
+
+Core formula: `V = EBITDA × M_sector × SQF × GF` — calibrated against 14,999 Italian manufacturing SMEs from AIDA / Bureau van Dijk.
+
+Academic project (Master in Data Science for Management, Cattolica). Final exam late May 2026.
+
+## Where we are
+
+| Phase | What | Status |
+|---|---|---|
+| 00 | Foundation: repo, splitter, infographic | ✅ done |
+| 01 | Next.js 14 skeleton, design tokens, chrome | ✅ done |
+| 02 | Marketing site — 10 scenes, ported to React | ✅ done |
+| 03 | Supabase schema (10 tables in `vip` schema) + AIDA ingest | ✅ done — 14,999 rows live |
+| 04 | Auth + onboarding (currently bypassed in demo mode) | ✅ shipped, dormant |
+| 05 | 4-step diagnostic questionnaire (RHF + Zod) | ✅ done |
+| 06 | Scoring pipeline — submission → valuation (shared TS module) | ✅ done |
+| 07 | Dashboard wired to real valuations | ✅ done |
+| 08 | Recommendation engine + ROV ranking | ✅ done |
+| 09 | Simulation Engine + polish (local-only delivery) | ✅ done |
+| 10 | **Pivot** — company search + per-company dashboard + 20-Q questionnaire | ✅ done |
+
+## Pivot overview (post-Phase-09)
+
+User-facing flow is now company-centric instead of free-form:
+
+```
+/  →  /companies  →  /companies/[taxCode]  →  /companies/[taxCode]/diagnostic  →  /companies/[taxCode]?submitted=…
+```
+
+Key changes:
+
+- **/companies** — search bar over the 14 999 AIDA SMEs (`vip.aida_company_snapshot` view).
+- **/companies/[taxCode]** — per-company dashboard. AIDA factsheet always visible; if a diagnostic has run for this company, the full `DashboardView` renders with real V / capitals / Top-3 / simulation. Otherwise a "Run diagnostic" CTA.
+- **Diagnostic questionnaire** — rebuilt against the 20-question PoC in `Value_Intelligence_Questionnaire+contextdata.docx`. Pure qualitative (1–5). Quantitative data is pulled from the AIDA snapshot at submission time, not typed by the entrepreneur.
+- **`vip.companies.tax_code`** links each user company to its AIDA row.
+- **`web/lib/scoring/company-input.ts`** bridges questionnaire + AIDA → the existing `runScoring` engine. Old 6-qualitative + 7-quant inputs are still produced internally (concentration / recurring revenue proxied off Q9 + Q13, tech ratio off AIDA R&D when available).
+- **Old `/diagnostic` route** redirects to `/companies` — there's no longer a free-form path.
+
+Full deliverables + acceptance criteria per phase: **`docs/VIP_Build_Plan.pdf` § 14**.
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Frontend | Next.js 14 App Router · TypeScript strict (`noUncheckedIndexedAccess`) · Tailwind CSS |
+| Forms | React Hook Form + Zod resolver |
+| Animation | GSAP for radar / count-ups only · simple IntersectionObserver hook (`useReveal`) for everything else |
+| Backend | Supabase (Postgres + Auth + RLS + Edge Functions) — all in `vip` schema |
+| Data prep | Python · pandas · openpyxl · psycopg |
+| Hosting | Vercel (TBD, lands in Phase 09) |
+
+## Repo layout
+
+```
+VIP/
+├── AGENTS.md                  ← you are here
+├── README.md                  repo overview
+├── data/                      AIDA xlsx files (14,999 SMEs)
+├── docs/
+│   ├── SME_Valuation_Design.pdf       original 4-Capital design doc
+│   ├── VIP_Build_Plan.pdf             28-page execution plan with all phases
+│   └── PHASE_03_SETUP.md              Supabase setup walkthrough
+├── src/                       Python — splitter + ingestion
+│   ├── split_aida_capitals.py
+│   └── ingest_aida.py
+├── supabase/                  migrations + config (vip schema)
+│   ├── config.toml
+│   └── migrations/
+│       ├── 20260510000000_create_vip_schema.sql
+│       ├── 20260510000001_calibration_tables.sql
+│       ├── 20260510000002_user_tables.sql
+│       └── 20260510000003_rls_policies.sql
+└── web/                       Next.js app
+    ├── app/
+    │   ├── (marketing)/       public scenes (hero → closing)
+    │   ├── (auth)/            login/signup/verify (built but dormant)
+    │   └── (app)/             /dashboard, /diagnostic, /onboarding
+    ├── components/
+    │   ├── chrome/            brand mark, auth CTA, bg layers
+    │   ├── marketing/scenes/  10 marketing scene components
+    │   ├── dashboard/         dashboard-view.tsx (rich KPI surface)
+    │   ├── diagnostic/        4-step questionnaire
+    │   └── auth/              login/signup forms (dormant)
+    ├── lib/
+    │   ├── supabase/          client / server / service / middleware helpers
+    │   ├── database.types.ts  generated by `supabase gen types`
+    │   ├── diagnostic-schema.ts  Zod schema for the 17 inputs
+    │   ├── demo-data.ts       seeded ACME company for the demo dashboard
+    │   ├── animation.ts       animateCount + ease tokens
+    │   ├── use-reveal.ts      IntersectionObserver hook
+    │   └── auth.ts            getUser / getUserOrRedirect helpers
+    ├── middleware.ts
+    └── package.json
+```
+
+## Conventions and gotchas
+
+- **All DB objects live in the `vip` schema**, not `public`. The Supabase JS clients all set `db.schema: 'vip'`. Generated types use `Database['vip']['Tables']`. When running `supabase gen types` you **must** pass `--schema vip,public` or it returns an empty file.
+- **Demo mode is on**. `web/lib/supabase/middleware.ts` has `ENFORCE_AUTH_GUARDS = false`. `/dashboard` and `/diagnostic` are open without login. The `(app)/layout.tsx` shows a "Demo Mode" pill instead of user info. Flip the flag to re-enable auth.
+- **TypeScript strict**, including `noUncheckedIndexedAccess`. Array access often needs explicit narrowing.
+- **Server Actions over API routes** for forms (auth, onboarding, diagnostic submission).
+- **Animations are deliberately calm.** We stripped a previous "cinematic mode" (Lenis smooth scroll, GSAP scroll-triggered timelines, particles, side-nav dots). Keep it that way — quiet fade-up on scroll via `useReveal`, plus informative motion only (number count-ups, the radar polygon morph, the capital weight bars).
+- **Cloud Supabase needs `vip` added to exposed schemas.** Dashboard → Settings → API → Exposed schemas → add `vip`. Without this, `supabase.from('companies')` returns 404 from the web app.
+- **IPv6-only direct connection** to Postgres hangs on most home networks. For `python src/ingest_aida.py`, use the Transaction-pooler URL from Settings → Database, not the direct `db.<ref>.supabase.co` host.
+
+## How to run locally
+
+```bash
+cd web
+npm install
+npm run dev          # localhost:3000
+
+# Type check + lint
+npm run type-check
+npm run lint
+
+# Python data work
+cd ..
+source .venv/bin/activate
+python src/ingest_aida.py --dry-run    # parses workbook, no writes
+```
+
+Env vars live in `web/.env.local` (frontend) and root `.env` (Python ingest). Templates in `web/.env.example` and `.env.example`.
+
+## Phase 06 — what shipped
+
+The scoring pipeline lives in `web/lib/scoring/` as a plain TypeScript
+module, **not** as a Supabase Edge Function. Equivalent behaviour, called
+synchronously from `submitDiagnosticAction`, no Deno runtime, no
+`supabase functions serve` needed for local delivery. The Phase 09
+simulation engine re-uses `valuation.ts` directly.
+
+```
+web/lib/scoring/
+  index.ts             runScoring(input, ctx) — pipeline entry point
+  types.ts             ScoringResult, CapitalScores, RiskIndex, …
+  metrics.ts           Stage 1: derives ~12 metrics from the 17 inputs
+  benchmarks.ts        Stage 2: peer-percentile rank (Postgres + synthetic prior fallback)
+  aggregate.ts         Stages 3 + 4: per-capital weighted means + CQS / SQF
+  valuation.ts         Stages 5 + 6: Growth Factor + V (shared with Phase 09 sim)
+  flags.ts             Fragility flags + Risk Index
+  sector-multiples.ts  NACE-prefix-keyed sector multiples (illiquidity-discounted)
+supabase/migrations/20260512000000_demo_mode_and_percentile.sql
+  - drops NOT NULL on user_id (companies/submissions/valuations/recos) for demo writes
+  - adds vip.percentile_in_peer_group / percentile_in_nace_prefix RPCs
+web/scripts/calibrate-acme.ts
+  - runs the ACME profile through the pipeline, asserts ±10% on V/SQF/GF/Quality
+```
+
+`submitDiagnosticAction` is now a real persistence path: validate → find or
+create company → insert submission → run scoring → insert valuation →
+redirect `/dashboard?submitted=<id>`. Demo mode (no auth) writes via the
+service role with `user_id = NULL` and drops an httpOnly cookie so the
+dashboard can find the freshly-computed row.
+
+To re-run the ACME calibration check:
+```bash
+cd web && npx tsx scripts/calibrate-acme.ts
+```
+
+## Mockup numbers for the demo
+
+If you're regenerating UI without real Supabase data, use the ACME profile from `lib/demo-data.ts`:
+
+```
+V = 4.2M    (range 3.8 – 4.7)        Quality 67/100
+Value Gap = +38% → potential 5.8M    Risk = MEDIUM
+EBITDA = 750K · M = 5.0 · SQF = 1.05 · GF = 1.07
+Capitals: Fin 68 · Tech 54 · H&O 71 · Rel 55
+Top-3 actions: client concentration (+12% V), recurring revenue (+9%), middle management (+7%)
+```
+
+These are internally consistent: `750_000 × 5.0 × 1.05 × 1.07 ≈ 4.21M ✓`.
+
+## What lives where, fast lookup
+
+| Need | File |
+|---|---|
+| Model rationale | `docs/SME_Valuation_Design.pdf` |
+| Phase-by-phase build plan | `docs/VIP_Build_Plan.pdf` |
+| Supabase setup steps | `docs/PHASE_03_SETUP.md` |
+| DB schema | `supabase/migrations/*.sql` |
+| Web environment template | `web/.env.example` |
+| Calibration set ingest | `src/ingest_aida.py` |
+| Demo data for dashboard | `web/lib/demo-data.ts` |
+| Questionnaire schema | `web/lib/diagnostic-schema.ts` |

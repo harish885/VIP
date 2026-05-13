@@ -53,15 +53,11 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
   }, []);
 
   // Fetch suggestions whenever the query changes (debounced).
+  // Empty query → fetch top results (sorted by latest revenue) so the
+  // dropdown still has something useful on focus, matching the inline copy.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     abortRef.current?.abort();
-    if (q.trim().length === 0) {
-      setItems([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
       const ctrl = new AbortController();
@@ -164,8 +160,8 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
         </div>
       </form>
 
-      {/* Suggestions dropdown */}
-      {open && (q.trim().length > 0 || error) && (
+      {/* Suggestions dropdown — show on focus even when empty (top results) */}
+      {open && (
         <div
           id="search-suggestions"
           role="listbox"
@@ -176,7 +172,9 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
           )}
           {!error && items.length === 0 && !loading && (
             <div className="px-4 py-4 font-mono text-[11.5px] text-text-faint">
-              No companies match <span className="text-amber">{q}</span>.
+              {q.trim().length === 0
+                ? 'Start typing to search.'
+                : <>No companies match <span className="text-amber">{q}</span>.</>}
             </div>
           )}
           {!error && items.length > 0 && (

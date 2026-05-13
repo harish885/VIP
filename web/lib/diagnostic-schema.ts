@@ -135,26 +135,13 @@ export type DiagnosticInput = z.infer<typeof DiagnosticSchema>;
 // =============================================================================
 
 export const EMPTY_DIAGNOSTIC: Partial<DiagnosticInput> = {
-  digital_maturity: 3,
-  q_automation: 3,
-  q_enabling_systems: 3,
-  q_distinctive_tech_assets: 3,
-  founder_dependency: 3,
-  management_structure: 3,
-  q_process_maturity: 3,
-  q_transferability: 3,
-  client_portfolio_quality: 3,
-  q_strategic_partnerships: 3,
-  q_reputation: 3,
-  network_partnerships: 3,
-  q_quality_of_growth: 3,
-  business_scalability: 3,
-  q_lifecycle_score: 3,
-  q_distinctive_assets_score: 3,
-  q_ma_history: 1,
+  // Likert questions intentionally have NO default — every answer must be a
+  // deliberate choice from the entrepreneur. The diagnostic form surfaces
+  // the unanswered ones at submit time.
   distinctive_assets: '',
-  // Classificatory defaults — keep the form submittable even if the user
-  // does not touch the bottom section.
+  // Classificatory anchors only — Q15 / Q16 default to neutral sensible
+  // choices so the form still validates if the user is in a hurry; they
+  // can override before submitting.
   stated_objective: 'growth',
   time_horizon: '24m',
 };
