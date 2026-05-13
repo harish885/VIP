@@ -3,52 +3,50 @@
 @tailwind utilities;
 
 /* =================================================================
-   DESIGN TOKENS — mirrors the cinematic site, exposed as RGB
-   triples so Tailwind's <alpha-value> opacity modifier works.
+   DESIGN TOKENS — light, sober fintech palette.
+   Inspired by Linear / Carta / Stripe Dashboards. Warm off-white
+   surfaces, charcoal text, muted accents. Exposed as RGB triples
+   so Tailwind's <alpha-value> modifier still works everywhere.
 ================================================================= */
 @layer base {
   :root {
-    /* Surfaces (dark) */
-    --bg:           5   7   13;       /* #05070d */
-    --bg-1:         10  14  26;       /* #0a0e1a */
-    --bg-2:         15  20  34;       /* #0f1422 */
-    --bg-3:         22  28  46;       /* #161c2e */
-
-    /* Glass surfaces use rgba directly via utilities */
-    --surface:      'rgba(20, 26, 44, 0.55)';
-    --surface-2:    'rgba(28, 36, 58, 0.6)';
+    /* Surfaces (warm light) */
+    --bg:           250 249 246;      /* #fafaf6  page bg */
+    --bg-1:         255 255 255;      /* #ffffff  raised surface */
+    --bg-2:         244 242 235;      /* #f4f2eb  card */
+    --bg-3:         234 230 220;      /* #eae6dc  pressed card */
 
     /* Borders */
-    --line:         35  42  59;       /* #232a3b ~rgba 0.08 white-on-dark */
-    --line-2:       45  53  72;
-    --line-faint:   24  30  44;
+    --line:         227 223 213;      /* #e3dfd5 */
+    --line-2:       211 206 193;      /* #d3cec1 */
+    --line-faint:   240 237 228;      /* #f0ede4 */
 
     /* Text */
-    --ink:          236 240 247;
-    --ink-soft:     205 211 225;
-    --text:         236 240 247;
-    --text-dim:     153 163 178;
-    --text-faint:    90 100 121;
+    --ink:           24  26  31;
+    --ink-soft:      58  62  72;
+    --text:          24  26  31;      /* #181a1f  near-black */
+    --text-dim:      86  90 102;      /* #565a66 */
+    --text-faint:   140 142 152;      /* #8c8e98 */
 
-    /* Accents */
-    --gold:         245 165  36;      /* #f5a524 */
-    --gold-2:       253 186 116;      /* #fdba74 */
-    --cyan:           6 182 212;      /* #06b6d4 */
-    --cyan-2:       103 232 249;      /* #67e8f9 */
-    --purple:       168  85 247;      /* #a855f7 */
-    --purple-2:     192 132 252;      /* #c084fc */
-    --green:         34 197  94;      /* #22c55e */
-    --green-2:       74 222 128;      /* #4ade80 */
-    --red:          239  68  68;
-    --amber:        245 158  11;
-    --orange:       249 115  22;
-    --blue:          59 130 246;
+    /* Accents — desaturated, magazine-tone */
+    --gold:         176 122  26;      /* #b07a1a  warm amber */
+    --gold-2:       216 163  80;      /* #d8a350 */
+    --cyan:          21 127 137;      /* #157f89  muted teal */
+    --cyan-2:        75 169 179;      /* #4ba9b3 */
+    --purple:        91  95 214;      /* #5b5fd6  indigo */
+    --purple-2:     134 138 232;      /* #868ae8 */
+    --green:         30 122  68;      /* #1e7a44  emerald */
+    --green-2:       79 168 115;      /* #4fa873 */
+    --red:          184  69  62;      /* #b8453e  warm red */
+    --amber:        176 122  26;
+    --orange:       184 107  58;      /* #b86b3a  sienna */
+    --blue:          42  95 160;      /* #2a5fa0  prussian */
 
-    /* Capital colors */
-    --cap-fin:       59 130 246;      /* blue */
-    --cap-tech:     168  85 247;      /* purple */
-    --cap-human:    249 115  22;      /* orange */
-    --cap-rel:       34 197  94;      /* green */
+    /* Capital colours — muted but distinguishable */
+    --cap-fin:       42  95 160;      /* prussian blue */
+    --cap-tech:      91  95 214;      /* indigo */
+    --cap-human:    184 107  58;      /* sienna */
+    --cap-rel:       30 122  68;      /* emerald */
 
     /* Eases */
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -69,8 +67,8 @@
   }
 
   ::selection {
-    background-color: rgb(var(--gold));
-    color: rgb(var(--bg));
+    background-color: rgb(var(--gold) / 0.35);
+    color: rgb(var(--ink));
   }
 }
 
@@ -78,20 +76,20 @@
    COMPONENT UTILITIES
 ================================================================= */
 @layer components {
-  /* Glass surface — translucent panel with backdrop blur */
+  /* Glass surface — translucent panel with backdrop blur (light theme) */
   .glass {
-    background-color: rgba(20, 26, 44, 0.55);
+    background-color: rgba(255, 255, 255, 0.7);
     border: 1px solid rgb(var(--line) / 1);
     border-radius: 1.125rem;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
   .glass-strong {
-    background-color: rgba(28, 36, 58, 0.6);
+    background-color: rgba(255, 255, 255, 0.85);
     border: 1px solid rgb(var(--line-2) / 1);
     border-radius: 1.25rem;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
   /* Eyebrow label */
@@ -106,17 +104,17 @@
     font-size: clamp(2.125rem, 5vw, 4rem);
   }
 
-  /* Headline gradient (white → muted) */
+  /* Headline gradient (charcoal → mid-grey, light theme) */
   .text-gradient-headline {
-    background-image: linear-gradient(135deg, #ffffff 0%, #b8c0d0 60%, #6b7280 100%);
+    background-image: linear-gradient(135deg, #1a1c20 0%, #44474f 55%, #6c6f78 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  /* Gold gradient accent (used inside headings) */
+  /* Gold gradient accent (kept on serif italic for editorial feel) */
   .text-gradient-gold {
-    background-image: linear-gradient(135deg, rgb(var(--gold)) 0%, rgb(var(--gold-2)) 50%, #ffd28a 100%);
+    background-image: linear-gradient(135deg, rgb(var(--gold)) 0%, rgb(var(--gold-2)) 60%, #c4892f 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -167,10 +165,10 @@
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    rgb(245, 165, 36) 0%,
-    rgb(245, 165, 36) var(--ratio, 0%),
-    rgba(255, 255, 255, 0.08) var(--ratio, 0%),
-    rgba(255, 255, 255, 0.08) 100%
+    rgb(var(--gold)) 0%,
+    rgb(var(--gold)) var(--ratio, 0%),
+    rgb(var(--line)) var(--ratio, 0%),
+    rgb(var(--line)) 100%
   );
   outline: none;
   cursor: pointer;
@@ -180,9 +178,9 @@
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: rgb(245, 165, 36);
-  border: 2px solid rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 12px rgba(245, 165, 36, 0.5);
+  background: rgb(var(--bg-1));
+  border: 2px solid rgb(var(--gold));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
   cursor: grab;
   transition: transform 0.15s ease;
 }
@@ -194,13 +192,13 @@
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: rgb(245, 165, 36);
-  border: 2px solid rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 12px rgba(245, 165, 36, 0.5);
+  background: rgb(var(--bg-1));
+  border: 2px solid rgb(var(--gold));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
   cursor: grab;
 }
 .vip-range:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid rgb(6, 182, 212);
+  outline: 2px solid rgb(var(--cyan));
   outline-offset: 2px;
 }
 

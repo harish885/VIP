@@ -50,7 +50,7 @@ export function Engines() {
                 isUpgrade
                   ? {
                       background:
-                        'linear-gradient(135deg, rgb(var(--bg-1)), rgba(245, 165, 36, 0.06))',
+                        'linear-gradient(135deg, rgb(var(--bg-1)), rgba(176, 122, 26, 0.04))',
                     }
                   : undefined
               }

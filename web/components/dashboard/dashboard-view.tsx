@@ -182,7 +182,7 @@ function CompanyHeader() {
       <div className="flex items-center gap-4">
         <div
           className="flex h-[54px] w-[54px] items-center justify-center rounded-[13px] bg-gradient-to-br from-cyan to-blue font-serif text-[20px] font-semibold text-white"
-          style={{ boxShadow: '0 6px 22px rgba(6, 182, 212, 0.35)' }}
+          style={{ boxShadow: '0 6px 22px rgba(21, 127, 137, 0.18)' }}
         >
           {company.initials}
         </div>
@@ -362,7 +362,7 @@ function BlockCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-line bg-black/25 p-4',
+        'rounded-xl border border-line bg-bg-2/60 p-4',
         highlight && 'border-gold/30 bg-gold/[0.04]',
       )}
     >
@@ -405,10 +405,10 @@ function RadarPanel() {
           <polygon
             id="radar-poly"
             points="160,160 160,160 160,160 160,160"
-            fill="rgba(245, 165, 36, 0.16)"
-            stroke="rgb(245, 165, 36)"
+            fill="rgba(176, 122, 26, 0.20)"
+            stroke="rgb(176, 122, 26)"
             strokeWidth={2}
-            style={{ filter: 'drop-shadow(0 0 14px rgba(245, 165, 36, 0.45))' }}
+            style={{ filter: 'drop-shadow(0 0 14px rgba(176, 122, 26, 0.25))' }}
           />
           {RADAR_TARGETS.map((t) => (
             <circle
@@ -417,10 +417,10 @@ function RadarPanel() {
               cx={160}
               cy={160}
               r={5}
-              fill="rgb(245, 165, 36)"
+              fill="rgb(176, 122, 26)"
               stroke="rgb(var(--bg))"
               strokeWidth={2}
-              style={{ filter: 'drop-shadow(0 0 6px rgba(245, 165, 36, 0.7))' }}
+              style={{ filter: 'drop-shadow(0 0 6px rgba(176, 122, 26, 0.35))' }}
             />
           ))}
           <text x="160" y="44"  textAnchor="middle" fontSize={11} fontWeight={600} fill="rgb(var(--text-dim))" fontFamily="Inter, sans-serif">Financial</text>
@@ -479,7 +479,7 @@ function ActionsPanel() {
           <div className="shrink-0 self-center text-right">
             <div
               className="font-mono text-[18px] font-bold text-green"
-              style={{ textShadow: '0 0 12px rgba(34, 197, 94, 0.4)' }}
+              style={{ textShadow: '0 0 12px rgba(30, 122, 68, 0.20)' }}
             >
               +{a.v_uplift_pct}%
             </div>

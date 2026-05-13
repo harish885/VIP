@@ -24,7 +24,7 @@ export function Closing() {
         className="pointer-events-none absolute -inset-[20%]"
         style={{
           background:
-            'radial-gradient(ellipse at center, rgba(245, 165, 36, 0.12), transparent 65%)',
+            'radial-gradient(ellipse at center, rgba(176, 122, 26, 0.06), transparent 65%)',
         }}
       />
 
@@ -53,7 +53,7 @@ export function Closing() {
         {AUDIENCES.map((a) => (
           <span
             key={a}
-            className="rounded-full border border-line bg-black/40 px-4 py-2 text-[13px] font-medium text-text backdrop-blur-glass transition-all duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+            className="rounded-full border border-line bg-bg-3/65 px-4 py-2 text-[13px] font-medium text-text backdrop-blur-glass transition-all duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
           >
             {a}
           </span>

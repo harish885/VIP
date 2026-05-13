@@ -195,7 +195,7 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
   const error = formState.errors[qKey]?.message;
 
   return (
-    <div data-field={qKey} className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-black/20 p-4 md:grid-cols-[1fr_auto]">
+    <div data-field={qKey} className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-bg-2/60 p-4 md:grid-cols-[1fr_auto]">
       <div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
@@ -233,7 +233,7 @@ function RatingRow({ qKey }: { qKey: QuestionKey }) {
 function ClassificatoryRow() {
   const { control, formState } = useFormContext<DiagnosticInput>();
   return (
-    <div data-field="stated_objective" className="rounded-xl border border-line bg-black/20 p-4">
+    <div data-field="stated_objective" className="rounded-xl border border-line bg-bg-2/60 p-4">
       <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-cyan">
         Q15–Q16 · Classificatory
       </div>

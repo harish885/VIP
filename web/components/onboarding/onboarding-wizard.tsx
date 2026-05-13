@@ -93,7 +93,7 @@ export function OnboardingWizard() {
           <Field label="Sector" required>
             <select
               name="sector"
-              className="w-full rounded-lg border border-line bg-black/30 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              className="w-full rounded-lg border border-line bg-bg-2/70 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               defaultValue="Manufacturing"
               required
               disabled={pending}
@@ -145,7 +145,7 @@ export function OnboardingWizard() {
                     'flex flex-col items-start rounded-lg border px-3 py-2.5 text-left transition-all',
                     stage === s.value
                       ? 'border-gold bg-gold/[0.08] text-text'
-                      : 'border-line bg-black/30 text-text-dim hover:border-line-2 hover:text-text',
+                      : 'border-line bg-bg-2/70 text-text-dim hover:border-line-2 hover:text-text',
                   )}
                 >
                   <span className="font-mono text-[11px] font-bold uppercase tracking-eyebrow">
@@ -180,7 +180,7 @@ export function OnboardingWizard() {
           <Field label="Your objective">
             <select
               name="stated_objective"
-              className="w-full rounded-lg border border-line bg-black/30 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              className="w-full rounded-lg border border-line bg-bg-2/70 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               defaultValue=""
               disabled={pending}
             >
@@ -197,7 +197,7 @@ export function OnboardingWizard() {
           <Field label="Time horizon">
             <select
               name="time_horizon"
-              className="w-full rounded-lg border border-line bg-black/30 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+              className="w-full rounded-lg border border-line bg-bg-2/70 px-3.5 py-2.5 font-sans text-[14px] text-text focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
               defaultValue="24m"
               disabled={pending}
             >

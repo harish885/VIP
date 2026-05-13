@@ -9,7 +9,7 @@ export function TopBrand() {
     >
       <span
         className="block h-[18px] w-[18px] rounded-[4px] bg-gradient-to-br from-gold to-gold-soft"
-        style={{ boxShadow: '0 0 16px rgba(245, 165, 36, 0.6)' }}
+        style={{ boxShadow: '0 0 16px rgba(176, 122, 26, 0.30)' }}
       />
       VIP · Value Intelligence
     </div>

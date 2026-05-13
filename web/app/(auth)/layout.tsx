@@ -13,8 +13,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background: `
-            radial-gradient(ellipse 60% 50% at 50% 0%, rgba(245, 165, 36, 0.10), transparent 60%),
-            radial-gradient(ellipse 60% 50% at 50% 100%, rgba(6, 182, 212, 0.06), transparent 60%)
+            radial-gradient(ellipse 60% 50% at 50% 0%, rgba(176, 122, 26, 0.05), transparent 60%),
+            radial-gradient(ellipse 60% 50% at 50% 100%, rgba(21, 127, 137, 0.05), transparent 60%)
           `,
         }}
       />
@@ -26,7 +26,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       >
         <span
           className="block h-[18px] w-[18px] rounded-[4px] bg-gradient-to-br from-gold to-gold-soft"
-          style={{ boxShadow: '0 0 16px rgba(245, 165, 36, 0.6)' }}
+          style={{ boxShadow: '0 0 16px rgba(176, 122, 26, 0.30)' }}
         />
         VIP · Value Intelligence
       </Link>

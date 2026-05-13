@@ -42,7 +42,7 @@ export function TextInput({
     <input
       {...props}
       className={cn(
-        'w-full rounded-lg border border-line bg-black/30 px-3.5 py-2.5',
+        'w-full rounded-lg border border-line bg-bg-2/70 px-3.5 py-2.5',
         'font-sans text-[14px] text-text placeholder:text-text-faint',
         'transition-all duration-200',
         'focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30',

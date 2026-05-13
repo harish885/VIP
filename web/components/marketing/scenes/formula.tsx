@@ -32,7 +32,7 @@ export function Formula() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(ellipse at center, rgba(245, 165, 36, 0.08), transparent 60%)',
+              'radial-gradient(ellipse at center, rgba(176, 122, 26, 0.04), transparent 60%)',
           }}
         />
 
@@ -81,7 +81,7 @@ export function Formula() {
               <div
                 key={g.k}
                 data-i={i}
-                className="rounded-[14px] border border-line bg-black/25 p-4 transition-all duration-300 hover:border-gold hover:bg-gold/[0.04]"
+                className="rounded-[14px] border border-line bg-bg-2/60 p-4 transition-all duration-300 hover:border-gold hover:bg-gold/[0.04]"
               >
                 <div className="mb-1.5 font-mono text-[13px] font-bold text-gold">{g.k}</div>
                 <div className="text-[12.5px] leading-snug text-text-dim">{g.v}</div>
@@ -104,7 +104,7 @@ export function Formula() {
                   This is the platform&rsquo;s true differentiating insight.
                 </em>
               </div>
-              <div className="mt-2 inline-block rounded-lg bg-black/30 px-3 py-2 font-mono text-[13px] font-semibold text-green">
+              <div className="mt-2 inline-block rounded-lg bg-bg-2/70 px-3 py-2 font-mono text-[13px] font-semibold text-green">
                 Value Gap = Optimised Potential Value − Current Value
               </div>
             </div>

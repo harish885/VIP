@@ -71,7 +71,7 @@ export function InputEngine() {
                       }`}
                       style={
                         filled
-                          ? { boxShadow: '0 0 12px rgba(168, 85, 247, 0.5)' }
+                          ? { boxShadow: '0 0 12px rgba(91, 95, 214, 0.30)' }
                           : undefined
                       }
                     />
@@ -94,7 +94,7 @@ export function InputEngine() {
               {QUANTITATIVE.map((q) => (
                 <div
                   key={q}
-                  className="flex items-center gap-3 rounded-[10px] border border-line-faint bg-black/20 px-3.5 py-2.5 text-[12.5px] text-text-dim transition-all duration-300 hover:translate-x-1 hover:border-line hover:bg-black/35"
+                  className="flex items-center gap-3 rounded-[10px] border border-line-faint bg-bg-2/60 px-3.5 py-2.5 text-[12.5px] text-text-dim transition-all duration-300 hover:translate-x-1 hover:border-line hover:bg-bg-3/60"
                 >
                   <span
                     className="block h-1.5 w-1.5 shrink-0 rounded-full bg-blue"
@@ -116,7 +116,7 @@ export function InputEngine() {
               {CONTEXTUAL.map((c) => (
                 <div
                   key={c}
-                  className="flex items-center gap-3 rounded-[10px] border border-line-faint bg-black/20 px-3.5 py-2.5 text-[12.5px] text-text-dim transition-all duration-300 hover:translate-x-1 hover:border-line hover:bg-black/35"
+                  className="flex items-center gap-3 rounded-[10px] border border-line-faint bg-bg-2/60 px-3.5 py-2.5 text-[12.5px] text-text-dim transition-all duration-300 hover:translate-x-1 hover:border-line hover:bg-bg-3/60"
                 >
                   <span
                     className="block h-1.5 w-1.5 shrink-0 rounded-full bg-green"

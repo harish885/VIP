@@ -96,7 +96,7 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 80% 20%, rgba(168, 85, 247, 0.10), transparent 60%)',
+          background: 'radial-gradient(ellipse 70% 50% at 80% 20%, rgba(91, 95, 214, 0.05), transparent 60%)',
         }}
       />
       <div className="relative">
@@ -121,7 +121,7 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
               l.step < 1 ? v.toFixed(1) : String(Math.round(v));
             const ratio = (v - l.min) / (l.max - l.min);
             return (
-              <div key={l.key} className="rounded-lg border border-line bg-black/20 p-3">
+              <div key={l.key} className="rounded-lg border border-line bg-bg-2/60 p-3">
                 <div className="mb-1.5 flex items-baseline justify-between font-mono text-[11px]">
                   <span className="text-text">{l.label}</span>
                   <span className="font-mono text-[13px] font-bold text-amber">

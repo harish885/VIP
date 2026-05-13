@@ -77,7 +77,7 @@ export function Dashboard() {
           <span className="block h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
           <span className="block h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
           <span className="block h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <div className="ml-4 flex-1 rounded-lg border border-line bg-black/40 px-3.5 py-1 font-mono text-[11px] text-text-faint">
+          <div className="ml-4 flex-1 rounded-lg border border-line bg-bg-3/65 px-3.5 py-1 font-mono text-[11px] text-text-faint">
             <span className="text-green">https://</span>vip.app/dashboard/acme-industrie-srl
           </div>
         </div>
@@ -88,7 +88,7 @@ export function Dashboard() {
             <div className="flex items-center gap-4">
               <div
                 className="flex h-[52px] w-[52px] items-center justify-center rounded-[13px] bg-gradient-to-br from-cyan to-blue font-serif text-[18px] font-semibold text-white"
-                style={{ boxShadow: '0 6px 20px rgba(6, 182, 212, 0.35)' }}
+                style={{ boxShadow: '0 6px 20px rgba(21, 127, 137, 0.18)' }}
               >
                 AI
               </div>
@@ -172,7 +172,7 @@ const TONE_RGB:   Record<Tone, string> = { gold: 'var(--gold)', green: 'var(--gr
 
 function KpiShell({ tone, label, children }: { tone: Tone; label: string; children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-[14px] border border-line bg-black/30 p-5 transition-all duration-300 hover:bg-black/50">
+    <div className="relative overflow-hidden rounded-[14px] border border-line bg-bg-2/70 p-5 transition-all duration-300 hover:bg-bg-3/75">
       <span aria-hidden className="absolute left-0 top-0 h-full w-[3px]" style={{ background: `rgb(${TONE_RGB[tone]})`, opacity: 0.6 }} />
       <div className="mb-2.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         {label}
@@ -227,7 +227,7 @@ function KpiText({ tone, label, main, sub }: { tone: Tone; label: string; main: 
 // =============================================================================
 function RadarPanel() {
   return (
-    <div className="rounded-[14px] border border-line bg-black/30 p-6">
+    <div className="rounded-[14px] border border-line bg-bg-2/70 p-6">
       <h4 className="mb-4 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-text-faint">
         4-Capital Radar
       </h4>
@@ -242,15 +242,15 @@ function RadarPanel() {
           <polygon
             id="radarPoly"
             points="160,160 160,160 160,160 160,160"
-            fill="rgba(245, 165, 36, 0.15)"
-            stroke="rgb(245, 165, 36)"
+            fill="rgba(176, 122, 26, 0.20)"
+            stroke="rgb(176, 122, 26)"
             strokeWidth={2}
-            style={{ filter: 'drop-shadow(0 0 12px rgba(245, 165, 36, 0.4))' }}
+            style={{ filter: 'drop-shadow(0 0 12px rgba(176, 122, 26, 0.20))' }}
           />
           {RADAR_TARGETS.map((t) => (
             <circle key={t.id} id={t.id} cx={160} cy={160} r={5}
-              fill="rgb(245, 165, 36)" stroke="rgb(var(--bg))" strokeWidth={2}
-              style={{ filter: 'drop-shadow(0 0 6px rgba(245, 165, 36, 0.6))' }}
+              fill="rgb(176, 122, 26)" stroke="rgb(var(--bg))" strokeWidth={2}
+              style={{ filter: 'drop-shadow(0 0 6px rgba(176, 122, 26, 0.30))' }}
             />
           ))}
           <text x="160" y="44"  textAnchor="middle" fontSize={11} fontWeight={600} fill="rgb(var(--text-dim))" fontFamily="Inter, sans-serif">Financial</text>
@@ -272,7 +272,7 @@ function RadarPanel() {
 // =============================================================================
 function ActionsPanel() {
   return (
-    <div className="rounded-[14px] border border-line bg-black/30 p-6">
+    <div className="rounded-[14px] border border-line bg-bg-2/70 p-6">
       <h4 className="mb-4 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-text-faint">
         Top 3 Priority Actions · ranked by ROV
       </h4>
@@ -295,7 +295,7 @@ function ActionsPanel() {
           </div>
           <div
             className="shrink-0 self-center font-mono text-[16px] font-bold text-green"
-            style={{ textShadow: '0 0 12px rgba(34, 197, 94, 0.4)' }}
+            style={{ textShadow: '0 0 12px rgba(30, 122, 68, 0.20)' }}
           >
             {a.impact}
           </div>

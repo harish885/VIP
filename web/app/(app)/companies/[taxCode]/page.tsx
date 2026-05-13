@@ -97,7 +97,7 @@ function AidaFactsheet({
       <div className="flex items-center gap-4">
         <div
           className="flex h-[54px] w-[54px] items-center justify-center rounded-[13px] bg-gradient-to-br from-cyan to-blue font-serif text-[20px] font-semibold text-white"
-          style={{ boxShadow: '0 6px 22px rgba(6, 182, 212, 0.35)' }}
+          style={{ boxShadow: '0 6px 22px rgba(21, 127, 137, 0.18)' }}
         >
           {initials}
         </div>
@@ -195,7 +195,7 @@ function NoDiagnosticState({
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {cards.map(([label, value, sub]) => (
-            <div key={label} className="rounded-xl border border-line bg-black/25 p-4">
+            <div key={label} className="rounded-xl border border-line bg-bg-2/60 p-4">
               <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
                 {label}
               </div>
