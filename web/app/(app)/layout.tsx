@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Sparkles } from 'lucide-react';
 
 /**
  * App shell — slim chrome with brand on the left and a methodology link
@@ -29,10 +29,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             VIP · Value Intelligence
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/how-it-works"
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text"
+            >
+              <Sparkles size={13} />
+              How it works
+            </Link>
             <Link
               href="/method"
-              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text"
+              className="hidden items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text sm:inline-flex"
             >
               <BookOpen size={13} />
               How scores are calculated
