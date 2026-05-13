@@ -1,834 +1,1151 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import {
-  ArrowRight,
-  Search,
-  FileText,
-  Layers,
-  Target,
-  Sparkles,
-  Sliders,
-  CheckCircle2,
-  Building2,
-  ArrowLeft,
-  type LucideIcon,
-} from 'lucide-react';
-import { useReveal } from '@/lib/use-reveal';
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
+import Link from 'next/link';
+import { ArrowLeft, ArrowRight, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { DEMO_VALUATION, DEMO_ACTIONS } from '@/lib/demo-data';
+import { DEMO_SCORING_INPUT } from '@/lib/scoring/company-input';
 import { computeValuation } from '@/lib/scoring/valuation';
 import { getSectorMultiple } from '@/lib/scoring/sector-multiples';
-import { DEMO_SCORING_INPUT } from '@/lib/scoring/company-input';
 
-/**
- * Explainer — a guided visual story for /how-it-works.
- *
- * The page reads top → bottom. Each section enters the viewport with a
- * subtle fade-up via useReveal. Two sections include real interactive or
- * data-driven motion (the four-capital diagram and the scenario slider)
- * so the visitor can feel the product working, not just read about it.
- */
+// =============================================================================
+// One Company Through The Value Engine
+// =============================================================================
+//
+// A single evolving experience, not a stacked landing page. A real company
+// dossier moves through six pinned chambers driven by scroll progress, then
+// the viewer steps into the live Scenario Lab and a closing takeaway.
+//
+// Real product logic referenced:
+//   · web/lib/diagnostic-schema.ts        — questionnaire structure
+//   · web/lib/scoring/metrics.ts          — Stage 1 (signal shaping)
+//   · web/lib/scoring/benchmarks.ts       — Stage 2 (peer percentile, NACE fallback)
+//   · web/lib/scoring/aggregate.ts        — Stage 3 + 4 (capital + composite weights)
+//   · web/lib/scoring/valuation.ts        — Stage 5 + 6 (GF + V)
+//   · web/lib/scoring/recommendations.ts  — ROV ranking
+//   · web/lib/scoring/action-catalogue.ts — candidate interventions
+//   · web/lib/demo-data.ts                — the live ACME demo numbers
+// =============================================================================
+
+const COMPANY = {
+  name: 'EUROCOIL S.R.L.',
+  province: 'Verona',
+  nace: 'NACE 2825',
+  size: '199 employees',
+  revenue: '€55M revenue',
+  ebitda: '€4.9M EBITDA',
+};
+
+const CHAMBERS = [
+  { eyebrow: '01 · Open', label: 'The dossier opens' },
+  { eyebrow: '02 · Intake', label: 'Two streams of evidence' },
+  { eyebrow: '03 · Peers', label: 'Among similar companies' },
+  { eyebrow: '04 · Capitals', label: 'Four scores, assembled' },
+  { eyebrow: '05 · Value', label: 'The value picture emerges' },
+  { eyebrow: '06 · Priorities', label: 'The three highest-value moves' },
+] as const;
+
+const CHAMBER_COUNT = CHAMBERS.length;
+
+// =============================================================================
+// Entry
+// =============================================================================
 export function Explainer() {
   return (
-    <div className="bg-bg">
-      <BackNav />
-      <Hero />
-      <Flow />
-      <Inputs />
-      <Capitals />
-      <Outputs />
-      <Recommendations />
-      <Scenario />
-      <Takeaway />
+    <div className="overflow-x-hidden bg-bg">
+      <Intro />
+      <Cinema />
+      <ScenarioStation />
+      <Closing />
     </div>
   );
 }
 
 // =============================================================================
-// Shared primitives
+// INTRO — invitation to step in
 // =============================================================================
-function Section({
-  eyebrow,
-  title,
-  intro,
-  children,
-  tone = 'paper',
-  fullBleed,
-}: {
-  eyebrow: string;
-  title: React.ReactNode;
-  intro?: React.ReactNode;
-  children: React.ReactNode;
-  tone?: 'paper' | 'inset';
-  fullBleed?: boolean;
-}) {
-  const ref = useReveal<HTMLElement>();
+function Intro() {
   return (
-    <section
-      ref={ref}
-      className={cn(
-        'reveal mx-auto w-full px-6 py-20 md:py-28',
-        fullBleed ? 'max-w-none' : 'max-w-[1080px]',
-        tone === 'inset' && 'bg-bg-2/40',
-      )}
-    >
-      <header className="max-w-[720px]">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
-          {eyebrow}
-        </div>
-        <h2 className="mt-2 font-serif text-[30px] font-medium leading-[1.1] tracking-tight text-text md:text-[40px]">
-          {title}
-        </h2>
-        {intro && (
-          <p className="mt-3 max-w-[560px] text-[14.5px] leading-relaxed text-text-dim md:text-[15.5px]">
-            {intro}
-          </p>
-        )}
-      </header>
-      <div className="mt-10">{children}</div>
-    </section>
-  );
-}
-
-function BackNav() {
-  return (
-    <div className="mx-auto max-w-[1080px] px-6 pt-6">
+    <section className="mx-auto max-w-[1080px] px-6 pt-8">
       <Link
         href="/companies"
         className="inline-flex items-center gap-1.5 text-[12px] font-medium text-text-faint transition-colors hover:text-text-dim"
       >
         <ArrowLeft size={13} /> Back to companies
       </Link>
-    </div>
-  );
-}
 
-// =============================================================================
-// 1. HERO
-// =============================================================================
-function Hero() {
-  const ref = useReveal<HTMLDivElement>();
-  return (
-    <section className="mx-auto max-w-[1080px] px-6 pb-16 pt-10 md:pt-16">
-      <div ref={ref} className="reveal">
+      <div className="mt-12 max-w-[920px]">
         <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
           A guided tour
         </div>
-        <h1 className="mt-3 max-w-[860px] font-serif text-[44px] font-medium leading-[1.02] tracking-tight text-text md:text-[64px]">
-          A calm way to{' '}
-          <span className="text-gradient-gold">understand what a company is worth</span>{' '}
-          — and what could grow it.
+        <h1 className="mt-4 font-serif text-[44px] font-medium leading-[1.02] tracking-tight text-text md:text-[68px]">
+          One company.{' '}
+          <span className="text-gradient-gold">Through the value engine.</span>
         </h1>
-        <p className="mt-5 max-w-[640px] text-[15px] leading-relaxed text-text-dim md:text-[17px]">
-          VIP turns the public data already known about a company plus a short
-          strategic conversation into a credible strategic valuation. Built for
-          SME entrepreneurs and the advisors who work with them.
+        <p className="mt-5 max-w-[640px] text-[15.5px] leading-relaxed text-text-dim md:text-[17px]">
+          Follow a real Italian SME as it passes through the chambers of the
+          model — public data, strategic answers, peer comparison, the four
+          capitals, value synthesis, and the three best next moves.
         </p>
-      </div>
-
-      <HeroTransform />
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Link
-          href="/companies"
-          className="inline-flex items-center gap-1.5 rounded-md border border-gold/50 bg-gold/[0.12] px-4 py-2 text-[13px] font-semibold text-gold transition-colors hover:bg-gold/[0.20]"
-        >
-          Try the live product <ArrowRight size={14} />
-        </Link>
-        <Link
-          href="/method"
-          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-4 py-2 text-[12.5px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text"
-        >
-          Detailed methodology
-        </Link>
+        <div className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-1 px-3 py-1.5 text-[11.5px] font-medium text-text-dim">
+          <ArrowDown size={12} />
+          Scroll to begin
+        </div>
       </div>
     </section>
   );
 }
 
-function HeroTransform() {
-  const ref = useReveal<HTMLDivElement>();
+// =============================================================================
+// CINEMA — pinned canvas, six chambers, one moving dossier
+// =============================================================================
+function Cinema() {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const progress = useScrollProgress(shellRef, reduced);
+
+  // progress (0–1) over the whole shell maps to a chamber index in [0, N-1].
+  const active = progress * (CHAMBER_COUNT - 1);
+
+  // Reduced-motion: stack chambers as plain blocks, no pinned canvas.
+  if (reduced) {
+    return (
+      <div className="mx-auto mt-16 max-w-[1080px] space-y-16 px-6 pb-24">
+        {CHAMBERS.map((c, i) => (
+          <article key={c.eyebrow} className="rounded-2xl border border-line bg-bg-1 p-6">
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+              {c.eyebrow}
+            </div>
+            <h2 className="mt-2 font-serif text-[24px] font-medium tracking-tight text-text">
+              {c.label}
+            </h2>
+            <div className="mt-4">
+              <ChamberContent index={i} active={i} />
+            </div>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  // Each chamber holds the viewport for ~120vh of scroll. Six chambers
+  // → 720vh shell. Adjustable via the multiplier below.
+  const SHELL_VH = CHAMBER_COUNT * 120;
+
   return (
     <div
-      ref={ref}
-      className="reveal mt-12 grid items-center gap-6 md:grid-cols-[1fr_auto_1fr]"
+      ref={shellRef}
+      className="relative mt-12"
+      style={{ height: `${SHELL_VH}vh` }}
     >
-      <HeroCard tone="left">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan/15 text-cyan">
-            <Building2 size={16} />
-          </div>
-          <div>
-            <div className="text-[13px] font-medium text-text">A real company</div>
-            <div className="font-mono text-[11px] text-text-faint">
-              EUROCOIL S.R.L. · NACE 2825 · Verona
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <Mini label="Revenue" value="€55M" />
-          <Mini label="EBITDA" value="€4.9M" />
-          <Mini label="Employees" value="199" />
-        </div>
-      </HeroCard>
+      <div className="sticky top-0 h-screen overflow-hidden">
+        <Atmosphere progress={progress} />
+        <ProgressRail active={active} />
+        <Dossier active={active} />
+        <ChamberLabel active={active} />
 
-      <HeroArrow />
-
-      <HeroCard tone="right">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/15 text-gold">
-            <Sparkles size={16} />
-          </div>
-          <div>
-            <div className="text-[13px] font-medium text-text">A strategic value</div>
-            <div className="font-mono text-[11px] text-text-faint">
-              Quality 67 · Risk MEDIUM
-            </div>
-          </div>
+        <div className="absolute inset-0">
+          {CHAMBERS.map((_, i) => (
+            <ChamberLayer key={i} index={i} active={active}>
+              <ChamberContent index={i} active={active} />
+            </ChamberLayer>
+          ))}
         </div>
-        <div className="mt-4 flex items-end justify-between">
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-              Company value
+
+        <ScrollHint progress={progress} />
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Cinema furniture
+// =============================================================================
+function Atmosphere({ progress }: { progress: number }) {
+  // Subtle background that drifts with the journey. Warm at the start,
+  // cool through the peer-comparison middle, gold again at the end.
+  const hueA = 176;       // gold
+  const hueB = 21;        // teal
+  const blend = Math.sin(progress * Math.PI); // 0 → 1 → 0
+  return (
+    <div
+      aria-hidden
+      className="absolute inset-0"
+      style={{
+        background: `
+          radial-gradient(ellipse 60% 70% at ${20 + progress * 60}% 30%, rgba(${hueA}, 122, 26, ${0.08 - blend * 0.04}), transparent 65%),
+          radial-gradient(ellipse 60% 70% at ${80 - progress * 50}% 60%, rgba(${hueB}, 127, 137, ${0.05 + blend * 0.04}), transparent 65%)
+        `,
+      }}
+    />
+  );
+}
+
+function ProgressRail({ active }: { active: number }) {
+  const ratio = active / (CHAMBER_COUNT - 1);
+  return (
+    <ol
+      aria-hidden
+      className="absolute left-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 md:flex"
+    >
+      {CHAMBERS.map((c, i) => {
+        const reached = active >= i - 0.4;
+        return (
+          <li key={c.eyebrow} className="flex items-center gap-3">
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full transition-colors',
+                reached ? 'bg-gold' : 'bg-line-2',
+              )}
+            />
+            <span
+              className={cn(
+                'font-mono text-[10px] uppercase tracking-eyebrow transition-colors',
+                reached ? 'text-text' : 'text-text-faint',
+              )}
+            >
+              {c.eyebrow}
+            </span>
+          </li>
+        );
+      })}
+      <li className="mt-1 ml-1 h-24 w-px overflow-hidden bg-line-2">
+        <span
+          className="block w-full bg-gold transition-[height] duration-500"
+          style={{ height: `${ratio * 100}%` }}
+        />
+      </li>
+    </ol>
+  );
+}
+
+/**
+ * The "living dossier" — pinned top-right. Its content morphs as the
+ * journey advances: from raw identity, to evidence, to scored profile.
+ */
+function Dossier({ active }: { active: number }) {
+  const stage = Math.min(CHAMBER_COUNT - 1, Math.max(0, Math.floor(active + 0.4)));
+  return (
+    <div className="pointer-events-none absolute right-6 top-6 z-10 w-[260px] md:right-12 md:top-12 md:w-[300px]">
+      <div className="rounded-2xl border border-line bg-bg-1/95 p-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] backdrop-blur-glass">
+        <div className="font-mono text-[9.5px] font-semibold uppercase tracking-eyebrow text-text-faint">
+          Dossier · live
+        </div>
+        <div className="mt-1.5 font-serif text-[15px] font-medium leading-tight text-text">
+          {COMPANY.name}
+        </div>
+        <div className="mt-0.5 font-mono text-[10.5px] text-text-faint">
+          {COMPANY.province} · {COMPANY.nace}
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
+          <DossierMini label="Rev" value="€55M" />
+          <DossierMini label="EBITDA" value="€4.9M" />
+          <DossierMini label="Emp" value="199" />
+        </div>
+        {stage >= 2 && (
+          <div className="mt-3 rounded-md border border-cyan/30 bg-cyan/[0.06] px-2 py-1.5 text-[10.5px] text-cyan">
+            Peer group · NACE 2825
+          </div>
+        )}
+        {stage >= 3 && (
+          <div className="mt-2 grid grid-cols-4 gap-1 text-center">
+            {[
+              { l: 'Fin',   v: 76, c: 'cap-fin'   },
+              { l: 'Tech',  v: 43, c: 'cap-tech'  },
+              { l: 'Human', v: 65, c: 'cap-human' },
+              { l: 'Rel',   v: 68, c: 'cap-rel'   },
+            ].map((p) => (
+              <div key={p.l} className="rounded-sm border border-line px-1 py-1">
+                <div className="font-mono text-[8px] uppercase tracking-eyebrow text-text-faint">
+                  {p.l}
+                </div>
+                <div
+                  className="mt-0.5 font-mono text-[11px] font-semibold"
+                  style={{ color: `rgb(var(--${p.c}))` }}
+                >
+                  {p.v}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {stage >= 4 && (
+          <div className="mt-3 rounded-md border border-gold/30 bg-gold/[0.06] px-2 py-1.5">
+            <div className="font-mono text-[9px] uppercase tracking-eyebrow text-gold">
+              Estimated value
             </div>
-            <div className="mt-1 font-serif text-[28px] font-medium leading-none tracking-tight text-text">
+            <div className="mt-0.5 font-serif text-[18px] font-medium leading-none text-text">
               €4.2M
             </div>
-            <div className="mt-1 text-[11.5px] text-text-faint">
-              Range €3.8–€4.7M
+            <div className="mt-0.5 font-mono text-[10px] text-text-faint">
+              Range €3.8–€4.7M · Quality 67
             </div>
           </div>
-          <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-              Potential
-            </div>
-            <div className="mt-1 font-serif text-[18px] font-medium leading-none tracking-tight text-green">
-              +38%
-            </div>
+        )}
+        {stage >= 5 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {['Client concentration', 'Recurring revenue', 'Middle mgmt'].map((t, i) => (
+              <span
+                key={t}
+                className="rounded-full border border-line bg-bg-2/70 px-2 py-0.5 font-mono text-[9.5px] text-text-dim"
+              >
+                {i + 1}. {t}
+              </span>
+            ))}
           </div>
-        </div>
-      </HeroCard>
+        )}
+      </div>
     </div>
   );
 }
 
-function HeroCard({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone: 'left' | 'right';
-}) {
+function DossierMini({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className={cn(
-        'rounded-2xl border border-line bg-bg-1 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
-        tone === 'right' && 'border-gold/35',
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-function HeroArrow() {
-  return (
-    <div className="hidden items-center justify-center md:flex">
-      <svg width="120" height="40" viewBox="0 0 120 40" aria-hidden>
-        <defs>
-          <marker
-            id="hero-arrowhead"
-            markerWidth="8"
-            markerHeight="8"
-            refX="6"
-            refY="4"
-            orient="auto"
-          >
-            <path d="M0 0 L8 4 L0 8 z" fill="rgb(var(--gold))" />
-          </marker>
-        </defs>
-        <path
-          d="M0 20 L100 20"
-          stroke="rgb(var(--gold) / 0.7)"
-          strokeWidth="1.5"
-          strokeDasharray="2 4"
-          markerEnd="url(#hero-arrowhead)"
-          className="hero-flow-path"
-        />
-        <style>{`
-          .hero-flow-path {
-            stroke-dasharray: 130;
-            stroke-dashoffset: 130;
-            animation: hero-flow 1.6s ease-out 0.4s forwards;
-          }
-          @keyframes hero-flow {
-            to { stroke-dashoffset: 0; }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .hero-flow-path { animation: none; stroke-dashoffset: 0; }
-          }
-        `}</style>
-      </svg>
-    </div>
-  );
-}
-
-function Mini({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-line bg-bg-2/40 px-2 py-2">
-      <div className="font-mono text-[9px] uppercase tracking-eyebrow text-text-faint">
+    <div className="rounded-md border border-line bg-bg-2/40 px-1.5 py-1.5">
+      <div className="font-mono text-[8.5px] uppercase tracking-eyebrow text-text-faint">
         {label}
       </div>
-      <div className="mt-0.5 font-mono text-[12.5px] font-semibold text-text">
+      <div className="mt-0.5 font-mono text-[11.5px] font-semibold text-text">
         {value}
       </div>
     </div>
   );
 }
 
-// =============================================================================
-// 2. FLOW — seven stages, scroll-revealed
-// =============================================================================
-const FLOW_STEPS: Array<{ icon: LucideIcon; title: string; body: string }> = [
-  { icon: Search,         title: 'Choose a company',          body: 'Search a real SME from the calibration set.' },
-  { icon: FileText,       title: 'Gather the public facts',   body: 'Financials, structure, sector — pulled automatically.' },
-  { icon: Layers,         title: 'Answer the diagnostic',     body: '19 short questions about how the company really runs.' },
-  { icon: Target,         title: 'Interpret across four capitals', body: 'Financial, technological, human, relational.' },
-  { icon: Sparkles,       title: 'Generate the value picture', body: 'Today’s value, the range, the upside, and the risks.' },
-  { icon: ArrowRight,     title: 'Rank the highest-value actions', body: 'A short, prioritised plan — not a wishlist.' },
-  { icon: Sliders,        title: 'Test what-if scenarios',     body: 'See value move as you improve key levers.' },
-];
-
-function Flow() {
+function ChamberLabel({ active }: { active: number }) {
+  const idx = Math.max(0, Math.min(CHAMBER_COUNT - 1, Math.round(active)));
+  const c = CHAMBERS[idx]!;
   return (
-    <Section
-      eyebrow="The flow"
-      title="Seven stages, one clear arc."
-      intro="Every workspace is built the same way — so the entrepreneur always knows where they are and where they are going."
-    >
-      <ol className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-2 lg:grid-cols-3">
-        {FLOW_STEPS.map(({ icon: Icon, title, body }, i) => (
-          <FlowCell key={title} index={i} icon={Icon} title={title} body={body} />
-        ))}
-        <li className="hidden bg-bg-1 lg:block" />
-      </ol>
-    </Section>
-  );
-}
-
-function FlowCell({
-  index,
-  icon: Icon,
-  title,
-  body,
-}: {
-  index: number;
-  icon: LucideIcon;
-  title: string;
-  body: string;
-}) {
-  const ref = useReveal<HTMLLIElement>({
-    threshold: 0.2,
-    rootMargin: '0px 0px -5% 0px',
-  });
-  return (
-    <li
-      ref={ref}
-      className="reveal relative bg-bg-1 px-5 py-6"
-      style={{ transitionDelay: `${Math.min(index * 0.05, 0.3)}s` }}
-    >
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-          0{index + 1}
-        </span>
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gold/10 text-gold">
-          <Icon size={14} />
-        </span>
-      </div>
-      <h3 className="mt-3 font-serif text-[17px] font-medium tracking-tight text-text">
-        {title}
-      </h3>
-      <p className="mt-1 text-[13px] leading-relaxed text-text-dim">{body}</p>
-    </li>
-  );
-}
-
-// =============================================================================
-// 3. INPUTS — two streams
-// =============================================================================
-const COMPANY_FACTS: Array<{ label: string; value: string }> = [
-  { label: 'Revenue history',       value: '3-year series' },
-  { label: 'EBITDA',                value: '€750K · 8.9%' },
-  { label: 'Balance sheet',         value: 'Equity · NFP · D/E' },
-  { label: 'R&D expense',           value: 'Intangibles · IP' },
-  { label: 'Employees',             value: '199 · €450k/head' },
-  { label: 'Sector & peer group',   value: 'NACE 2825 · Italy' },
-];
-const ENTREPRENEUR_ANSWERS: Array<{ q: string; rating: number; label: string }> = [
-  { q: 'Digital maturity',         rating: 2, label: 'Behind' },
-  { q: 'Founder dependency',       rating: 2, label: 'Strong' },
-  { q: 'Client portfolio quality', rating: 3, label: 'Mixed' },
-  { q: 'Process formalisation',    rating: 3, label: 'Partial' },
-  { q: 'Strategic partnerships',   rating: 3, label: 'Some' },
-  { q: 'Scalability of model',     rating: 4, label: 'Decent' },
-];
-
-function Inputs() {
-  return (
-    <Section
-      eyebrow="Inputs"
-      title="Two streams. Both small. Both essential."
-      intro="The entrepreneur does not type the financials. Public company data is paired with their strategic judgement."
-      tone="inset"
-    >
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Stream
-          eyebrow="Stream A · Automatic"
-          title="The company already speaks for itself."
-          subtitle="Pulled from the AIDA / Bureau van Dijk database for every Italian SME in the calibration set."
-        >
-          <ul className="space-y-2">
-            {COMPANY_FACTS.map((f) => (
-              <li
-                key={f.label}
-                className="flex items-center justify-between rounded-lg border border-line bg-bg-1 px-3.5 py-2.5"
-              >
-                <span className="text-[13px] text-text">{f.label}</span>
-                <span className="font-mono text-[11.5px] text-text-faint">{f.value}</span>
-              </li>
-            ))}
-          </ul>
-        </Stream>
-
-        <Stream
-          eyebrow="Stream B · Entrepreneur"
-          title="Nineteen honest answers."
-          subtitle="A short qualitative conversation, on a 1–5 scale. Calibrated by the entrepreneur, not inferred."
-        >
-          <ul className="space-y-2">
-            {ENTREPRENEUR_ANSWERS.map((a) => (
-              <li
-                key={a.q}
-                className="flex items-center justify-between gap-3 rounded-lg border border-line bg-bg-1 px-3.5 py-2.5"
-              >
-                <span className="min-w-0 truncate text-[13px] text-text">{a.q}</span>
-                <span className="flex items-center gap-2">
-                  <Pips active={a.rating} />
-                  <span className="font-mono text-[11px] text-text-faint">{a.label}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Stream>
-      </div>
-    </Section>
-  );
-}
-
-function Stream({
-  eyebrow,
-  title,
-  subtitle,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-line bg-bg-1 p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <div className="absolute left-1/2 top-8 z-20 -translate-x-1/2 text-center md:left-auto md:right-12 md:top-1/2 md:hidden md:-translate-x-0 md:-translate-y-1/2">
       <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
-        {eyebrow}
+        {c.eyebrow}
       </div>
-      <h3 className="mt-1 font-serif text-[18px] font-medium tracking-tight text-text">
-        {title}
-      </h3>
-      <p className="mt-1 text-[12.5px] text-text-faint">{subtitle}</p>
-      <div className="mt-4">{children}</div>
+      <div className="mt-1 font-serif text-[15px] font-medium text-text">
+        {c.label}
+      </div>
     </div>
   );
 }
 
-function Pips({ active }: { active: number }) {
+function ScrollHint({ progress }: { progress: number }) {
+  if (progress >= 0.04) return null;
   return (
-    <span className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span
-          key={n}
-          className={cn(
-            'h-2 w-2 rounded-full',
-            n <= active ? 'bg-gold' : 'bg-line',
-          )}
-        />
-      ))}
-    </span>
-  );
-}
-
-// =============================================================================
-// 4. CAPITALS — diagram with animated weights
-// =============================================================================
-const CAPITALS = [
-  {
-    key: 'fin', name: 'Financial', weight: 35, color: 'cap-fin',
-    blurb: 'Profitability, growth, recurring revenue, leverage.',
-    sample: 68,
-  },
-  {
-    key: 'tech', name: 'Technological', weight: 20, color: 'cap-tech',
-    blurb: 'Digital maturity, proprietary IP, R&D intensity.',
-    sample: 54,
-  },
-  {
-    key: 'human', name: 'Human & Organisational', weight: 25, color: 'cap-human',
-    blurb: 'Management depth, transferability, process maturity.',
-    sample: 71,
-  },
-  {
-    key: 'rel', name: 'Relational', weight: 20, color: 'cap-rel',
-    blurb: 'Reputation, ecosystem position, partnerships.',
-    sample: 55,
-  },
-] as const;
-
-function Capitals() {
-  return (
-    <Section
-      eyebrow="Interpretation"
-      title="A company is more than its EBITDA."
-      intro="Every diagnostic is read through four lenses. Each pillar carries its own weight in the composite quality score."
-    >
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-        <CapitalsDiagram />
-        <ul className="grid gap-3">
-          {CAPITALS.map((c) => (
-            <CapitalRow key={c.key} c={c} />
-          ))}
-          <li className="mt-2 rounded-lg border border-line bg-bg-2/40 px-4 py-3 text-[12.5px] text-text-dim">
-            Weights combine into a <span className="font-medium text-text">composite quality score (0–100)</span>{' '}
-            and a <span className="font-medium text-text">strategic quality factor (0.6–1.4)</span> that nudges the headline value up or down.
-          </li>
-        </ul>
+    <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
+      <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
+        Scroll
       </div>
-    </Section>
+      <div className="mt-1 inline-flex items-center justify-center text-text-faint">
+        <ArrowDown size={14} className="animate-bounce" />
+      </div>
+    </div>
   );
 }
 
-function CapitalRow({
-  c,
+/**
+ * One chamber occupies the full stage but is only visible when the
+ * scroll-derived `active` index is close to its own. We slow drift the
+ * layer vertically and fade its opacity so transitions feel like
+ * passing through gates.
+ */
+function ChamberLayer({
+  index,
+  active,
+  children,
 }: {
-  c: typeof CAPITALS[number];
+  index: number;
+  active: number;
+  children: React.ReactNode;
 }) {
-  const ref = useReveal<HTMLLIElement>();
+  const distance = active - index;
+  const abs = Math.abs(distance);
+  if (abs > 1.2) return null; // perf
+  const opacity = Math.max(0, 1 - abs * 1.15);
+  const translateY = distance * -32;
+  const scale = 1 - Math.min(0.05, abs * 0.05);
   return (
-    <li
-      ref={ref}
-      className="reveal flex items-center gap-4 rounded-xl border border-line bg-bg-1 p-4"
+    <div
+      className="absolute inset-0 flex items-center justify-center px-6"
+      style={{
+        opacity,
+        transform: `translateY(${translateY}px) scale(${scale})`,
+        transition: 'opacity 120ms linear, transform 120ms linear',
+        willChange: 'opacity, transform',
+        pointerEvents: opacity > 0.6 ? 'auto' : 'none',
+      }}
     >
-      <span
-        className="inline-block h-3 w-3 shrink-0 rounded-full"
-        style={{ background: `rgb(var(--${c.color}))` }}
-        aria-hidden
-      />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[14px] font-medium text-text">{c.name}</span>
-          <span className="font-mono text-[11px] text-text-faint">weight {c.weight}%</span>
-        </div>
-        <p className="mt-0.5 text-[12.5px] text-text-dim">{c.blurb}</p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg-2">
-          <span
-            className="block h-full origin-left rounded-full transition-transform duration-700"
-            style={{
-              background: `rgb(var(--${c.color}))`,
-              transform: `scaleX(${c.sample / 100})`,
-            }}
-          />
-        </div>
-      </div>
-    </li>
+      <div className="mx-auto w-full max-w-[1080px]">{children}</div>
+    </div>
   );
 }
 
-function CapitalsDiagram() {
-  const ref = useReveal<HTMLDivElement>();
+// =============================================================================
+// CHAMBER CONTENT — each index renders its own visual + caption
+// =============================================================================
+function ChamberContent({ index, active }: { index: number; active: number }) {
+  switch (index) {
+    case 0: return <ChamberOpen active={active} />;
+    case 1: return <ChamberIntake active={active} />;
+    case 2: return <ChamberPeers active={active} />;
+    case 3: return <ChamberCapitals active={active} />;
+    case 4: return <ChamberValue active={active} />;
+    case 5: return <ChamberPriorities active={active} />;
+    default: return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 01 · OPEN — dossier appears
+// ---------------------------------------------------------------------------
+function ChamberOpen({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 0)));
   return (
-    <div ref={ref} className="reveal flex justify-center">
-      <svg
-        viewBox="0 0 320 320"
-        className="h-auto w-full max-w-[360px]"
-        role="img"
-        aria-label="Four-capital model diagram"
+    <ChamberLayout
+      eyebrow="01 · Open"
+      title="The case file lands on the desk."
+      lede="A real Italian SME enters the engine. Identity, sector, size, and the headline financials are already on the page. The work starts here."
+    >
+      <div
+        className="mx-auto max-w-[440px] rounded-2xl border border-line bg-bg-1 p-7 shadow-[0_4px_18px_rgba(0,0,0,0.05)]"
+        style={{ transform: `translateY(${(1 - t) * 18}px)` }}
       >
-      {/* center label */}
-      <circle cx="160" cy="160" r="44" fill="rgb(var(--bg-1))" stroke="rgb(var(--gold) / 0.6)" strokeWidth="1.2" />
-      <text x="160" y="155" textAnchor="middle" fontSize="11" fill="rgb(var(--text-dim))">Strategic</text>
-      <text x="160" y="170" textAnchor="middle" fontSize="11" fill="rgb(var(--text-dim))">quality</text>
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-gold">
+          Active dossier
+        </div>
+        <h3 className="mt-2 font-serif text-[26px] font-medium leading-tight text-text">
+          {COMPANY.name}
+        </h3>
+        <div className="mt-1 text-[12.5px] text-text-dim">
+          {COMPANY.province} · {COMPANY.nace} · machinery for textile manufacturing
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <KvCell label="Revenue" value={COMPANY.revenue.replace('€', '€')} />
+          <KvCell label="EBITDA" value={COMPANY.ebitda} />
+          <KvCell label="Headcount" value={COMPANY.size} />
+        </div>
+        <div className="mt-4 text-[12px] text-text-faint">
+          The engine never starts from a blank calculator. It starts from a
+          real company.
+        </div>
+      </div>
+    </ChamberLayout>
+  );
+}
 
-      {/* connectors */}
-      <path d="M 160 80  L 160 120" stroke="rgb(var(--cap-fin))"   strokeWidth="1.2" strokeDasharray="3 3" />
-      <path d="M 240 160 L 200 160" stroke="rgb(var(--cap-tech))"  strokeWidth="1.2" strokeDasharray="3 3" />
-      <path d="M 160 240 L 160 200" stroke="rgb(var(--cap-human))" strokeWidth="1.2" strokeDasharray="3 3" />
-      <path d="M 80 160  L 120 160" stroke="rgb(var(--cap-rel))"   strokeWidth="1.2" strokeDasharray="3 3" />
+// ---------------------------------------------------------------------------
+// 02 · INTAKE — two streams flow into the dossier
+// ---------------------------------------------------------------------------
+const STREAM_KNOWN = [
+  'Revenue (3-year series)',
+  'EBITDA · 8.9% margin',
+  'Balance sheet · NFP',
+  'R&D · intangibles · IP',
+  '199 employees · €450k/head',
+  'NACE 2825 peer group',
+];
+const STREAM_REVEALED = [
+  'Digital maturity · 2/5',
+  'Founder dependency · 2/5',
+  'Client portfolio · 3/5',
+  'Process formalisation · 3/5',
+  'Strategic partnerships · 3/5',
+  'Scalability · 4/5',
+];
 
-      {/* nodes */}
-      {[
-        { x: 160, y: 60,  c: 'cap-fin',   label: 'Financial',    w: '35%' },
-        { x: 260, y: 160, c: 'cap-tech',  label: 'Tech',         w: '20%' },
-        { x: 160, y: 260, c: 'cap-human', label: 'Human & Org.', w: '25%' },
-        { x: 60,  y: 160, c: 'cap-rel',   label: 'Relational',   w: '20%' },
-      ].map((n) => (
-        <g key={n.label}>
-          <circle cx={n.x} cy={n.y} r="22" fill="rgb(var(--bg-1))" stroke={`rgb(var(--${n.c}))`} strokeWidth="1.5" />
-          <text x={n.x} y={n.y + 4} textAnchor="middle" fontSize="11" fontWeight="600" fill={`rgb(var(--${n.c}))`}>{n.w}</text>
-          <text x={n.x} y={n.y + (n.y < 160 ? -30 : 40)} textAnchor="middle" fontSize="10.5" fill="rgb(var(--text-dim))">
-            {n.label}
-          </text>
-        </g>
-      ))}
+function ChamberIntake({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 1)));
+  return (
+    <ChamberLayout
+      eyebrow="02 · Intake"
+      title="Two streams. Both small. Both essential."
+      lede="The company already speaks for itself through public data. The entrepreneur fills in what data cannot: 19 honest, low-friction answers."
+    >
+      <div className="grid gap-5 md:grid-cols-[1fr_auto_1fr]">
+        <Stream
+          tone="cyan"
+          eyebrow="Already known"
+          title="Public company facts"
+          items={STREAM_KNOWN}
+          t={t}
+          direction="left"
+        />
+        <FlowJunction t={t} />
+        <Stream
+          tone="gold"
+          eyebrow="Revealed now"
+          title="Entrepreneur's answers"
+          items={STREAM_REVEALED}
+          t={t}
+          direction="right"
+        />
+      </div>
+    </ChamberLayout>
+  );
+}
+
+function Stream({
+  tone,
+  eyebrow,
+  title,
+  items,
+  t,
+  direction,
+}: {
+  tone: 'cyan' | 'gold';
+  eyebrow: string;
+  title: string;
+  items: string[];
+  t: number;
+  direction: 'left' | 'right';
+}) {
+  return (
+    <div>
+      <div className={cn('font-mono text-[10px] font-semibold uppercase tracking-eyebrow', tone === 'cyan' ? 'text-cyan' : 'text-gold')}>
+        {eyebrow}
+      </div>
+      <div className="mt-1 font-serif text-[18px] font-medium tracking-tight text-text">
+        {title}
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {items.map((it, i) => {
+          const start = i * 0.08;
+          const local = Math.max(0, Math.min(1, (t - start) / 0.5));
+          const translateX = (1 - local) * (direction === 'left' ? -24 : 24);
+          return (
+            <li
+              key={it}
+              className={cn(
+                'rounded-md border bg-bg-1 px-3 py-2 text-[12.5px] text-text',
+                tone === 'cyan' ? 'border-cyan/35' : 'border-gold/35',
+              )}
+              style={{
+                opacity: local,
+                transform: `translateX(${translateX}px)`,
+                transition: 'opacity 180ms ease-out, transform 180ms ease-out',
+              }}
+            >
+              {it}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function FlowJunction({ t }: { t: number }) {
+  return (
+    <div className="relative flex flex-col items-center justify-center py-6">
+      <span
+        className="inline-block h-3 w-3 rounded-full bg-gold"
+        style={{ boxShadow: '0 0 0 6px rgba(176, 122, 26, 0.10)' }}
+      />
+      <span
+        className="my-2 block w-px bg-line"
+        style={{ height: `${40 + t * 40}px` }}
+      />
+      <span className="font-mono text-[9.5px] uppercase tracking-eyebrow text-text-faint">
+        Dossier
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 03 · PEERS — constellation + percentile rings
+// ---------------------------------------------------------------------------
+function ChamberPeers({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 2)));
+  return (
+    <ChamberLayout
+      eyebrow="03 · Peers"
+      title="Not scored in isolation. Placed among similar companies."
+      lede="VIP first looks at the closest peer group — companies of similar sector and size. If that pool is too thin, the lens widens to a broader sector cohort. Position, not absolute level, is what counts."
+    >
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+        <PeerCanvas t={t} />
+        <ol className="space-y-3">
+          <PeerStep
+            n={1}
+            title="Closest peers first"
+            body="Same NACE code, similar revenue band. Roughly 14 999 Italian SMEs across the calibration set."
+          />
+          <PeerStep
+            n={2}
+            title="Widen the lens if thin"
+            body="If the close peer pool has fewer than 20 comparable companies, the engine falls back to the broader sector prefix so positions stay meaningful."
+          />
+          <PeerStep
+            n={3}
+            title="Position, not absolute"
+            body="An 8.9% EBITDA margin doesn't mean much alone. Inside a peer cohort it becomes a percentile — and a percentile carries judgement."
+          />
+        </ol>
+      </div>
+    </ChamberLayout>
+  );
+}
+
+function PeerCanvas({ t }: { t: number }) {
+  // Deterministic scatter so SSR matches CSR.
+  const peers = useMemo(() => {
+    const out: Array<{ x: number; y: number; r: number; inCohort: boolean }> = [];
+    let seed = 17;
+    const rand = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    for (let i = 0; i < 110; i += 1) {
+      const angle = rand() * Math.PI * 2;
+      const radius = 30 + rand() * 130;
+      const x = 200 + Math.cos(angle) * radius;
+      const y = 200 + Math.sin(angle) * radius;
+      out.push({
+        x,
+        y,
+        r: 1.8 + rand() * 1.2,
+        inCohort: radius < 90, // tight peer pool
+      });
+    }
+    return out;
+  }, []);
+
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[420px]">
+      <svg viewBox="0 0 400 400" className="h-full w-full">
+        {/* concentric percentile rings */}
+        {[60, 110, 160, 200].map((r, i) => (
+          <circle
+            key={r}
+            cx="200"
+            cy="200"
+            r={r}
+            fill="none"
+            stroke="rgb(var(--line) / 0.9)"
+            strokeWidth="1"
+            strokeDasharray={i === 0 ? '0' : '3 4'}
+          />
+        ))}
+        {/* peer dots */}
+        {peers.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={p.r}
+            fill={p.inCohort ? `rgb(var(--cyan) / ${0.35 + t * 0.5})` : `rgb(var(--text-faint) / ${0.18 + t * 0.12})`}
+          />
+        ))}
+        {/* the company */}
+        <circle
+          cx="200"
+          cy="200"
+          r={6 + t * 3}
+          fill="rgb(var(--gold))"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(176, 122, 26, 0.5))' }}
+        />
+        <text
+          x="200"
+          y="225"
+          textAnchor="middle"
+          fontSize="11"
+          fill="rgb(var(--text))"
+          fontFamily="JetBrains Mono, monospace"
+        >
+          this company
+        </text>
+        {/* percentile labels */}
+        <text x="270" y="200" fontSize="9.5" fill="rgb(var(--text-faint))">p25</text>
+        <text x="320" y="200" fontSize="9.5" fill="rgb(var(--text-faint))">p50</text>
+        <text x="365" y="200" fontSize="9.5" fill="rgb(var(--text-faint))">p75</text>
       </svg>
     </div>
   );
 }
 
-// =============================================================================
-// 5. OUTPUTS — KPIs landing
-// =============================================================================
-function Outputs() {
+function PeerStep({ n, title, body }: { n: number; title: string; body: string }) {
   return (
-    <Section
-      eyebrow="Outputs"
-      title="Insight, not a wall of numbers."
-      intro="A small set of headline signals that an entrepreneur can defend in front of a partner, an investor, or a buyer."
-      tone="inset"
-    >
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <OutputCard
-          icon={Sparkles}
-          eyebrow="Headline"
-          label="Company value today"
-          big={fmtMoney(DEMO_VALUATION.v_current_eur)}
-          sub={`Range ${fmtRange(DEMO_VALUATION.v_low_eur, DEMO_VALUATION.v_high_eur)}`}
-          tone="gold"
-        />
-        <OutputCard
-          icon={ArrowRight}
-          eyebrow="Upside"
-          label="Value gap"
-          big={`+${DEMO_VALUATION.value_gap_pct}%`}
-          sub={`Potential ≈ ${fmtMoney(DEMO_VALUATION.v_potential_eur)}`}
-          tone="green"
-        />
-        <OutputCard
-          icon={Target}
-          eyebrow="Structure"
-          label="Quality score"
-          big={`${DEMO_VALUATION.quality_score}/100`}
-          sub="Above-average four-capital structure"
-          tone="text"
-        />
-        <OutputCard
-          icon={Sliders}
-          eyebrow="Resilience"
-          label="Risk signal"
-          big={DEMO_VALUATION.risk_index}
-          sub="Surfaces fragility flags such as client concentration"
-          tone="amber"
-        />
-        <OutputCard
-          icon={Layers}
-          eyebrow="Profile"
-          label="Capital breakdown"
-          big="68 · 54 · 71 · 55"
-          sub="Financial · Tech · Human · Relational"
-          tone="text"
-        />
-        <OutputCard
-          icon={CheckCircle2}
-          eyebrow="Action"
-          label="Top-3 priority actions"
-          big="3"
-          sub="Ranked by expected effect on value"
-          tone="text"
-        />
-      </div>
-    </Section>
-  );
-}
-
-function OutputCard({
-  icon: Icon,
-  eyebrow,
-  label,
-  big,
-  sub,
-  tone,
-}: {
-  icon: LucideIcon;
-  eyebrow: string;
-  label: string;
-  big: string;
-  sub: string;
-  tone: 'gold' | 'green' | 'amber' | 'text';
-}) {
-  const ref = useReveal<HTMLDivElement>();
-  const color =
-    tone === 'gold'  ? 'text-gold'
-    : tone === 'green' ? 'text-green'
-    : tone === 'amber' ? 'text-amber'
-    : 'text-text';
-  return (
-    <div
-      ref={ref}
-      className="reveal rounded-2xl border border-line bg-bg-1 p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
-    >
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-          {eyebrow}
-        </span>
-        <Icon size={14} className="text-text-faint" />
-      </div>
-      <div className="mt-2 text-[12.5px] text-text-dim">{label}</div>
-      <div className={cn('mt-1 font-serif text-[30px] font-medium leading-none tracking-tight', color)}>
-        {big}
-      </div>
-      <div className="mt-2 text-[12px] text-text-faint">{sub}</div>
-    </div>
-  );
-}
-
-// =============================================================================
-// 6. RECOMMENDATIONS — ranking visual
-// =============================================================================
-function Recommendations() {
-  return (
-    <Section
-      eyebrow="Action plan"
-      title="From diagnosis to the three highest-value moves."
-      intro="Each candidate intervention is scored on its predicted effect on value, divided by the effort and time it would take. The model surfaces the three with the strongest return."
-    >
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">
-        <RankingViz />
-        <ol className="space-y-3">
-          {DEMO_ACTIONS.map((a) => (
-            <ActionRow key={a.rank} a={a} />
-          ))}
-        </ol>
-      </div>
-    </Section>
-  );
-}
-
-function RankingViz() {
-  const candidates = [
-    'Reduce client concentration',
-    'Introduce recurring revenue',
-    'Strengthen middle management',
-    'Digital maturity upgrade',
-    'Expand geographic reach',
-    'Formalise governance',
-    'Increase R&D investment',
-    'EBITDA margin expansion',
-    'Strengthen balance sheet',
-  ];
-  return (
-    <div className="rounded-2xl border border-line bg-bg-1 p-6">
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-        Catalogue · 9 candidate actions
-      </div>
-      <ul className="mt-3 space-y-2">
-        {candidates.map((label, i) => (
-          <li
-            key={label}
-            className={cn(
-              'flex items-center justify-between rounded-lg border px-3 py-2 text-[12.5px] transition-all',
-              i < 3 ? 'border-gold/40 bg-gold/[0.08] text-text' : 'border-line bg-bg-2/40 text-text-dim',
-            )}
-            style={{
-              animationDelay: `${0.05 + i * 0.04}s`,
-            }}
-          >
-            <span>{label}</span>
-            {i < 3 ? (
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold/15 font-mono text-[10px] font-semibold text-gold">
-                {i + 1}
-              </span>
-            ) : (
-              <span className="font-mono text-[10px] text-text-faint">— ranked out</span>
-            )}
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-[12px] text-text-faint">
-        Top 3 surface to the entrepreneur. The rest stay in the catalogue, available for future runs as the profile changes.
-      </p>
-    </div>
-  );
-}
-
-function ActionRow({
-  a,
-}: {
-  a: typeof DEMO_ACTIONS[number];
-}) {
-  const ref = useReveal<HTMLLIElement>();
-  return (
-    <li
-      ref={ref}
-      className="reveal flex items-start gap-4 rounded-xl border border-line bg-bg-1 p-4"
-    >
-      <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/[0.08] font-serif text-[15px] font-semibold text-gold">
-        {a.rank}
+    <li className="flex items-start gap-3 rounded-xl border border-line bg-bg-1 p-4">
+      <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-cyan/40 bg-cyan/[0.08] font-mono text-[11px] font-semibold text-cyan">
+        {n}
       </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="truncate text-[14px] font-medium text-text">{a.title}</span>
-          <span className="shrink-0 font-mono text-[12.5px] font-semibold text-green">
-            +{a.v_uplift_pct}% value
-          </span>
-        </div>
-        <p className="mt-0.5 text-[12.5px] text-text-dim">{a.detail}</p>
+      <div>
+        <div className="text-[14px] font-medium text-text">{title}</div>
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-text-dim">{body}</p>
       </div>
     </li>
   );
 }
 
-// =============================================================================
-// 7. SCENARIO — live slider; value moves in real time
-// =============================================================================
-function Scenario() {
+// ---------------------------------------------------------------------------
+// 04 · CAPITALS — four assemblies, real weights from aggregate.ts
+// ---------------------------------------------------------------------------
+const CAPITAL_ASSEMBLIES: Array<{
+  name: string;
+  pillarWeight: number;
+  varName: string;
+  signals: Array<{ label: string; weight: number }>;
+  score: number;
+  blurb: string;
+}> = [
+  {
+    name: 'Financial',
+    pillarWeight: 35,
+    varName: 'cap-fin',
+    signals: [
+      { label: 'EBITDA margin',     weight: 30 },
+      { label: 'Revenue CAGR',      weight: 25 },
+      { label: 'Recurring revenue', weight: 20 },
+      { label: 'Client concentration resilience', weight: 25 },
+    ],
+    score: 68,
+    blurb: 'Profit quality, growth, and how exposed revenue is to a few clients.',
+  },
+  {
+    name: 'Technological',
+    pillarWeight: 20,
+    varName: 'cap-tech',
+    signals: [
+      { label: 'Digital maturity',  weight: 55 },
+      { label: 'Tech investment',   weight: 45 },
+    ],
+    score: 54,
+    blurb: 'How much of the business runs on real systems, and how much it reinvests.',
+  },
+  {
+    name: 'Human & Organisational',
+    pillarWeight: 25,
+    varName: 'cap-human',
+    signals: [
+      { label: 'Founder independence', weight: 40 },
+      { label: 'Management depth',     weight: 35 },
+      { label: 'Scalability',          weight: 25 },
+    ],
+    score: 71,
+    blurb: 'Can the company keep running — and grow — without the founder in the loop?',
+  },
+  {
+    name: 'Relational',
+    pillarWeight: 20,
+    varName: 'cap-rel',
+    signals: [
+      { label: 'Client portfolio quality', weight: 40 },
+      { label: 'Network position',         weight: 30 },
+      { label: 'Recurring revenue',        weight: 30 },
+    ],
+    score: 55,
+    blurb: 'Reputation, ecosystem position, and the durability of who buys.',
+  },
+];
+
+function ChamberCapitals({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 3)));
   return (
-    <Section
-      eyebrow="Scenario lab"
-      title="Pull a lever. Watch value move."
-      intro="The same scoring engine that produces the headline number recomputes live as the entrepreneur tests improvements. No spreadsheets, no projections — just the model speaking."
-      tone="inset"
+    <ChamberLayout
+      eyebrow="04 · Capitals"
+      title="Four scores. Each one assembled from specific signals."
+      lede="A capital score is not guessed. It is built from a small set of measurable characteristics, weighted by how much they matter to that pillar. Then the four pillars combine into one composite quality picture."
     >
-      <ScenarioWidget />
-      <p className="mt-4 max-w-[640px] text-[12.5px] text-text-faint">
-        Three levers shown here. The real product also exposes the four-capital
-        breakdown and the priority actions reacting in real time.
-      </p>
-    </Section>
+      <div className="grid gap-4 md:grid-cols-2">
+        {CAPITAL_ASSEMBLIES.map((c, i) => (
+          <CapitalAssembly key={c.name} c={c} delay={i * 0.06} t={t} />
+        ))}
+      </div>
+      <div
+        className="mt-5 rounded-xl border border-line bg-bg-1 px-5 py-4 text-[12.5px] text-text-dim"
+        style={{ opacity: Math.max(0, t - 0.4) / 0.6 }}
+      >
+        <span className="font-medium text-text">Then combined:</span>{' '}
+        Composite quality = 0.35 · Financial &nbsp;+&nbsp; 0.20 · Technological
+        &nbsp;+&nbsp; 0.25 · Human &amp; Org &nbsp;+&nbsp; 0.20 · Relational.
+        That score nudges the headline value up or down — never fabricates it.
+      </div>
+    </ChamberLayout>
   );
 }
 
-function ScenarioWidget() {
+function CapitalAssembly({
+  c,
+  delay,
+  t,
+}: {
+  c: typeof CAPITAL_ASSEMBLIES[number];
+  delay: number;
+  t: number;
+}) {
+  const local = Math.max(0, Math.min(1, (t - delay) / 0.6));
+  return (
+    <div
+      className="rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+      style={{
+        opacity: local,
+        transform: `translateY(${(1 - local) * 14}px)`,
+        transition: 'opacity 200ms ease-out, transform 200ms ease-out',
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block h-2.5 w-2.5 rounded-full"
+            style={{ background: `rgb(var(--${c.varName}))` }}
+          />
+          <span className="font-serif text-[16px] font-medium tracking-tight text-text">
+            {c.name}
+          </span>
+        </div>
+        <span className="font-mono text-[10px] text-text-faint">
+          pillar weight {c.pillarWeight}%
+        </span>
+      </div>
+      <p className="mt-1 text-[12px] text-text-dim">{c.blurb}</p>
+      <ul className="mt-3 space-y-1.5">
+        {c.signals.map((s) => (
+          <li key={s.label} className="flex items-center gap-3 text-[12.5px]">
+            <span className="flex-1 text-text-dim">{s.label}</span>
+            <span className="h-1.5 w-24 overflow-hidden rounded-full bg-bg-2">
+              <span
+                className="block h-full origin-left rounded-full transition-transform duration-500"
+                style={{
+                  background: `rgb(var(--${c.varName}))`,
+                  transform: `scaleX(${(s.weight / 60) * local})`,
+                }}
+              />
+            </span>
+            <span className="w-8 text-right font-mono text-[10.5px] text-text-faint">
+              {s.weight}%
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 flex items-baseline justify-between border-t border-line-faint pt-3">
+        <span className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
+          Assembled score
+        </span>
+        <span
+          className="font-serif text-[22px] font-medium leading-none tracking-tight"
+          style={{ color: `rgb(var(--${c.varName}))` }}
+        >
+          {Math.round(c.score * local)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 05 · VALUE — capitals flow into one value picture
+// ---------------------------------------------------------------------------
+function ChamberValue({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 4)));
+  return (
+    <ChamberLayout
+      eyebrow="05 · Value"
+      title="The four capitals fuse into one value picture."
+      lede="Earnings, the sector's market context, the strategic quality signal, and the growth trajectory combine into a single defensible number — with a range, an upside, and a risk read."
+    >
+      <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+        <ValuePrism t={t} />
+        <div className="grid grid-cols-2 gap-3">
+          <ValueTile
+            t={t}
+            delay={0.05}
+            eyebrow="Headline"
+            label="Value today"
+            value={fmtMoney(DEMO_VALUATION.v_current_eur)}
+            sub={`Range ${fmtRange(DEMO_VALUATION.v_low_eur, DEMO_VALUATION.v_high_eur)}`}
+            tone="text"
+            big
+          />
+          <ValueTile
+            t={t}
+            delay={0.15}
+            eyebrow="Upside"
+            label="Value gap"
+            value={`+${DEMO_VALUATION.value_gap_pct}%`}
+            sub={`Potential ≈ ${fmtMoney(DEMO_VALUATION.v_potential_eur)}`}
+            tone="green"
+          />
+          <ValueTile
+            t={t}
+            delay={0.25}
+            eyebrow="Structure"
+            label="Quality"
+            value={`${DEMO_VALUATION.quality_score}/100`}
+            sub="Above-average four-capital structure"
+            tone="text"
+          />
+          <ValueTile
+            t={t}
+            delay={0.35}
+            eyebrow="Resilience"
+            label="Risk"
+            value={DEMO_VALUATION.risk_index}
+            sub="Surfaces specific fragility flags"
+            tone="amber"
+          />
+        </div>
+      </div>
+    </ChamberLayout>
+  );
+}
+
+function ValuePrism({ t }: { t: number }) {
+  return (
+    <div className="relative mx-auto aspect-[5/4] w-full max-w-[440px]">
+      <svg viewBox="0 0 500 400" className="h-full w-full">
+        <defs>
+          <linearGradient id="prism-light" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="rgb(var(--text-faint))" stopOpacity="0.0" />
+            <stop offset="50%" stopColor="rgb(var(--text-dim))" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="rgb(var(--text-dim))" stopOpacity="0.0" />
+          </linearGradient>
+          <linearGradient id="prism-gold" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="rgb(var(--gold))" stopOpacity="0" />
+            <stop offset="60%" stopColor="rgb(var(--gold))" stopOpacity={0.6 * t} />
+          </linearGradient>
+        </defs>
+
+        {/* incoming capital streams */}
+        {[
+          { y: 80,  c: 'cap-fin'   },
+          { y: 160, c: 'cap-tech'  },
+          { y: 240, c: 'cap-human' },
+          { y: 320, c: 'cap-rel'   },
+        ].map((s, i) => (
+          <g key={s.c}>
+            <line
+              x1={0}
+              y1={s.y}
+              x2={200}
+              y2={200}
+              stroke={`rgb(var(--${s.c}) / 0.55)`}
+              strokeWidth={1.4}
+              strokeDasharray="160"
+              strokeDashoffset={(1 - t) * 160}
+              style={{
+                transition: 'stroke-dashoffset 600ms ease-out',
+                transitionDelay: `${i * 80}ms`,
+              }}
+            />
+            <text x="6" y={s.y - 6} fontSize="10" fill={`rgb(var(--${s.c}))`}>
+              {CAPITAL_ASSEMBLIES[i]?.name}
+            </text>
+          </g>
+        ))}
+
+        {/* prism */}
+        <polygon
+          points="190,140 260,200 190,260"
+          fill="rgb(var(--bg-1))"
+          stroke="rgb(var(--gold))"
+          strokeWidth={1.5}
+        />
+
+        {/* spread of light → tiles */}
+        <path d="M 260 200 L 480 80"  stroke="url(#prism-gold)" strokeWidth={1.2} />
+        <path d="M 260 200 L 480 140" stroke="url(#prism-gold)" strokeWidth={1.2} />
+        <path d="M 260 200 L 480 200" stroke="url(#prism-gold)" strokeWidth={1.2} />
+        <path d="M 260 200 L 480 260" stroke="url(#prism-gold)" strokeWidth={1.2} />
+        <path d="M 260 200 L 480 320" stroke="url(#prism-gold)" strokeWidth={1.2} />
+
+        {/* prism formula */}
+        <text x="225" y="195" textAnchor="middle" fontSize="10" fontFamily="JetBrains Mono, monospace" fill="rgb(var(--text-dim))">
+          synthesis
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+function ValueTile({
+  t,
+  delay,
+  eyebrow,
+  label,
+  value,
+  sub,
+  tone,
+  big,
+}: {
+  t: number;
+  delay: number;
+  eyebrow: string;
+  label: string;
+  value: string;
+  sub: string;
+  tone: 'text' | 'green' | 'amber';
+  big?: boolean;
+}) {
+  const local = Math.max(0, Math.min(1, (t - delay) / 0.5));
+  const color = tone === 'green' ? 'text-green' : tone === 'amber' ? 'text-amber' : 'text-text';
+  return (
+    <div
+      className={cn(
+        'rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
+        big && 'col-span-2',
+      )}
+      style={{
+        opacity: local,
+        transform: `translateY(${(1 - local) * 12}px)`,
+        transition: 'opacity 220ms ease-out, transform 220ms ease-out',
+      }}
+    >
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+        {eyebrow}
+      </div>
+      <div className="mt-1 text-[12px] text-text-dim">{label}</div>
+      <div className={cn('mt-1 font-serif font-medium leading-none tracking-tight', color, big ? 'text-[34px]' : 'text-[22px]')}>
+        {value}
+      </div>
+      <div className="mt-1.5 text-[11.5px] text-text-faint">{sub}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 06 · PRIORITIES — sorter elevates the Top-3
+// ---------------------------------------------------------------------------
+const CANDIDATES = [
+  { id: 'concentration', title: 'Reduce client concentration', uplift: 12, top: true,  rank: 1 },
+  { id: 'recurring',     title: 'Introduce recurring revenue', uplift:  9, top: true,  rank: 2 },
+  { id: 'mgmt',          title: 'Strengthen middle management', uplift:  7, top: true,  rank: 3 },
+  { id: 'digital',       title: 'Digital maturity upgrade',     uplift: 11, top: false },
+  { id: 'rd',            title: 'Increase R&D investment',      uplift:  8, top: false },
+  { id: 'geo',           title: 'Expand geographic reach',      uplift:  5, top: false },
+  { id: 'governance',    title: 'Formalise governance',         uplift:  4, top: false },
+  { id: 'margin',        title: 'EBITDA margin expansion',      uplift:  6, top: false },
+  { id: 'debt',          title: 'Strengthen balance sheet',     uplift:  3, top: false },
+];
+
+function ChamberPriorities({ active }: { active: number }) {
+  const t = Math.max(0, Math.min(1, 1 - Math.abs(active - 5)));
+  return (
+    <ChamberLayout
+      eyebrow="06 · Priorities"
+      title="From many possibilities, three earned moves."
+      lede="The engine carries a curated catalogue of structured interventions. Each is scored on its expected effect on value, divided by the effort and time it would take. The three with the strongest return rise to the top."
+    >
+      <div className="grid gap-6 md:grid-cols-[1fr_1.1fr] md:items-center">
+        <Sorter t={t} />
+        <Podium t={t} />
+      </div>
+    </ChamberLayout>
+  );
+}
+
+function Sorter({ t }: { t: number }) {
+  return (
+    <div className="rounded-2xl border border-line bg-bg-1 p-5">
+      <div className="flex items-center justify-between">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+          Catalogue · 9 candidates
+        </div>
+        <span className="font-mono text-[10px] text-text-faint">Ranked by ROV</span>
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {CANDIDATES.map((c, i) => {
+          const local = Math.max(0, Math.min(1, (t - i * 0.04) / 0.4));
+          const yOffset = c.top
+            ? (1 - local) * 18 + (c.rank ? -((c.rank - 1) * 2) : 0)
+            : (1 - local) * 18 + 4;
+          return (
+            <li
+              key={c.id}
+              className={cn(
+                'flex items-center justify-between rounded-md border px-3 py-2 text-[12.5px] transition-all',
+                c.top
+                  ? 'border-gold/40 bg-gold/[0.06] text-text'
+                  : 'border-line bg-bg-2/40 text-text-dim',
+              )}
+              style={{
+                opacity: c.top ? local : 0.35 + local * 0.25,
+                transform: `translateY(${yOffset}px)`,
+                transition: 'opacity 260ms ease-out, transform 260ms ease-out',
+              }}
+            >
+              <span className="truncate">{c.title}</span>
+              <span className="ml-3 flex items-center gap-2">
+                <span
+                  className={cn(
+                    'font-mono text-[10.5px]',
+                    c.top ? 'font-semibold text-green' : 'text-text-faint',
+                  )}
+                >
+                  +{c.uplift}% V
+                </span>
+                {c.top && (
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold/15 font-mono text-[10px] font-semibold text-gold">
+                    {c.rank}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function Podium({ t }: { t: number }) {
+  const local = Math.max(0, Math.min(1, (t - 0.35) / 0.6));
+  return (
+    <div className="grid grid-cols-3 items-end gap-3 px-2 py-6">
+      {DEMO_ACTIONS.map((a, i) => {
+        const order = a.rank === 1 ? 2 : a.rank === 2 ? 1 : 3; // 2nd, 1st, 3rd visual order
+        const heights = [120, 160, 96]; // 2nd, 1st, 3rd
+        const h = heights[order - 1]!;
+        const delay = (3 - a.rank) * 0.1;
+        const localLocal = Math.max(0, Math.min(1, (local - delay) / 0.6));
+        return (
+          <div
+            key={a.rank}
+            className="flex flex-col items-center"
+            style={{ order }}
+          >
+            <div
+              className="w-full rounded-t-md border border-gold/35 bg-gold/[0.10] text-center"
+              style={{
+                height: `${h * localLocal}px`,
+                opacity: localLocal,
+                transition: 'height 360ms ease-out, opacity 360ms ease-out',
+              }}
+            >
+              <div className="px-2 pt-2 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-gold">
+                Rank {a.rank}
+              </div>
+              <div className="mt-1 px-2 text-[11.5px] font-medium text-text">
+                {a.title}
+              </div>
+              <div className="mt-2 font-mono text-[11px] font-semibold text-green">
+                +{a.v_uplift_pct}% V
+              </div>
+            </div>
+            <div className="mt-2 h-1 w-full rounded-full bg-line" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// =============================================================================
+// SCENARIO STATION — interactive, real math
+// =============================================================================
+function ScenarioStation() {
   const baseline = DEMO_SCORING_INPUT;
   const [concentration, setConcentration] = useState(baseline.top3_client_concentration);
   const [recurring, setRecurring] = useState(baseline.recurring_revenue_pct);
   const [rd, setRd] = useState(baseline.tech_investment_ratio_pct);
 
   const v_current = DEMO_VALUATION.v_current_eur;
-
   const v_simulated = useMemo(() => {
-    // Approximate the relationship the real engine produces, in plain
-    // terms: concentration ↓ helps SQF, recurring ↑ helps GF, R&D ↑ helps both.
-    // We bound each delta and recompute V via the shared formula so the
-    // displayed value stays consistent with the live product.
     const dSqf =
       ((baseline.top3_client_concentration - concentration) / 80) * 0.12 +
       ((rd - baseline.tech_investment_ratio_pct) / 10) * 0.08;
@@ -849,82 +1166,100 @@ function ScenarioWidget() {
   const positive = deltaPct >= 0;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-      <div className="space-y-4 rounded-2xl border border-line bg-bg-1 p-6">
-        <Lever
-          label="Top-3 client concentration"
-          help="Lower is better — diversified revenue lowers risk."
-          unit="%"
-          min={0}
-          max={80}
-          step={1}
-          value={concentration}
-          onChange={setConcentration}
-        />
-        <Lever
-          label="Recurring revenue share"
-          help="Subscription / multi-year revenue grows the growth factor."
-          unit="%"
-          min={0}
-          max={80}
-          step={1}
-          value={recurring}
-          onChange={setRecurring}
-        />
-        <Lever
-          label="R&D / revenue"
-          help="Reinvestment supports both quality and growth signals."
-          unit="%"
-          min={0}
-          max={10}
-          step={0.1}
-          value={rd}
-          onChange={setRd}
-        />
-      </div>
+    <section className="relative bg-bg-2/40 py-24">
+      <div className="mx-auto max-w-[1080px] px-6">
+        <div className="max-w-[640px]">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+            07 · Scenario
+          </div>
+          <h2 className="mt-2 font-serif text-[36px] font-medium leading-[1.05] tracking-tight text-text md:text-[44px]">
+            Pull a lever. Watch the value move.
+          </h2>
+          <p className="mt-3 text-[14.5px] leading-relaxed text-text-dim md:text-[16px]">
+            The same engine that produced the headline runs live as the
+            entrepreneur tests improvements. No spreadsheets, no projections —
+            just the model speaking back.
+          </p>
+        </div>
 
-      <div className="rounded-2xl border border-line bg-bg-1 p-6">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-          Live valuation
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <div>
-            <div className="text-[12px] text-text-dim">Current</div>
-            <div className="mt-1 font-serif text-[26px] font-medium tracking-tight text-text">
-              {fmtMoney(v_current)}
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+          <div className="space-y-5 rounded-2xl border border-line bg-bg-1 p-6">
+            <Lever
+              label="Top-3 client concentration"
+              help="Lower is better — diversified revenue lowers risk."
+              unit="%"
+              min={0}
+              max={80}
+              step={1}
+              value={concentration}
+              onChange={setConcentration}
+            />
+            <Lever
+              label="Recurring revenue share"
+              help="Subscriptions / multi-year contracts grow the growth factor."
+              unit="%"
+              min={0}
+              max={80}
+              step={1}
+              value={recurring}
+              onChange={setRecurring}
+            />
+            <Lever
+              label="R&D / revenue"
+              help="Reinvestment supports both quality and growth signals."
+              unit="%"
+              min={0}
+              max={10}
+              step={0.1}
+              value={rd}
+              onChange={setRd}
+            />
+          </div>
+
+          <div className="rounded-2xl border border-line bg-bg-1 p-6">
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+              Live valuation
             </div>
-          </div>
-          <div>
-            <div className="text-[12px] text-text-dim">Simulated</div>
-            <div
-              className={cn(
-                'mt-1 font-serif text-[26px] font-medium tracking-tight',
-                positive ? 'text-green' : 'text-amber',
-              )}
-            >
-              {fmtMoney(v_simulated)}
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-[12px] text-text-dim">Current</div>
+                <div className="mt-1 font-serif text-[28px] font-medium tracking-tight text-text">
+                  {fmtMoney(v_current)}
+                </div>
+              </div>
+              <div>
+                <div className="text-[12px] text-text-dim">Simulated</div>
+                <div
+                  className={cn(
+                    'mt-1 font-serif text-[28px] font-medium tracking-tight',
+                    positive ? 'text-green' : 'text-amber',
+                  )}
+                >
+                  {fmtMoney(v_simulated)}
+                </div>
+              </div>
             </div>
+            <div className="mt-5 rounded-lg border border-line bg-bg-2/40 px-4 py-3">
+              <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
+                Δ vs current
+              </div>
+              <div
+                className={cn(
+                  'mt-1 font-mono text-[18px] font-semibold',
+                  positive ? 'text-green' : 'text-amber',
+                )}
+              >
+                {positive ? '+' : ''}
+                {deltaPct.toFixed(1)}%
+              </div>
+            </div>
+            <p className="mt-4 text-[12px] text-text-faint">
+              Same math the company workspace uses. Calibrated on Italian SMEs in the AIDA dataset.
+            </p>
           </div>
         </div>
-        <div className="mt-5 rounded-lg border border-line bg-bg-2/40 px-4 py-3">
-          <div className="font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
-            Δ vs current
-          </div>
-          <div
-            className={cn(
-              'mt-1 font-mono text-[18px] font-semibold',
-              positive ? 'text-green' : 'text-amber',
-            )}
-          >
-            {positive ? '+' : ''}
-            {deltaPct.toFixed(1)}%
-          </div>
-        </div>
-        <p className="mt-4 text-[12px] text-text-faint">
-          Same math the workspace uses. Calibrated on Italian SMEs in the AIDA dataset.
-        </p>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -975,32 +1310,36 @@ function Lever({
 }
 
 // =============================================================================
-// 8. TAKEAWAY
+// CLOSING — three promises + outbound
 // =============================================================================
-function Takeaway() {
+function Closing() {
   return (
-    <Section
-      eyebrow="The promise"
-      title="Three sentences. One product."
-    >
-      <ol className="grid gap-6 md:grid-cols-3">
-        <Promise
-          n={1}
-          title="Understand current value."
-          body="A credible number, anchored on real company data and the entrepreneur’s strategic judgement."
-        />
-        <Promise
-          n={2}
-          title="See what drives it."
-          body="Four capitals, weighted, peer-relative. Surface what is creating value and what is silently eroding it."
-        />
-        <Promise
-          n={3}
-          title="Know what to do next."
-          body="Three priority actions, ranked by expected effect on value over 24–36 months. Test them before you commit."
-        />
+    <section className="mx-auto max-w-[1080px] px-6 py-24">
+      <div className="max-w-[720px]">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+          08 · The promise
+        </div>
+        <h2 className="mt-2 font-serif text-[36px] font-medium leading-[1.05] tracking-tight text-text md:text-[48px]">
+          Three sentences. One product.
+        </h2>
+      </div>
+      <ol className="mt-10 grid gap-6 md:grid-cols-3">
+        {[
+          { n: 1, t: 'Understand current value.', b: 'A credible number, anchored on real company data and the entrepreneur’s strategic judgement.' },
+          { n: 2, t: 'See what drives it.',       b: 'Four capitals, weighted, peer-relative. Spot what is creating value and what is silently eroding it.' },
+          { n: 3, t: 'Know what to do next.',     b: 'Three priority actions, ranked by expected effect on value. Test them before you commit.' },
+        ].map((p) => (
+          <li key={p.n} className="rounded-2xl border border-line bg-bg-1 p-7">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+              0{p.n}
+            </span>
+            <h3 className="mt-3 font-serif text-[22px] font-medium leading-tight tracking-tight text-text">
+              {p.t}
+            </h3>
+            <p className="mt-3 text-[13.5px] leading-relaxed text-text-dim">{p.b}</p>
+          </li>
+        ))}
       </ol>
-
       <div className="mt-12 flex flex-wrap items-center gap-3">
         <Link
           href="/companies"
@@ -1015,36 +1354,107 @@ function Takeaway() {
           Detailed methodology →
         </Link>
       </div>
-    </Section>
+    </section>
   );
 }
 
-function Promise({
-  n,
+// =============================================================================
+// Shared chamber layout — used by every chamber so motion happens around a
+// consistent typographic frame.
+// =============================================================================
+function ChamberLayout({
+  eyebrow,
   title,
-  body,
+  lede,
+  children,
 }: {
-  n: number;
+  eyebrow: string;
   title: string;
-  body: string;
+  lede: string;
+  children: React.ReactNode;
 }) {
-  const ref = useReveal<HTMLLIElement>();
   return (
-    <li ref={ref} className="reveal rounded-2xl border border-line bg-bg-1 p-7">
-      <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
-        0{n}
-      </span>
-      <h3 className="mt-3 font-serif text-[22px] font-medium leading-tight tracking-tight text-text">
-        {title}
-      </h3>
-      <p className="mt-3 text-[13.5px] leading-relaxed text-text-dim">{body}</p>
-    </li>
+    <div className="grid items-center gap-8 lg:grid-cols-[420px_1fr]">
+      <header>
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+          {eyebrow}
+        </div>
+        <h2 className="mt-2 font-serif text-[28px] font-medium leading-[1.05] tracking-tight text-text md:text-[36px]">
+          {title}
+        </h2>
+        <p className="mt-3 text-[13.5px] leading-relaxed text-text-dim md:text-[14.5px]">
+          {lede}
+        </p>
+      </header>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+function KvCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-line bg-bg-2/40 px-2.5 py-2">
+      <div className="font-mono text-[9.5px] uppercase tracking-eyebrow text-text-faint">
+        {label}
+      </div>
+      <div className="mt-0.5 font-mono text-[12.5px] font-semibold text-text">
+        {value}
+      </div>
+    </div>
   );
 }
 
 // =============================================================================
-// Helpers
+// Hooks + formatters
 // =============================================================================
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const handler = () => setReduced(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return reduced;
+}
+
+function useScrollProgress(ref: RefObject<HTMLElement>, reduced: boolean): number {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    let frame: number | null = null;
+    function update() {
+      frame = null;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = rect.height - vh;
+      if (total <= 0) {
+        setP(0);
+        return;
+      }
+      const scrolled = -rect.top;
+      setP(clamp(scrolled / total, 0, 1));
+    }
+    function onScroll() {
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(update);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [ref, reduced]);
+  return p;
+}
+
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
@@ -1056,4 +1466,3 @@ function fmtMoney(eur: number): string {
 function fmtRange(low: number, high: number): string {
   return `€${(low / 1_000_000).toFixed(1)}M – €${(high / 1_000_000).toFixed(1)}M`;
 }
-
