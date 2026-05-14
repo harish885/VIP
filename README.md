@@ -1,134 +1,460 @@
-# VIP — SME 4-Capital Valuation
+# VIP — Value Intelligence Platform
 
-> A strategic valuation framework that turns raw **AIDA / Orbis** SME exports into four capital pillars: **Financial**, **Technological**, **Human & Organisational**, and **Relational**.
+> A colorful decision assistant for Italian SME entrepreneurs: search a company, answer a 20-question diagnostic, and get an estimated enterprise value, quality score, risk view, value gap, Top-3 actions, and simulation levers.
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Active-2ea44f)
-![Data](https://img.shields.io/badge/Dataset-~53MB-blueviolet)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=nextdotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-vip_schema-3ECF8E?logo=supabase&logoColor=white)
+![Python](https://img.shields.io/badge/Python-ingestion-3776AB?logo=python&logoColor=white)
+![Dataset](https://img.shields.io/badge/AIDA-14,999_SMEs-8A2BE2)
+![Status](https://img.shields.io/badge/Status-demo_ready-2EA44F)
 
 ---
 
-## Overview
+## 🚀 Run The Whole Project Locally
 
-Italian SME data from AIDA comes as one wide spreadsheet with hundreds of mixed columns. This project splits that export into four focused workbooks — one per capital — each carrying a shared block of *context columns* (company identifiers, sector codes, peer group). The result is a clean, model-aligned dataset the team can analyse, score, and value against.
+This section is intentionally first. If you are a teammate cloning the repo for the first time, follow this before reading the methodology.
 
-## The Four Capitals
+### 0. 🧰 What You Need
 
-| | Capital | What it covers |
+Install these once:
+
+| Tool | Why |
+|---|---|
+| **Node.js 20+** and npm | Runs the Next.js app in `web/` |
+| **Python 3.10+** | Loads the AIDA Excel dataset into Supabase |
+| **Supabase CLI** | Applies migrations and runs local Supabase |
+| **Docker Desktop** | Required only for local Supabase |
+| **psql** | Optional but useful for verification queries |
+
+Supabase CLI install options:
+
+```bash
+# macOS
+brew install supabase/tap/supabase
+
+# or no global install
+npx supabase --version
+```
+
+Clone and enter the repo:
+
+```bash
+git clone https://github.com/harish885/VIP.git
+cd VIP
+```
+
+### 1. 🟢 Choose Your Supabase Mode
+
+Pick one path:
+
+| Path | Best for | What happens |
 |---|---|---|
-| 🟦 | **Financial** | Profitability, growth, liquidity, leverage, cash-flow quality |
-| 🟪 | **Technological** | Fixed & intangible assets, R&D spend, IP, capex intensity |
-| 🟧 | **Human & Organisational** | Workforce, productivity, governance, group structure |
-| 🟩 | **Relational** | Customers, suppliers, geographic reach, brand, networks |
+| **A. Shared Supabase Cloud** | Team work, one shared dev database | Everyone connects to the same hosted Supabase project |
+| **B. Supabase Local** | Solo/offline dev | Docker runs Supabase on your machine |
 
-> Every per-capital file also carries the shared **Context** block (company name, ATECO/NACE codes, peer group, size, etc.) so each file is self-contained for analysis.
+Path A is easiest for teammates because the 14,999-row AIDA dataset is ingested once and shared.
 
-## Repository Layout
+---
 
+### Path A — Shared Supabase Cloud
+
+Ask the project owner for:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+
+Then create env files:
+
+```bash
+cp web/.env.example web/.env.local
+cp .env.example .env
 ```
-VIP/
-├── 📂 data/         split spreadsheets — one per capital + combined workbook
-├── 📂 docs/         SME_Valuation_Design.pdf · VIP_Build_Plan.pdf · PHASE_03_SETUP.md
-├── 📂 src/          split_aida_capitals.py · ingest_aida.py (Phase 03)
-├── 📂 supabase/     migrations + config.toml — DB schema lives here (Phase 03)
-├── 📂 web/          Next.js 14 production codebase — Phase 02 (marketing) + Phase 03 (Supabase clients)
-├── 📄 index.html              cinematic single-file site (visual reference)
-├── 📄 infographic.html        static infographic (v2)
-├── 📄 infographic-v1.html     backup of static infographic
-├── 📄 .env.example            Python-side env template (DATABASE_URL)
-├── 📄 requirements.txt
-└── 📄 .gitignore
+
+Fill `web/.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
 ```
 
-## Quick Start
+Fill root `.env`:
 
-**1. Install dependencies**
+```bash
+DATABASE_URL=postgresql://...
+```
+
+If the cloud project is already migrated and ingested, skip to **Step 3: Run the web app**.
+
+If you are setting up a new cloud project:
+
+```bash
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+```
+
+Important cloud-only step:
+
+1. Open Supabase Dashboard.
+2. Go to **Settings -> API -> Data API Settings -> Exposed schemas**.
+3. Add `vip` and save.
+
+Without exposing `vip`, the app will return 404s from calls like `supabase.from('companies')`.
+
+Generate fresh database types:
+
+```bash
+supabase gen types typescript --linked --schema vip,public > web/lib/database.types.ts
+```
+
+---
+
+### Path B — Supabase Local With Docker
+
+Start Docker Desktop, then run:
+
+```bash
+supabase start
+```
+
+If you already had a local Supabase project running and want a clean database, reset it after start:
+
+```bash
+supabase db reset
+```
+
+The CLI prints values like:
+
+```text
+API URL:           http://localhost:54321
+DB URL:            postgresql://postgres:postgres@localhost:54322/postgres
+Studio URL:        http://localhost:54323
+anon key:          eyJhbGc...
+service_role key:  eyJhbGc...
+```
+
+Create env files:
+
+```bash
+cp web/.env.example web/.env.local
+cp .env.example .env
+```
+
+Fill `web/.env.local` with the local values:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase start>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase start>
+```
+
+Fill root `.env`:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
+```
+
+Generate fresh database types:
+
+```bash
+supabase gen types typescript --local --schema vip,public > web/lib/database.types.ts
+```
+
+Local Studio opens at:
+
+```text
+http://localhost:54323
+```
+
+---
+
+### 2. 📊 Ingest The AIDA Dataset
+
+Run this once per database. It loads `data/all_capitals_clean_split.xlsx` into the `vip` schema.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+
+python src/ingest_aida.py --dry-run
+python src/ingest_aida.py
 ```
 
-**2. Regenerate the splits from a new AIDA export**
+Verify the load:
 
 ```bash
-cd src
-python split_aida_capitals.py
+psql "$DATABASE_URL" -c "SELECT count(*) FROM vip.context;"
 ```
 
-The script will prompt for your export path if it can't find `aida_export.xlsx` in the working directory. Outputs land in `./capital_split_outputs/` (gitignored) — move them into `data/` to update the tracked dataset. Column matching is whitespace-tolerant, so it copes with the embedded newlines AIDA likes to put in headers.
+Expected result:
 
-## The Web App — Phases 00 → 09 shipped
-
-The production codebase lives in [`web/`](web/) — Next.js 14 (App Router) + TypeScript strict + Tailwind + GSAP for radar / count-ups / capital bars.
-
-Status table is in [`CLAUDE.md`](CLAUDE.md). Headline:
-
-| Layer | What ships |
-|---|---|
-| Marketing site | 10 scenes, fade-up on scroll |
-| 4-step diagnostic | Zod + React Hook Form, 17 inputs |
-| Scoring pipeline | `web/lib/scoring/` — 6 stages, shared TS module |
-| Dashboard | Async server component reading `vip.valuations` |
-| Recommendations | ROV-ranked Top-3 written to `vip.recommendations` |
-| Simulation | Live sliders, V recomputes client-side in < 1 ms |
-
-### Run it locally (no Vercel, no GitHub push required)
-
-**1. One-time setup** — applies migrations + ingests the 14 999-row calibration set.
-Follow [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md). Then apply the Phase 06 migration:
-
-```bash
-# Inside your Supabase project (cloud or local)
-psql "$DATABASE_URL" -f supabase/migrations/20260512000000_demo_mode_and_percentile.sql
+```text
+14999
 ```
 
-(The scoring engine still runs with synthetic priors if you skip this — only the *peer-percentile* lookup and *demo-mode anonymous writes* require it.)
+You can also check in Supabase Studio:
 
-**2. Web app**
+```sql
+SELECT count(*) FROM vip.context;
+SELECT count(*) FROM vip.aida_company_snapshot;
+```
+
+### 3. 🌐 Run The Web App
 
 ```bash
-cp web/.env.example web/.env.local       # paste your Supabase URL + keys
 cd web
 npm install
-npm run dev          # http://localhost:3000
+npm run dev
 ```
 
-**3. Try the full loop**
+Open:
 
-1. Open `http://localhost:3000` → click **Open Dashboard** → land on the seeded ACME view.
-2. Click **Run new diagnostic** → fill the 4 steps (or hit **Fill with example** for the ACME profile).
-3. Submit → the server action scores your inputs, writes a `vip.valuations` row, and redirects to `/dashboard?submitted=…`.
-4. Dashboard renders your numbers, your Top-3 recommendations, and your interactive simulation sliders.
+```text
+http://localhost:3000
+```
 
-**4. Verify**
+Try the full demo flow:
+
+1. Go to `/companies`.
+2. Search for an AIDA company.
+3. Open the company dashboard.
+4. Click **Run diagnostic**.
+5. Answer the 20 qualitative questions.
+6. Submit and return to the company dashboard with valuation, risk, Top-3 recommendations, and simulation.
+
+Useful routes:
+
+| Route | Purpose |
+|---|---|
+| `/` | Marketing/product story |
+| `/companies` | Search the 14,999-company AIDA snapshot |
+| `/companies/[taxCode]` | Company factsheet and dashboard |
+| `/companies/[taxCode]/diagnostic` | 20-question diagnostic |
+| `/how-it-works` | Interactive explainer |
+| `/method` | Methodology page |
+| `/infographic` | Product infographic |
+
+### 4. ✅ Verify Before You Push
 
 ```bash
 cd web
-npm run type-check         # tsc --noEmit, strict + noUncheckedIndexedAccess
-npm run lint               # next lint
-npx tsx scripts/calibrate-acme.ts             # ACME scoring lands ±10% of demo
-npx tsx scripts/calibrate-recommendations.ts  # Top-3 = client_conc, recurring, mgmt
+npm run type-check
+npm run lint
+npx tsx scripts/calibrate-acme.ts
+npx tsx scripts/calibrate-recommendations.ts
 ```
 
-Auth is intentionally bypassed — `ENFORCE_AUTH_GUARDS = false` in [`web/lib/supabase/middleware.ts`](web/lib/supabase/middleware.ts). Demo submissions persist anonymously via a service-role write and a short-lived httpOnly cookie. Flip the flag to re-enable the (already-built) auth pages.
+The two calibration scripts check that the demo ACME-style profile still lands near the expected valuation and Top-3 recommendations.
 
-## Database (Phase 03 — Supabase schema + ingestion)
+### 5. 🛠️ Common Setup Problems
 
-Schema and Row Level Security live in [`supabase/migrations/`](supabase/migrations). Five calibration tables (the 14,999-SME AIDA dataset, read-only public) plus five user-facing tables (profiles, companies, submissions, valuations, recommendations — RLS-scoped to the owning user).
+| Symptom | Fix |
+|---|---|
+| `supabase.from('companies')` returns 404 | In Supabase Cloud, expose the `vip` schema under **Settings -> API** |
+| Generated types are almost empty | Re-run with `--schema vip,public` |
+| `relation "vip.context" does not exist` | Migrations did not run; use `supabase db push` or restart local Supabase |
+| Search page has no companies | Run `python src/ingest_aida.py` and verify `vip.context` has 14,999 rows |
+| Python cannot connect to Supabase Cloud | Use the transaction-pooler URL or append `?sslmode=require` if needed |
+| Dashboard writes fail in demo mode | Confirm `SUPABASE_SERVICE_ROLE_KEY` is present in `web/.env.local` |
 
-To stand up the DB, ingest data, and wire the web app, follow [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md) — there are two paths (Supabase Cloud or local Docker). Acceptance check: `SELECT count(*) FROM public.context` returns 14,999.
+More detailed database setup lives in [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md).
 
-## Where to Look Next
+---
+
+## 🌈 What This Project Is
+
+VIP is a digital decision assistant for SME entrepreneurs. Instead of asking founders to understand valuation theory, it asks a focused diagnostic question set and combines those answers with real AIDA company context.
+
+The output is designed to be boardroom-readable:
+
+| Output | What it means |
+|---|---|
+| **Enterprise Value** | Estimated company value and range |
+| **Value Gap** | Distance between current value and optimized potential |
+| **Quality Score** | Overall 0-100 company quality signal |
+| **Risk Index** | Fragility and concentration risk view |
+| **4 Capital Scores** | Financial, Technological, Human & Organisational, Relational |
+| **Top-3 Actions** | Priority actions ranked by Return on Value |
+| **Simulation** | Sliders that show how improving levers changes value |
+
+The core valuation logic is:
+
+```text
+V = EBITDA x M_sector x SQF x GF
+```
+
+Where:
+
+| Variable | Meaning |
+|---|---|
+| `EBITDA` | Company earnings baseline |
+| `M_sector` | Sector multiple calibrated by NACE/ATECO |
+| `SQF` | Strategic Quality Factor from the 4 capitals |
+| `GF` | Growth Factor from growth and forward-looking strength |
+
+The model is calibrated against **14,999 Italian manufacturing SMEs** from AIDA / Bureau van Dijk.
+
+---
+
+## 🎨 The Four Capitals
+
+| Color | Capital | What it captures |
+|---|---|---|
+| 🔵 Blue | **Financial** | Profitability, growth, leverage, liquidity, cash-flow quality |
+| 🟣 Violet | **Technological** | R&D, intangible assets, capex intensity, digital maturity |
+| 🟠 Amber | **Human & Organisational** | Management depth, delegation, governance, operating maturity |
+| 🟢 Green | **Relational** | Customer concentration, recurring revenue, supplier and market strength |
+
+These capitals feed the Strategic Quality Factor. The dashboard turns the scores into a practical value-improvement map rather than a static report.
+
+---
+
+## 🧭 Current Product Flow
+
+The app is now company-centric:
+
+```text
+/ -> /companies -> /companies/[taxCode] -> /companies/[taxCode]/diagnostic -> /companies/[taxCode]?submitted=...
+```
+
+What happens:
+
+1. The user searches the AIDA snapshot.
+2. The app opens a per-company factsheet.
+3. If no diagnostic exists, the dashboard asks the user to run one.
+4. The 20-question diagnostic collects qualitative business signals.
+5. Quantitative fields are pulled from AIDA at submission time.
+6. The scoring engine writes valuation and recommendation rows.
+7. The company dashboard renders the full result.
+
+The old free-form `/diagnostic` route now redirects to `/companies`.
+
+---
+
+## 🏗️ Architecture
+
+| Layer | Choice |
+|---|---|
+| Frontend | Next.js 14 App Router, TypeScript strict, Tailwind CSS |
+| Forms | React Hook Form + Zod |
+| Motion | GSAP for radar/count-ups, `useReveal` for calm scroll reveals |
+| Database | Supabase Postgres, all application objects in `vip` schema |
+| Auth | Built but dormant in demo mode |
+| Data prep | Python, pandas, openpyxl, psycopg |
+| Deployment target | Vercel |
+
+Important convention:
+
+```text
+All database objects live in the vip schema, not public.
+```
+
+The Supabase clients are configured with `db.schema: 'vip'`, and generated types should always include:
+
+```bash
+--schema vip,public
+```
+
+---
+
+## 🗂️ Repository Map
+
+```text
+VIP/
+├── data/                         AIDA xlsx files and capital splits
+├── docs/                         Methodology and build-plan PDFs
+├── src/                          Python splitter and AIDA ingestion
+├── supabase/                     Config, migrations, seed stub
+├── web/                          Next.js application
+│   ├── app/                      App Router pages and server actions
+│   ├── components/               Chrome, marketing, dashboard, diagnostic UI
+│   ├── lib/                      Supabase clients, scoring, loaders, utilities
+│   └── scripts/                  Calibration checks
+├── infographic/                  Static infographic source/render helper
+├── .env.example                  Root env for Python ingestion
+└── README.md
+```
+
+High-signal files:
 
 | Need | File |
 |---|---|
-| Model rationale & methodology | [`docs/SME_Valuation_Design.pdf`](docs/SME_Valuation_Design.pdf) |
-| Full build & execution plan | [`docs/VIP_Build_Plan.pdf`](docs/VIP_Build_Plan.pdf) |
-| **Stand up Supabase + ingest AIDA** | [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md) |
-| Run the web app | [`web/README.md`](web/README.md) |
-| Visual reference for the product | [`index.html`](index.html) — open in any browser |
-| DB schema | [`supabase/migrations/`](supabase/migrations/) |
-| Exact column list per capital | top of [`src/split_aida_capitals.py`](src/split_aida_capitals.py) |
-| The data itself | [`data/`](data/) — open `all_capitals_clean_split.xlsx` for a single-file view |
+| Model rationale | [`docs/SME_Valuation_Design.pdf`](docs/SME_Valuation_Design.pdf) |
+| Full build plan | [`docs/VIP_Build_Plan.pdf`](docs/VIP_Build_Plan.pdf) |
+| Supabase setup walkthrough | [`docs/PHASE_03_SETUP.md`](docs/PHASE_03_SETUP.md) |
+| DB migrations | [`supabase/migrations/`](supabase/migrations/) |
+| AIDA ingestion | [`src/ingest_aida.py`](src/ingest_aida.py) |
+| Company/AIDA bridge | [`web/lib/scoring/company-input.ts`](web/lib/scoring/company-input.ts) |
+| Scoring pipeline | [`web/lib/scoring/`](web/lib/scoring/) |
+| Company dashboard workspace | [`web/components/company-workspace/workspace.tsx`](web/components/company-workspace/workspace.tsx) |
+| Company search | [`web/app/(app)/companies/page.tsx`](web/app/(app)/companies/page.tsx) |
+| Diagnostic action | [`web/app/(app)/companies/[taxCode]/diagnostic/actions.ts`](web/app/(app)/companies/%5BtaxCode%5D/diagnostic/actions.ts) |
+
+---
+
+## 🧮 Scoring Pipeline
+
+The scoring engine is a shared TypeScript module, not a Supabase Edge Function:
+
+```text
+web/lib/scoring/
+  index.ts             runScoring(input, ctx)
+  metrics.ts           derives metrics from questionnaire + AIDA
+  benchmarks.ts        peer percentile lookup with synthetic fallback
+  aggregate.ts         capital scores, CQS, SQF
+  valuation.ts         GF and enterprise value
+  flags.ts             fragility flags and risk index
+  recommendations.ts   ROV-ranked action engine
+  company-input.ts     bridges 20Q diagnostic + AIDA into scoring input
+```
+
+Submission path:
+
+```text
+validate form -> load AIDA snapshot -> create/update company -> insert submission -> run scoring -> insert valuation -> insert recommendations -> redirect to dashboard
+```
+
+Demo mode allows anonymous local delivery by writing with the service role and using an httpOnly cookie to find the latest submitted result.
+
+---
+
+## 💎 Demo Numbers
+
+When you need consistent placeholder numbers, use the ACME-style profile:
+
+| Metric | Value |
+|---|---|
+| Enterprise Value | **€4.2M** |
+| Range | **€3.8M - €4.7M** |
+| Quality | **67 / 100** |
+| Value Gap | **+38% -> €5.8M potential** |
+| Risk | **Medium** |
+| EBITDA | **€750K** |
+| Multiple | **5.0x** |
+| SQF | **1.05** |
+| GF | **1.07** |
+
+Top actions:
+
+| Rank | Action | Estimated value lift |
+|---|---|---|
+| 1 | Reduce client concentration | +12% |
+| 2 | Increase recurring revenue | +9% |
+| 3 | Strengthen middle management | +7% |
+
+The math checks out:
+
+```text
+750,000 x 5.0 x 1.05 x 1.07 ~= 4.21M
+```
+
+---
+
+## 🎓 Project Context
+
+This is an academic project for the **Master in Data Science for Management, Cattolica**. The goal is a polished local demo for the final exam in late May 2026: credible methodology, real calibration data, and a product experience that makes valuation understandable for SME founders.
