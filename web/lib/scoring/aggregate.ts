@@ -20,9 +20,9 @@ import type {
 // =============================================================================
 // Stage 3 — within-capital weighted means
 // =============================================================================
-type Weight = { key: keyof PercentileRanks; weight: number };
+export type Weight = { key: keyof PercentileRanks; weight: number };
 
-const CAPITAL_WEIGHTS: Record<CapitalKey, Weight[]> = {
+export const CAPITAL_WEIGHTS: Record<CapitalKey, Weight[]> = {
   financial: [
     { key: 'ebitda_margin',            weight: 0.30 },
     { key: 'revenue_cagr',             weight: 0.25 },
@@ -73,7 +73,7 @@ function weightedMean(p: PercentileRanks, ws: Weight[]): number {
 //   CQS = 0.35·Fin + 0.20·Tech + 0.25·Human + 0.20·Rel
 //   SQF = 0.6 + (CQS / 100) · 0.8        ∈ [0.6, 1.4]
 // =============================================================================
-const COMPOSITE_WEIGHTS = {
+export const COMPOSITE_WEIGHTS = {
   financial:     0.35,
   technological: 0.20,
   human:         0.25,
