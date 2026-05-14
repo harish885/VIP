@@ -143,24 +143,24 @@ export function Explainer({ story }: { story: ExplainerStory }) {
 
   return (
     <div className="bg-stone-50">
-      <div className="mx-auto max-w-7xl px-6 py-10 sm:px-8 lg:px-10">
-        <header className="rounded-[28px] border border-stone-200 bg-white/90 p-8 shadow-[0_24px_80px_rgba(24,24,27,0.06)] backdrop-blur sm:p-10">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
+        <header className="rounded-[24px] border border-stone-200 bg-white/90 p-5 shadow-[0_24px_80px_rgba(24,24,27,0.06)] backdrop-blur sm:rounded-[28px] sm:p-10">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs uppercase tracking-[0.28em] text-stone-600">
+                <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] uppercase leading-relaxed tracking-[0.16em] text-stone-600 sm:text-xs sm:tracking-[0.28em]">
                   <Sparkles className="h-3.5 w-3.5" />
                   {story.mode === 'real' ? 'Real AIDA company example' : 'Illustrative walkthrough'}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs uppercase tracking-[0.28em] text-emerald-700">
+                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] uppercase leading-relaxed tracking-[0.16em] text-emerald-700 sm:text-xs sm:tracking-[0.28em]">
                   <Factory className="h-3.5 w-3.5" />
                   Manufacturing SME
                 </span>
               </div>
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+              <h1 className="max-w-3xl text-2xl font-semibold leading-tight text-stone-950 min-[390px]:text-3xl sm:text-5xl">
                 How VIP reads one company, scores its quality, and turns that into practical next moves.
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-stone-600">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg sm:leading-8">
                 This page follows one real company through the same logic the product uses in the diagnostic flow:
                 public company facts first, entrepreneur input next, then peer comparison, capital scoring, valuation,
                 and action ranking.
@@ -186,11 +186,11 @@ export function Explainer({ story }: { story: ExplainerStory }) {
           </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-            <section className="rounded-[24px] border border-stone-200 bg-stone-50 p-6 sm:p-7">
-              <div className="flex items-start justify-between gap-6">
+            <section className="rounded-[22px] border border-stone-200 bg-stone-50 p-5 sm:rounded-[24px] sm:p-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-amber-700">The company we follow</p>
-                  <h2 className="mt-3 text-3xl font-semibold tracking-tight text-stone-950">{story.company.name}</h2>
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-amber-700 sm:text-xs sm:tracking-[0.35em]">The company we follow</p>
+                  <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl">{story.company.name}</h2>
                   <p className="mt-2 text-base text-stone-600">
                     {story.company.province} · {story.company.naceCode} · {story.company.description}
                   </p>
@@ -203,16 +203,16 @@ export function Explainer({ story }: { story: ExplainerStory }) {
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {story.facts.map((fact) => (
                   <div key={fact.label} className="rounded-[22px] border border-stone-200 bg-white p-5">
-                    <p className="text-[11px] uppercase tracking-[0.32em] text-stone-500">{fact.label}</p>
-                    <p className="mt-3 text-3xl font-semibold tracking-tight text-stone-950">{fact.value}</p>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-stone-500 sm:tracking-[0.32em]">{fact.label}</p>
+                    <p className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl">{fact.value}</p>
                     <p className="mt-2 text-sm leading-6 text-stone-500">{fact.detail}</p>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-stone-200 bg-white p-6 sm:p-7">
-              <p className="text-xs uppercase tracking-[0.35em] text-cyan-700">What this example is showing</p>
+            <section className="rounded-[22px] border border-stone-200 bg-white p-5 sm:rounded-[24px] sm:p-7">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-700 sm:text-xs sm:tracking-[0.35em]">What this example is showing</p>
               <div className="mt-4 space-y-4 text-stone-600">
                 <p className="text-lg leading-8">
                   VIP does not start from a blank form. It starts from a known operating footprint, then asks the

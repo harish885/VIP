@@ -20,19 +20,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       />
 
       <header className="relative z-10 border-b border-line bg-bg-1/85 backdrop-blur-glass">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link
             href="/companies"
-            className="flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-text transition-opacity hover:opacity-80"
+            className="flex min-w-0 items-center gap-2.5 font-mono text-[10px] font-semibold uppercase leading-tight tracking-[0.24em] text-text transition-opacity hover:opacity-80 sm:text-[11px] sm:tracking-eyebrow"
           >
-            <span className="block h-[18px] w-[18px] rounded-[4px] bg-gradient-to-br from-gold to-gold-soft" />
-            VIP · Value Intelligence
+            <span className="block h-[18px] w-[18px] shrink-0 rounded-[4px] bg-gradient-to-br from-gold to-gold-soft" />
+            <span className="max-w-[128px] sm:max-w-none">VIP · Value Intelligence</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/how-it-works"
-              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-3 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text"
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-1 px-2.5 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text sm:px-3"
             >
               <Sparkles size={13} />
               How it works

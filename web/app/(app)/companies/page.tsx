@@ -45,9 +45,9 @@ export default async function CompaniesPage({
   );
 
   return (
-    <div className="mx-auto max-w-[1080px] px-6 pb-16 pt-8">
+    <div className="mx-auto max-w-[1080px] px-4 pb-16 pt-8 sm:px-6">
       <header className="max-w-[640px]">
-        <h1 className="font-serif text-[34px] font-medium leading-[1.05] tracking-tight text-text">
+        <h1 className="font-serif text-[31px] font-medium leading-[1.07] text-text sm:text-[34px]">
           Pick a company to value.
         </h1>
         <p className="mt-2 text-[14px] text-text-dim">
@@ -72,7 +72,7 @@ export default async function CompaniesPage({
 
       {q.length > 0 && (
         <>
-          <div className="mt-2 flex items-center justify-between text-[11.5px] text-text-faint">
+          <div className="mt-2 flex flex-col gap-1 text-[11.5px] text-text-faint sm:flex-row sm:items-center sm:justify-between">
             <span>Showing matches for &quot;{q}&quot;</span>
             <span>{results.length} of 14 999</span>
           </div>
@@ -106,7 +106,7 @@ export default async function CompaniesPage({
         </div>
       )}
 
-      <p className="mt-6 font-mono text-[10px] uppercase tracking-eyebrow text-text-faint">
+      <p className="mt-6 font-mono text-[10px] uppercase leading-relaxed tracking-[0.22em] text-text-faint sm:tracking-eyebrow">
         Source · AIDA / Bureau van Dijk · Italian SMEs · last available year
       </p>
     </div>
@@ -119,7 +119,7 @@ function CompanyRow({ c, status }: { c: AidaSnapshot; status: DiagnosisStatus })
     <li>
       <Link
         href={`/companies/${encodeURIComponent(c.tax_code)}`}
-        className="group flex flex-wrap items-center gap-4 px-5 py-4 transition-colors hover:bg-bg-2/50"
+        className="group flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-bg-2/50 sm:px-5"
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ function CompanyRow({ c, status }: { c: AidaSnapshot; status: DiagnosisStatus })
             )}
           </div>
         </div>
-        <div className="flex shrink-0 items-baseline gap-5 text-right">
+        <div className="grid w-full grid-cols-3 gap-3 text-left sm:w-auto sm:flex sm:shrink-0 sm:items-baseline sm:gap-5 sm:text-right">
           <Metric label="Revenue" value={mEUR(c.revenue_last_thk, 1, 'M')} />
           <Metric label="EBITDA" value={mEUR(c.ebitda_last_thk, 2, 'M')} />
           <Metric

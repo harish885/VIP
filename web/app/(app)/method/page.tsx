@@ -12,7 +12,7 @@ export const metadata = { title: 'How scores are calculated · VIP' };
  */
 export default function MethodPage() {
   return (
-    <div className="mx-auto max-w-[820px] px-6 pb-20 pt-8">
+    <div className="mx-auto max-w-[820px] px-4 pb-20 pt-8 sm:px-6">
       <div className="mb-5">
         <Link
           href="/companies"
@@ -23,10 +23,10 @@ export default function MethodPage() {
       </div>
 
       <header className="mb-8">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan sm:tracking-eyebrow">
           Methodology
         </div>
-        <h1 className="mt-2 font-serif text-[36px] font-medium leading-[1.05] tracking-tight text-text">
+        <h1 className="mt-2 font-serif text-[31px] font-medium leading-[1.07] text-text sm:text-[36px]">
           How a company is scored, valued, and given a Top-3.
         </h1>
         <p className="mt-3 max-w-[640px] text-[14px] leading-relaxed text-text-dim">
@@ -243,7 +243,7 @@ export default function MethodPage() {
         </ul>
       </Section>
 
-      <footer className="mt-12 border-t border-line pt-6 text-[11px] uppercase tracking-eyebrow text-text-faint">
+      <footer className="mt-12 border-t border-line pt-6 text-[11px] uppercase leading-relaxed tracking-[0.22em] text-text-faint sm:tracking-eyebrow">
         Calibration set · 14 999 Italian SMEs · AIDA · Bureau van Dijk
       </footer>
     </div>
@@ -263,11 +263,11 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-10 rounded-2xl border border-line bg-bg-1 p-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+    <section className="mb-10 rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-7">
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-text-faint sm:tracking-eyebrow">
         {eyebrow}
       </div>
-      <h2 className="mt-1 font-serif text-[22px] font-medium tracking-tight text-text">
+      <h2 className="mt-1 font-serif text-[21px] font-medium text-text sm:text-[22px]">
         {title}
       </h2>
       <div className="mt-3 space-y-3 text-[13.5px] leading-relaxed text-text-dim">
@@ -279,8 +279,8 @@ function Section({
 
 function Pillar({ label, text }: { label: string; text: string }) {
   return (
-    <li className="flex items-start gap-3">
-      <span className="mt-0.5 inline-flex shrink-0 rounded-md border border-line bg-bg-2/70 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-eyebrow text-text">
+    <li className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
+      <span className="mt-0.5 inline-flex w-fit shrink-0 rounded-md border border-line bg-bg-2/70 px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-text sm:tracking-eyebrow">
         {label}
       </span>
       <span className="text-text-dim">{text}</span>
@@ -324,10 +324,10 @@ function Stage({
 function Formula({ label, body }: { label: string; body: string }) {
   return (
     <div className="mt-4 rounded-xl border border-line bg-bg-2/40 p-4">
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-text-faint sm:tracking-eyebrow">
         {label}
       </div>
-      <div className="mt-1.5 font-mono text-[13.5px] text-text">{body}</div>
+      <div className="mt-1.5 break-words font-mono text-[12.5px] leading-relaxed text-text sm:text-[13.5px]">{body}</div>
     </div>
   );
 }

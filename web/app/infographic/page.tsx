@@ -162,7 +162,7 @@ function Section({
   return (
     <section
       id={id}
-      className={`relative mx-auto max-w-[1320px] px-6 py-28 md:py-36 ${className}`}
+      className={`relative mx-auto max-w-[1320px] px-4 py-16 sm:px-6 sm:py-20 md:py-36 ${className}`}
     >
       {children}
     </section>
@@ -171,7 +171,7 @@ function Section({
 
 function Eyebrow({ children, color = 'text-gold' }: { children: React.ReactNode; color?: string }) {
   return (
-    <div className={`mb-4 inline-block rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.22em] ${color} backdrop-blur-sm`}>
+    <div className={`mb-4 inline-block max-w-full rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-center font-mono text-[10px] font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-[0.22em] ${color} backdrop-blur-sm`}>
       {children}
     </div>
   );
@@ -183,8 +183,8 @@ function H2({ children, accent }: { children: string; accent?: string }) {
     const after = rest.join(accent);
     return (
       <h2
-        className="font-serif font-normal leading-[1.05] tracking-tight"
-        style={{ fontSize: 'clamp(2rem, 4.5vw, 3.75rem)', letterSpacing: '-0.025em' }}
+        className="font-serif font-normal leading-[1.08]"
+        style={{ fontSize: 'clamp(2rem, 4.5vw, 3.75rem)', letterSpacing: 0 }}
       >
         <span className="text-white/90">{before}</span>
         <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-200 bg-clip-text italic text-transparent">
@@ -195,7 +195,7 @@ function H2({ children, accent }: { children: string; accent?: string }) {
     );
   }
   return (
-    <h2 className="font-serif font-normal leading-[1.05] tracking-tight text-white/90" style={{ fontSize: 'clamp(2rem, 4.5vw, 3.75rem)' }}>
+    <h2 className="font-serif font-normal leading-[1.08] text-white/90" style={{ fontSize: 'clamp(2rem, 4.5vw, 3.75rem)', letterSpacing: 0 }}>
       {children}
     </h2>
   );
@@ -203,7 +203,7 @@ function H2({ children, accent }: { children: string; accent?: string }) {
 
 function Lead({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-5 max-w-[680px] text-[15px] leading-relaxed text-white/55">
+    <p className="mt-5 max-w-[680px] text-[14px] leading-relaxed text-white/55 sm:text-[15px]">
       {children}
     </p>
   );
@@ -222,7 +222,7 @@ function Section1Hero() {
   ];
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-24 text-center">
+    <section className="relative flex min-h-[auto] flex-col items-center justify-center overflow-hidden px-4 py-16 text-center md:min-h-screen md:px-6 md:py-24">
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0 -z-10"
         style={{
@@ -232,7 +232,7 @@ function Section1Hero() {
 
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-        className="mb-8 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-4 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300 backdrop-blur"
+        className="mb-8 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-3 py-1.5 text-center font-mono text-[10px] font-semibold uppercase leading-relaxed tracking-[0.14em] text-amber-300 backdrop-blur sm:px-4 sm:text-[11px] sm:tracking-[0.2em]"
       >
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400 shadow-[0_0_10px_rgb(245,165,36)]" />
         VIP · Value Intelligence Platform
@@ -242,25 +242,38 @@ function Section1Hero() {
         initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="font-serif font-normal leading-[0.98] text-white/90"
-        style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', letterSpacing: '-0.04em' }}
+        className="max-w-[760px] font-serif font-normal leading-[1.04] text-white/90"
+        style={{ fontSize: 'clamp(2.35rem, 7vw, 6rem)', letterSpacing: 0 }}
       >
         From SME data to<br />
-        <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-100 bg-clip-text italic text-transparent">
+        <span className="mt-1 block text-amber-300 sm:bg-gradient-to-r sm:from-amber-200 sm:via-amber-400 sm:to-yellow-100 sm:bg-clip-text sm:text-transparent">
           strategic value creation.
         </span>
       </motion.h1>
 
       <motion.p
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}
-        className="mt-6 max-w-[640px] text-[16px] leading-relaxed text-white/55"
+        className="mt-6 max-w-[640px] text-[14px] leading-relaxed text-white/55 sm:text-[16px]"
       >
         A decision assistant that turns balance-sheet evidence and entrepreneur insight
         into a peer-relative valuation, four capital scores, and a ranked action plan.
       </motion.p>
 
       {/* Orbital diagram */}
-      <div className="relative my-20 h-[520px] w-[520px] max-w-full">
+      <div className="my-10 grid w-full max-w-[360px] grid-cols-2 gap-3 md:hidden">
+        {ORBITERS.map((o) => (
+          <div key={o.label} className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-3">
+            <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-gradient-to-br ${o.color}`}>
+              <o.icon size={18} strokeWidth={1.75} className="text-white" />
+            </div>
+            <div className="mt-2 text-center font-mono text-[9.5px] font-semibold uppercase leading-snug tracking-[0.12em] text-white/65">
+              {o.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="relative my-20 hidden h-[520px] w-[520px] max-w-full md:block">
         {/* Concentric guides */}
         {[140, 200, 260].map((r) => (
           <div key={r}
@@ -339,7 +352,7 @@ function Section1Hero() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-x-12 gap-y-8 md:grid-cols-6">
+      <div className="mt-8 hidden w-full max-w-[680px] grid-cols-2 gap-x-4 gap-y-8 sm:grid sm:grid-cols-3 md:mt-0 md:grid-cols-6 md:gap-x-12">
         {[
           { v: 14999, l: 'SMEs benchmarked' },
           { v: 20,    l: 'Diagnostic Qs' },
@@ -349,8 +362,8 @@ function Section1Hero() {
           { v: 3,     l: 'Top priorities' },
         ].map(s => (
           <div key={s.l} className="text-center">
-            <Counter to={s.v} className="block bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text font-mono text-[28px] font-bold tracking-tight text-transparent md:text-[34px]" />
-            <div className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/40">{s.l}</div>
+            <Counter to={s.v} className="block bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text font-mono text-[26px] font-bold text-transparent md:text-[34px]" />
+            <div className="mt-1 font-mono text-[9px] uppercase leading-snug tracking-[0.12em] text-white/40 sm:tracking-[0.18em]">{s.l}</div>
           </div>
         ))}
       </div>
@@ -648,7 +661,7 @@ function Section5Benchmarking() {
       <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         {/* Scatter / constellation */}
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">
                 Peer constellation
@@ -657,12 +670,12 @@ function Section5Benchmarking() {
                 {COMPANY.peer_group}
               </div>
             </div>
-            <span className="rounded-md border border-amber-300/30 bg-amber-300/10 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-300">
+            <span className="w-fit rounded-md border border-amber-300/30 bg-amber-300/10 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-300">
               ● ACME · highlighted
             </span>
           </div>
 
-          <div className="h-[340px] w-full">
+          <div className="h-[260px] w-full sm:h-[340px]">
             <ResponsiveContainer>
               <ScatterChart margin={{ top: 10, right: 16, left: 0, bottom: 16 }}>
                 <XAxis type="number" dataKey="x" name="Revenue size"
@@ -795,7 +808,7 @@ function Section6CapitalRadar() {
               CQS {composite}/100
             </div>
           </div>
-          <div className="h-[360px]">
+          <div className="h-[280px] sm:h-[360px]">
             <ResponsiveContainer>
               <RadarChart data={radarData} outerRadius="78%">
                 <PolarGrid stroke="rgba(255,255,255,0.08)" />
@@ -885,7 +898,7 @@ function Section7ValueEquation() {
         interpretation. Multiply, get V.
       </Lead>
 
-      <div className="mt-14 rounded-3xl border border-amber-300/15 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-fuchsia-500/[0.04] p-8 md:p-12">
+      <div className="mt-14 rounded-3xl border border-amber-300/15 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-fuchsia-500/[0.04] p-4 sm:p-6 md:p-12">
         {/* Big formula */}
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
           {TERMS.map((t, i) => (
@@ -895,13 +908,13 @@ function Section7ValueEquation() {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative rounded-2xl border border-white/10 bg-zinc-950/60 px-5 py-4 backdrop-blur"
+                className="group relative rounded-2xl border border-white/10 bg-zinc-950/60 px-4 py-4 backdrop-blur sm:px-5"
                 style={{ boxShadow: `0 8px 30px -10px ${t.color}33` }}
               >
                 <div className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: t.color }}>
                   {t.label}
                 </div>
-                <div className="mt-1 font-mono text-[28px] font-bold tracking-tight text-white/95 md:text-[34px]">
+                <div className="mt-1 font-mono text-[25px] font-bold text-white/95 md:text-[34px]">
                   {t.value}
                 </div>
                 <div className="mt-1 font-mono text-[10px] text-white/40">{t.sub}</div>
@@ -929,12 +942,12 @@ function Section7ValueEquation() {
           className="mt-10 flex flex-col items-center"
         >
           <div className="font-mono text-[20px] text-white/30">=</div>
-          <div className="mt-3 flex flex-col items-center rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-400/[0.10] to-amber-600/[0.04] px-10 py-6">
+          <div className="mt-3 flex w-full max-w-[360px] flex-col items-center rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-400/[0.10] to-amber-600/[0.04] px-5 py-6 sm:px-10">
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-300">
               Enterprise Value today
             </div>
             <Counter to={BASE_V} prefix="€" suffix="M" decimals={1}
-              className="mt-2 bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text font-mono text-[64px] font-bold leading-none tracking-tighter text-transparent md:text-[80px]"
+              className="mt-2 bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text font-mono text-[48px] font-bold leading-none text-transparent sm:text-[64px] md:text-[80px]"
             />
             <div className="mt-3 font-mono text-[11px] text-white/50">
               Range €3.8M – €4.7M
@@ -1024,7 +1037,7 @@ function Section8ActionRanking() {
       </div>
 
       {/* Podium */}
-      <div className="mt-4 grid grid-cols-3 items-end gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-end">
         {podiumOrder.map((a, idx) => {
           if (!a) return <div key={idx} />;
           const rank = a.top ?? 0;
@@ -1069,7 +1082,7 @@ function Section8ActionRanking() {
                 whileInView={{ scaleY: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 + idx * 0.15, duration: 0.6 }}
-                className={`w-full rounded-t-lg border border-white/10 ${
+                className={`hidden w-full rounded-t-lg border border-white/10 sm:block ${
                   isFirst ? 'bg-gradient-to-b from-amber-400 to-amber-600' : 'bg-gradient-to-b from-zinc-700 to-zinc-900'
                 }`}
                 style={{ height: podiumHeights[idx] }}
@@ -1171,7 +1184,7 @@ function Section9ScenarioLab() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
             {[
               { l: 'V', v: `€${sim.v.toFixed(2)}M`, c: '#f5a524' },
               { l: 'Value gap', v: `${sim.gap > 0 ? '+' : ''}${sim.gap}%`, c: sim.gap > 0 ? '#22c55e' : '#ef4444' },
@@ -1252,25 +1265,25 @@ function Section10Dashboard() {
         className="mt-14 overflow-hidden rounded-3xl border border-white/[0.10] bg-gradient-to-b from-zinc-900/60 to-zinc-950/60 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] backdrop-blur"
       >
         {/* Title bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 border-b border-white/[0.08] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 font-serif text-[16px] font-semibold text-white">
               {COMPANY.initials}
             </div>
             <div>
-              <div className="font-serif text-[17px] tracking-tight text-white/95">{COMPANY.name}</div>
+              <div className="font-serif text-[17px] text-white/95">{COMPANY.name}</div>
               <div className="font-mono text-[10.5px] text-white/40">
                 {COMPANY.sector} · NACE {COMPANY.nace} · {COMPANY.province} · {COMPANY.lifecycle}
               </div>
             </div>
           </div>
-          <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-300">
+          <span className="w-fit rounded-md border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-300">
             ● Diagnostic complete
           </span>
         </div>
 
         {/* KPI strip */}
-        <div className="grid grid-cols-2 gap-3 px-6 pt-5 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 px-4 pt-5 sm:grid-cols-2 sm:px-6 md:grid-cols-4">
           {[
             { l: 'Value today',   v: '€4.2M',  s: 'Range €3.8M–€4.7M',   c: '#f5a524' },
             { l: 'Value gap',     v: '+38%',   s: 'Potential €5.8M',     c: '#22c55e' },
@@ -1288,12 +1301,12 @@ function Section10Dashboard() {
         </div>
 
         {/* Radar + Actions row */}
-        <div className="grid grid-cols-1 gap-3 px-6 py-5 md:grid-cols-[0.9fr_1.3fr]">
+        <div className="grid grid-cols-1 gap-3 px-4 py-5 sm:px-6 md:grid-cols-[0.9fr_1.3fr]">
           <div className="rounded-2xl border border-white/[0.06] bg-black/30 p-5">
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">
               4-Capital radar
             </div>
-            <div className="h-[260px]">
+            <div className="h-[220px] sm:h-[260px]">
               <ResponsiveContainer>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="rgba(255,255,255,0.08)" />

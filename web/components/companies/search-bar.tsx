@@ -137,7 +137,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
             autoFocus
-            placeholder="Search by company name…"
+            placeholder="Search company…"
             className="w-full rounded-xl border border-line bg-bg-2/40 py-3.5 pl-11 pr-12 font-mono text-[13px] text-text placeholder:text-text-faint focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
             role="combobox"
             aria-autocomplete="list"
@@ -227,7 +227,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
               ))}
             </ul>
           )}
-          <div className="border-t border-line-faint px-4 py-2 font-mono text-[9.5px] uppercase tracking-eyebrow text-text-faint">
+          <div className="border-t border-line-faint px-4 py-2 font-mono text-[9.5px] uppercase leading-relaxed tracking-[0.2em] text-text-faint sm:tracking-eyebrow">
             ↑ ↓ navigate · Enter to open · Esc to close
           </div>
         </div>
