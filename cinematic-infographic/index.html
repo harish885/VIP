@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VIP — Cinematic Project Infographic</title>
+    <meta
+      name="description"
+      content="A cinematic single-page infographic explaining VIP — Value Intelligence Platform."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,70,1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="starfield" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="topbar" aria-label="VIP cinematic infographic">
+      <a class="brand" href="#scene-hero" aria-label="Back to start">
+        <span class="brand-mark"></span>
+        <span>VIP</span>
+        <span class="brand-full">Value Intelligence Platform</span>
+      </a>
+      <nav class="chapter-nav" aria-label="Chapters">
+        <a href="#scene-data">Data</a>
+        <a href="#scene-engine">Engine</a>
+        <a href="#scene-actions">Actions</a>
+      </nav>
+    </header>
+
+    <aside class="progress-rail" aria-hidden="true">
+      <span data-dot="scene-hero"></span>
+      <span data-dot="scene-data"></span>
+      <span data-dot="scene-peer"></span>
+      <span data-dot="scene-engine"></span>
+      <span data-dot="scene-actions"></span>
+      <span data-dot="scene-simulator"></span>
+      <span data-dot="scene-finale"></span>
+    </aside>
+
+    <main>
+      <section id="scene-hero" class="scene hero scene-active">
+        <div class="scene-copy hero-copy">
+          <p class="eyebrow">Academic prototype · Cattolica · 2026</p>
+          <h1>
+            From SME evidence to
+            <span>strategic value intelligence.</span>
+          </h1>
+          <p class="lead">
+            VIP reads one company, benchmarks it against AIDA peers, scores four
+            capitals, estimates enterprise value, then ranks the moves most likely
+            to grow that value.
+          </p>
+          <div class="hero-actions">
+            <a href="#scene-data" class="primary-action">Start the movie</a>
+            <a href="#scene-engine" class="ghost-action">Trace the math</a>
+          </div>
+        </div>
+
+        <div class="hero-stage" aria-label="Cinematic VIP system preview">
+          <div class="orbital-ring ring-one"></div>
+          <div class="orbital-ring ring-two"></div>
+          <div class="orbital-ring ring-three"></div>
+          <div class="vip-core">
+            <span>VIP</span>
+            <small>value core</small>
+          </div>
+          <div class="satellite satellite-a">
+            <b>AIDA</b>
+            <small>14,999 SMEs</small>
+          </div>
+          <div class="satellite satellite-b">
+            <b>20Q</b>
+            <small>diagnostic</small>
+          </div>
+          <div class="satellite satellite-c">
+            <b>4C</b>
+            <small>capital score</small>
+          </div>
+          <div class="satellite satellite-d">
+            <b>ROV</b>
+            <small>action rank</small>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-data" class="scene data-scene">
+        <div class="scene-copy">
+          <p class="eyebrow cyan">Scene 01 · Evidence Capture</p>
+          <h2>The platform starts with the company, not a blank spreadsheet.</h2>
+          <p class="lead">
+            AIDA gives the measurable footprint. The entrepreneur adds the signals
+            filings cannot see. Together they become a clean operating profile.
+          </p>
+        </div>
+
+        <div class="data-machine">
+          <div class="data-column">
+            <h3>AIDA snapshot</h3>
+            <div class="data-pill">Revenue history</div>
+            <div class="data-pill">EBITDA & margin</div>
+            <div class="data-pill">Employees</div>
+            <div class="data-pill">NACE / ATECO</div>
+            <div class="data-pill">Peer group</div>
+          </div>
+          <div class="fusion-core">
+            <div class="core-ring"></div>
+            <div class="core-label">Company<br />Profile</div>
+          </div>
+          <div class="data-column">
+            <h3>Diagnostic 20Q</h3>
+            <div class="data-pill purple">Digital maturity</div>
+            <div class="data-pill purple">Founder dependence</div>
+            <div class="data-pill purple">Management depth</div>
+            <div class="data-pill purple">Client portfolio</div>
+            <div class="data-pill purple">Scalability</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-peer" class="scene peer-scene">
+        <div class="scene-copy">
+          <p class="eyebrow green">Scene 02 · Peer Universe</p>
+          <h2>One company is placed inside a living universe of peers.</h2>
+          <p class="lead">
+            VIP first uses the closest AIDA peer group. If the group is too thin,
+            it backs off to broader NACE cohorts, then calibrated priors.
+          </p>
+        </div>
+
+        <div class="peer-stage">
+          <div class="peer-plot" id="peerPlot" aria-hidden="true"></div>
+          <div class="company-card holo-card">
+            <span class="card-kicker">Selected company</span>
+            <h3>ACME Industrie S.R.L.</h3>
+            <dl>
+              <div><dt>Peer group</dt><dd>282 · machinery</dd></div>
+              <div><dt>Revenue</dt><dd>€8.4M</dd></div>
+              <div><dt>Employees</dt><dd>54</dd></div>
+              <div><dt>EBITDA</dt><dd>€750K</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-engine" class="scene engine-scene">
+        <div class="scene-copy">
+          <p class="eyebrow amber">Scene 03 · Valuation Engine</p>
+          <h2>The valuation is cinematic, but the equation is simple.</h2>
+          <p class="lead">
+            Four terms move in sequence: earnings, sector multiple, strategic
+            quality, and growth. The dashboard never hides the mechanics.
+          </p>
+        </div>
+
+        <div class="formula-stage">
+          <div class="formula-term" style="--term-color:#38bdf8">
+            <small>EBITDA</small>
+            <strong>€750K</strong>
+            <span>operating base</span>
+          </div>
+          <div class="operator">×</div>
+          <div class="formula-term" style="--term-color:#a78bfa">
+            <small>M_sector</small>
+            <strong>5.0×</strong>
+            <span>NACE adjusted</span>
+          </div>
+          <div class="operator">×</div>
+          <div class="formula-term" style="--term-color:#f59e0b">
+            <small>SQF</small>
+            <strong>1.05</strong>
+            <span>quality factor</span>
+          </div>
+          <div class="operator">×</div>
+          <div class="formula-term" style="--term-color:#22c55e">
+            <small>GF</small>
+            <strong>1.07</strong>
+            <span>growth factor</span>
+          </div>
+        </div>
+
+        <div class="value-reveal">
+          <small>Enterprise value today</small>
+          <strong data-count="4.21" data-prefix="€" data-suffix="M">€0.00M</strong>
+          <span>range €3.8M – €4.7M</span>
+        </div>
+      </section>
+
+      <section id="scene-capitals" class="scene capital-scene">
+        <div class="scene-copy">
+          <p class="eyebrow violet">Scene 04 · Four Capitals</p>
+          <h2>Quality becomes visible through four capital systems.</h2>
+          <p class="lead">
+            Each capital is scored from peer-relative and qualitative signals,
+            then weighted into the Strategic Quality Factor.
+          </p>
+        </div>
+
+        <div class="capital-grid">
+          <article class="capital-card financial" data-score="68">
+            <span>Financial</span>
+            <strong>68</strong>
+            <p>Profitability, growth, cash quality, concentration.</p>
+          </article>
+          <article class="capital-card technological" data-score="54">
+            <span>Technological</span>
+            <strong>54</strong>
+            <p>Digital maturity, automation, R&D, IP.</p>
+          </article>
+          <article class="capital-card human" data-score="71">
+            <span>Human & Org</span>
+            <strong>71</strong>
+            <p>Delegation, management depth, process maturity.</p>
+          </article>
+          <article class="capital-card relational" data-score="55">
+            <span>Relational</span>
+            <strong>55</strong>
+            <p>Clients, partnerships, reputation, network strength.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scene-actions" class="scene action-scene">
+        <div class="scene-copy">
+          <p class="eyebrow rose">Scene 05 · Action Ranking</p>
+          <h2>The model does not stop at value. It chooses the next moves.</h2>
+          <p class="lead">
+            Candidate actions are ranked by Return on Value: expected uplift,
+            effort, time-to-impact, and strategic objective fit.
+          </p>
+        </div>
+
+        <div class="podium">
+          <article class="podium-card second">
+            <span>02</span>
+            <h3>Recurring revenue</h3>
+            <p>GF +0.15 · +9% value</p>
+          </article>
+          <article class="podium-card first">
+            <span>01</span>
+            <h3>Reduce client concentration</h3>
+            <p>SQF +0.05 · +12% value</p>
+          </article>
+          <article class="podium-card third">
+            <span>03</span>
+            <h3>Middle management</h3>
+            <p>SQF +0.06 · +7% value</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scene-simulator" class="scene simulator-scene">
+        <div class="scene-copy">
+          <p class="eyebrow cyan">Scene 06 · Scenario Lab</p>
+          <h2>Move a lever. Watch the company value breathe.</h2>
+          <p class="lead">
+            The simulation cockpit shows how operational improvements change
+            SQF, GF, risk, and enterprise value in real time.
+          </p>
+        </div>
+
+        <div class="cockpit">
+          <div class="lever-panel">
+            <label>
+              Client diversification
+              <input type="range" min="0" max="100" value="42" data-lever="diversification" />
+            </label>
+            <label>
+              Recurring revenue
+              <input type="range" min="0" max="100" value="34" data-lever="recurring" />
+            </label>
+            <label>
+              Tech maturity
+              <input type="range" min="0" max="100" value="48" data-lever="technology" />
+            </label>
+            <label>
+              Management depth
+              <input type="range" min="0" max="100" value="55" data-lever="management" />
+            </label>
+          </div>
+          <div class="cockpit-screen holo-card">
+            <span class="card-kicker">Live recompute</span>
+            <strong id="simValue">€4.21M</strong>
+            <div class="screen-grid">
+              <div><small>SQF</small><b id="simSqf">1.05</b></div>
+              <div><small>GF</small><b id="simGf">1.07</b></div>
+              <div><small>Gap</small><b id="simGap">+38%</b></div>
+              <div><small>Risk</small><b id="simRisk">Medium</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-finale" class="scene finale-scene">
+        <div class="dashboard-shell">
+          <div class="dashboard-top">
+            <div>
+              <span class="card-kicker">Final product surface</span>
+              <h2>One decision cockpit for the SME entrepreneur.</h2>
+            </div>
+            <span class="status-pill">Diagnostic complete</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="metric-tile">
+              <small>Value today</small>
+              <strong>€4.2M</strong>
+              <span>range €3.8M–€4.7M</span>
+            </div>
+            <div class="metric-tile">
+              <small>Potential</small>
+              <strong>€5.8M</strong>
+              <span>value gap +38%</span>
+            </div>
+            <div class="metric-tile">
+              <small>Quality</small>
+              <strong>67/100</strong>
+              <span>four-capital score</span>
+            </div>
+            <div class="metric-tile">
+              <small>Risk</small>
+              <strong>Medium</strong>
+              <span>fragility flags</span>
+            </div>
+          </div>
+          <div class="final-message">
+            <p>
+              VIP turns SME valuation into an explainable, strategic conversation:
+              what the company is worth, why, what is holding it back, and what to do next.
+            </p>
+            <a href="#scene-hero">Replay the movie</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
