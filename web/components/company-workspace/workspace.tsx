@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -17,9 +17,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { DashboardData } from '@/lib/dashboard-data';
+import type { AidaSnapshot } from '@/lib/aida';
 import { SimulationPanel } from '@/components/dashboard/simulation-panel';
 import type { DiagnosisStatus } from '@/lib/company-loader';
 import { resetCompanyAction } from '@/app/(app)/companies/[taxCode]/reset/action';
+import { InfoButton, type Explanation } from '@/components/company-workspace/info-popover';
+import { buildExplanations, type ExplanationMap } from '@/lib/dashboard-explanations';
 
 type Tab = 'overview' | 'actions' | 'scenario' | 'method';
 
@@ -34,6 +37,7 @@ const TAB_DEFINITIONS: Array<{ key: Tab; label: string; icon: LucideIcon }> = [
 
 export interface WorkspaceProps {
   data: DashboardData;
+  snapshot?: AidaSnapshot | null;
   taxCode: string;
   status: DiagnosisStatus;
   lastRunISO: string | null;
@@ -42,6 +46,7 @@ export interface WorkspaceProps {
 
 export function CompanyWorkspace({
   data,
+  snapshot,
   taxCode,
   status,
   lastRunISO,
@@ -49,6 +54,10 @@ export function CompanyWorkspace({
 }: WorkspaceProps) {
   const [tab, setTab] = useState<Tab>('overview');
   const [showBanner, setShowBanner] = useState(Boolean(freshSubmission));
+  const explanations = useMemo(
+    () => buildExplanations(data, snapshot ?? null),
+    [data, snapshot],
+  );
 
   useEffect(() => {
     if (!showBanner) return;
@@ -78,7 +87,13 @@ export function CompanyWorkspace({
         </div>
       )}
 
-      <WorkspaceHero data={data} taxCode={taxCode} status={status} lastRunISO={lastRunISO} />
+      <WorkspaceHero
+        data={data}
+        taxCode={taxCode}
+        status={status}
+        lastRunISO={lastRunISO}
+        explanations={explanations}
+      />
 
       {/* Tabs */}
       <nav
@@ -110,10 +125,10 @@ export function CompanyWorkspace({
       </nav>
 
       <div className="mt-6">
-        {tab === 'overview' && <OverviewTab data={data} />}
-        {tab === 'actions' && <ActionPlanTab data={data} />}
+        {tab === 'overview' && <OverviewTab data={data} explanations={explanations} />}
+        {tab === 'actions' && <ActionPlanTab data={data} explanations={explanations} />}
         {tab === 'scenario' && <ScenarioTab data={data} />}
-        {tab === 'method' && <MethodTab data={data} />}
+        {tab === 'method' && <MethodTab data={data} explanations={explanations} />}
       </div>
     </div>
   );
@@ -127,11 +142,13 @@ function WorkspaceHero({
   taxCode,
   status,
   lastRunISO,
+  explanations,
 }: {
   data: DashboardData;
   taxCode: string;
   status: DiagnosisStatus;
   lastRunISO: string | null;
+  explanations: ExplanationMap;
 }) {
   const { company, valuation, source } = data;
   const lastRunLabel = lastRunISO ? formatLastRun(lastRunISO) : null;
@@ -193,23 +210,29 @@ function WorkspaceHero({
             label="Company value"
             value={formatMoney(valuation.v_current_eur)}
             sub={`Range €${m(valuation.v_low_eur)}–€${m(valuation.v_high_eur)}M`}
+            info={explanations.v_current}
+            subInfo={explanations.v_range}
           />
           <KpiCell
             label="Value gap"
             value={`+${Math.max(0, Math.round(valuation.value_gap_pct))}%`}
             sub={`Potential ≈ ${formatMoney(valuation.v_potential_eur)}`}
             tone="positive"
+            info={explanations.value_gap}
+            subInfo={explanations.v_potential}
           />
           <KpiCell
             label="Quality score"
             value={`${valuation.quality_score}/100`}
             sub={qualityLabel(valuation.quality_score)}
+            info={explanations.quality_score}
           />
           <KpiCell
             label="Risk signal"
             value={valuation.risk_index}
             sub={riskCopy(valuation.risk_index, valuation.flags)}
             tone={riskTone(valuation.risk_index)}
+            info={explanations.risk_index}
           />
         </div>
       ) : (
@@ -325,11 +348,15 @@ function KpiCell({
   value,
   sub,
   tone = 'default',
+  info,
+  subInfo,
 }: {
   label: string;
   value: string;
   sub: string;
   tone?: 'default' | 'positive' | 'warning' | 'danger';
+  info?: Explanation;
+  subInfo?: Explanation;
 }) {
   const valueColor =
     tone === 'positive' ? 'text-green'
@@ -338,13 +365,17 @@ function KpiCell({
     : 'text-text';
   return (
     <div className="bg-bg-1 px-5 py-4">
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-        {label}
+      <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+        <span>{label}</span>
+        {info && <InfoButton explanation={info} ariaLabel={`How ${label} is calculated`} />}
       </div>
       <div className={cn('mt-2 font-serif text-[28px] font-medium leading-none tracking-tight', valueColor)}>
         {value}
       </div>
-      <div className="mt-1.5 text-[12px] text-text-dim">{sub}</div>
+      <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-text-dim">
+        <span>{sub}</span>
+        {subInfo && <InfoButton explanation={subInfo} ariaLabel={`${label} sub-metric breakdown`} />}
+      </div>
     </div>
   );
 }
@@ -352,7 +383,13 @@ function KpiCell({
 // =============================================================================
 // OVERVIEW TAB — radar + capital scorecard + 1-line summary of Top-3
 // =============================================================================
-function OverviewTab({ data }: { data: DashboardData }) {
+function OverviewTab({
+  data,
+  explanations,
+}: {
+  data: DashboardData;
+  explanations: ExplanationMap;
+}) {
   const { valuation, actions, source } = data;
   if (source !== 'submission') {
     return <EmptySectionPanel />;
@@ -360,7 +397,7 @@ function OverviewTab({ data }: { data: DashboardData }) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
       <Card title="Capital scorecard" subtitle="Four pillars, peer-relative">
-        <CapitalRadar capitals={valuation.capitals} sqf={valuation.sqf} />
+        <CapitalRadar capitals={valuation.capitals} sqf={valuation.sqf} sqfInfo={explanations.sqf} />
         <ul className="mt-4 space-y-3">
           {valuation.capitals.map((c) => (
             <li key={c.key} className="flex items-center gap-3 text-[13px]">
@@ -368,7 +405,15 @@ function OverviewTab({ data }: { data: DashboardData }) {
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ background: capRgb(c.color) }}
               />
-              <span className="flex-1 text-text">{c.name}</span>
+              <span className="flex flex-1 items-center gap-1.5 text-text">
+                {c.name}
+                {explanations.capitals[c.key] && (
+                  <InfoButton
+                    explanation={explanations.capitals[c.key]!}
+                    ariaLabel={`How ${c.name} score is calculated`}
+                  />
+                )}
+              </span>
               <span className="font-mono text-text-faint">weight {c.weight}%</span>
               <span className="w-12 text-right font-mono font-semibold text-text">{c.score}</span>
             </li>
@@ -392,8 +437,17 @@ function OverviewTab({ data }: { data: DashboardData }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
                       <span className="truncate text-[13.5px] font-medium text-text">{a.title}</span>
-                      <span className="shrink-0 font-mono text-[12px] font-semibold text-green">
-                        +{a.v_uplift_pct}%
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        <span className="font-mono text-[12px] font-semibold text-green">
+                          +{a.v_uplift_pct}%
+                        </span>
+                        {explanations.actions[a.rank] && (
+                          <InfoButton
+                            explanation={explanations.actions[a.rank]!}
+                            align="left"
+                            ariaLabel={`How action #${a.rank} uplift is calculated`}
+                          />
+                        )}
                       </span>
                     </div>
                     <p className="mt-0.5 text-[12.5px] text-text-dim">{a.detail}</p>
@@ -406,10 +460,10 @@ function OverviewTab({ data }: { data: DashboardData }) {
 
         <Card title="Valuation build-up" subtitle="V = EBITDA × Multiple × SQF × GF">
           <div className="grid grid-cols-2 gap-3">
-            <Stat label="EBITDA (norm)" value={`€${kFmt(valuation.ebitda_norm_eur)}K`} />
-            <Stat label="Sector multiple" value={`${valuation.m_sector.toFixed(1)}×`} />
-            <Stat label="SQF" value={valuation.sqf.toFixed(2)} hint="Quality factor" />
-            <Stat label="GF" value={valuation.gf.toFixed(2)} hint="Growth factor" />
+            <Stat label="EBITDA (norm)" value={`€${kFmt(valuation.ebitda_norm_eur)}K`} info={explanations.ebitda} />
+            <Stat label="Sector multiple" value={`${valuation.m_sector.toFixed(1)}×`} info={explanations.m_sector} />
+            <Stat label="SQF" value={valuation.sqf.toFixed(2)} hint="Quality factor" info={explanations.sqf} />
+            <Stat label="GF" value={valuation.gf.toFixed(2)} hint="Growth factor" info={explanations.gf} />
           </div>
         </Card>
       </div>
@@ -420,7 +474,13 @@ function OverviewTab({ data }: { data: DashboardData }) {
 // =============================================================================
 // ACTION PLAN TAB
 // =============================================================================
-function ActionPlanTab({ data }: { data: DashboardData }) {
+function ActionPlanTab({
+  data,
+  explanations,
+}: {
+  data: DashboardData;
+  explanations: ExplanationMap;
+}) {
   const { actions, source, valuation } = data;
   if (source !== 'submission') return <EmptySectionPanel />;
   return (
@@ -441,7 +501,15 @@ function ActionPlanTab({ data }: { data: DashboardData }) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-3">
-                  <h4 className="text-[16px] font-medium text-text">{a.title}</h4>
+                  <h4 className="flex items-center gap-2 text-[16px] font-medium text-text">
+                    {a.title}
+                    {explanations.actions[a.rank] && (
+                      <InfoButton
+                        explanation={explanations.actions[a.rank]!}
+                        ariaLabel={`How action #${a.rank} is computed`}
+                      />
+                    )}
+                  </h4>
                   <span className="shrink-0 font-mono text-[14px] font-semibold text-green">
                     +{a.v_uplift_pct}% value
                   </span>
@@ -493,7 +561,13 @@ function ScenarioTab({ data }: { data: DashboardData }) {
 // =============================================================================
 // METHOD TAB
 // =============================================================================
-function MethodTab({ data }: { data: DashboardData }) {
+function MethodTab({
+  data,
+  explanations,
+}: {
+  data: DashboardData;
+  explanations: ExplanationMap;
+}) {
   const { valuation, source, company } = data;
   return (
     <div className="space-y-4">
@@ -515,10 +589,10 @@ function MethodTab({ data }: { data: DashboardData }) {
         </div>
         {source === 'submission' && (
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Stat label="EBITDA (norm)" value={`€${kFmt(valuation.ebitda_norm_eur)}K`} />
-            <Stat label="M sector"      value={`${valuation.m_sector.toFixed(1)}×`} hint={company.nace_code ? `NACE ${company.nace_code}` : undefined} />
-            <Stat label="SQF"           value={valuation.sqf.toFixed(2)} hint="0.6 – 1.4" />
-            <Stat label="GF"            value={valuation.gf.toFixed(2)} hint="0.7 – 1.5" />
+            <Stat label="EBITDA (norm)" value={`€${kFmt(valuation.ebitda_norm_eur)}K`} info={explanations.ebitda} />
+            <Stat label="M sector"      value={`${valuation.m_sector.toFixed(1)}×`} hint={company.nace_code ? `NACE ${company.nace_code}` : undefined} info={explanations.m_sector} />
+            <Stat label="SQF"           value={valuation.sqf.toFixed(2)} hint="0.6 – 1.4" info={explanations.sqf} />
+            <Stat label="GF"            value={valuation.gf.toFixed(2)} hint="0.7 – 1.5" info={explanations.gf} />
           </div>
         )}
       </Card>
@@ -556,11 +630,22 @@ function Card({
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({
+  label,
+  value,
+  hint,
+  info,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  info?: Explanation;
+}) {
   return (
     <div>
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
-        {label}
+      <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+        <span>{label}</span>
+        {info && <InfoButton explanation={info} ariaLabel={`How ${label} is calculated`} />}
       </div>
       <div className="mt-1 font-serif text-[20px] font-medium tracking-tight text-text">
         {value}
@@ -588,9 +673,11 @@ function Dot() {
 function CapitalRadar({
   capitals,
   sqf,
+  sqfInfo,
 }: {
   capitals: DashboardData['valuation']['capitals'];
   sqf: number;
+  sqfInfo?: Explanation;
 }) {
   const center = 120;
   const maxR = 90;
@@ -641,7 +728,10 @@ function CapitalRadar({
         <text x={8}      y={center + 4}    textAnchor="start"  fontSize="11" fill="rgb(var(--text-dim))">Relational</text>
       </svg>
       <div className="hidden shrink-0 text-right md:block">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">SQF</div>
+        <div className="flex items-center justify-end gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+          <span>SQF</span>
+          {sqfInfo && <InfoButton explanation={sqfInfo} align="left" ariaLabel="How SQF is calculated" />}
+        </div>
         <div className="mt-1 font-serif text-[34px] font-medium leading-none tracking-tight text-text">
           {sqf.toFixed(2)}
         </div>

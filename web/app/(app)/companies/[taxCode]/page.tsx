@@ -48,6 +48,7 @@ export default async function CompanyPage({
   return (
     <CompanyWorkspace
       data={data}
+      snapshot={snapshot}
       taxCode={taxCode}
       status={workspace.status}
       lastRunISO={workspace.valuation.computed_at}
