@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { useReveal } from '@/lib/use-reveal';
 
 const AUDIENCES = [
@@ -58,6 +60,22 @@ export function Closing() {
             {a}
           </span>
         ))}
+      </div>
+
+      <div className="relative mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px]">
+        <Link
+          href="/technical"
+          className="inline-flex items-center gap-1.5 font-mono font-semibold uppercase tracking-eyebrow text-text-dim transition-colors hover:text-gold"
+        >
+          Read the technical breakdown <ArrowRight size={12} />
+        </Link>
+        <span className="text-text-faint">·</span>
+        <Link
+          href="/companies"
+          className="inline-flex items-center gap-1.5 font-mono font-semibold uppercase tracking-eyebrow text-text-dim transition-colors hover:text-gold"
+        >
+          Try it on a real company <ArrowRight size={12} />
+        </Link>
       </div>
     </section>
   );
