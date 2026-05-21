@@ -8,14 +8,17 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/companies/search?q=foo
  *
- * Powers the typeahead dropdown on /companies. Returns up to 10 lightweight
- * matches sorted alphabetically. Empty query → top revenues (so the dropdown
- * still has something useful on focus).
+ * Powers the typeahead dropdown on /companies. Returns lightweight company-name
+ * matches sorted alphabetically. Empty query returns no suggestions.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const q = (url.searchParams.get('q') ?? '').trim();
   const limit = Number(url.searchParams.get('limit') ?? '10');
+
+  if (q.length === 0) {
+    return NextResponse.json({ ok: true, results: [] });
+  }
 
   const service = createServiceClient();
   const outcome = await searchCompanies(service, q, Math.min(Math.max(limit, 1), 25));

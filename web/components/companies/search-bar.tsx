@@ -24,11 +24,10 @@ export interface SearchBarProps {
 /**
  * Typeahead search for /companies.
  *
- * Fetches /api/companies/search on each keystroke, debounced 180 ms.
+ * Fetches /api/companies/search on each keystroke after one character,
+ * debounced 180 ms.
  * Renders a floating panel below the input with up to 10 matches.
  * Keyboard: ↑/↓ to navigate, Enter to open, Esc to close.
- * No-JS fallback: the wrapping <form action="/companies"> still submits
- * a plain GET, preserving the original server-rendered results page.
  */
 export function SearchBar({ initialQuery = '' }: SearchBarProps) {
   const router = useRouter();
@@ -52,9 +51,9 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
     return () => document.removeEventListener('mousedown', onDown);
   }, []);
 
-  // Fetch suggestions whenever the query changes (debounced).
-  // Empty query → no fetch, dropdown shows a prompt instead. Keeps the
-  // entry experience calm and deliberate.
+  // Fetch suggestions whenever the query changes (debounced). One character is
+  // enough: the API matches company_name only, so this behaves like autocomplete
+  // rather than a submitted search-results page.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     abortRef.current?.abort();
@@ -100,6 +99,11 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
     router.push(`/companies/${encodeURIComponent(s.tax_code)}`);
   }
 
+  function submitFirstMatch() {
+    const next = items[activeIndex] ?? items[0];
+    if (next) pick(next);
+  }
+
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) setOpen(true);
     if (e.key === 'ArrowDown') {
@@ -108,9 +112,9 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, -1));
-    } else if (e.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      pick(items[activeIndex]);
+      submitFirstMatch();
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
@@ -118,8 +122,15 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
 
   return (
     <div ref={wrapperRef} className="relative">
-      {/* GET form for no-JS fallback */}
-      <form action="/companies" method="GET" autoComplete="off">
+      <form
+        action="/companies"
+        method="GET"
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitFirstMatch();
+        }}
+      >
         <div className="relative">
           <Search
             size={16}

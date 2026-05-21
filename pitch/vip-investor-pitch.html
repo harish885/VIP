@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VIP — Value Intelligence Platform · Investor Pitch</title>
+
+<!-- Reveal.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* ============================================================
+     VIP Investor Pitch — Cinematic Theme
+     ============================================================ */
+
+  :root {
+    --bg-0: #05060a;
+    --bg-1: #0a0d18;
+    --bg-2: #11162a;
+    --ink: #f4f6fb;
+    --ink-dim: #98a0b8;
+    --ink-faint: #4a5172;
+
+    --teal: #06d4ff;
+    --teal-dim: #0891b2;
+    --gold: #ffc857;
+    --rose: #ff5d8f;
+    --violet: #a855f7;
+    --green: #34d399;
+    --red: #f87171;
+
+    --grad-1: linear-gradient(135deg, #06d4ff 0%, #a855f7 100%);
+    --grad-2: linear-gradient(135deg, #ffc857 0%, #ff5d8f 100%);
+    --grad-3: linear-gradient(135deg, #34d399 0%, #06d4ff 100%);
+
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  /* Override Reveal black theme */
+  html, body, .reveal {
+    background: var(--bg-0) !important;
+    color: var(--ink) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  .reveal {
+    font-size: 32px;
+    letter-spacing: -0.01em;
+  }
+
+  .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+    font-family: var(--font-display) !important;
+    font-weight: 600;
+    text-transform: none !important;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0 0 0.4em 0;
+    line-height: 1.05;
+  }
+  .reveal h1 { font-size: 4.2em; font-weight: 700; }
+  .reveal h2 { font-size: 2.4em; }
+  .reveal h3 { font-size: 1.6em; }
+  .reveal p { line-height: 1.45; color: var(--ink-dim); }
+  .reveal em { font-style: italic; color: var(--ink); }
+  .reveal strong { color: var(--ink); font-weight: 600; }
+  .reveal a { color: var(--teal); }
+
+  .reveal .slides section {
+    text-align: left;
+    padding: 0 4vw;
+    height: 100%;
+  }
+
+  /* Animated mesh-gradient background, full-app */
+  .bg-mesh {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(ellipse 80% 60% at 12% 18%, rgba(6, 212, 255, 0.18), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 88% 82%, rgba(168, 85, 247, 0.16), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 200, 87, 0.10), transparent 70%),
+      var(--bg-0);
+    animation: mesh-drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes mesh-drift {
+    0%   { transform: scale(1) rotate(0deg);   filter: hue-rotate(0deg); }
+    100% { transform: scale(1.12) rotate(4deg); filter: hue-rotate(20deg); }
+  }
+
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  /* Tiny logo / number badge top-left of each slide */
+  .slide-meta {
+    position: fixed;
+    top: 22px;
+    left: 28px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .slide-meta .dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--teal); border-radius: 50%;
+    margin-right: 10px; vertical-align: middle;
+    box-shadow: 0 0 12px var(--teal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.4); }
+  }
+
+  /* Decorative kicker label */
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 0.42em;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 1em;
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid rgba(6, 212, 255, 0.3);
+    border-radius: 100px;
+    background: rgba(6, 212, 255, 0.05);
+  }
+
+  .gradient-text {
+    background: var(--grad-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-text-gold {
+    background: var(--grad-2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ============= Hero (Slide 1) ============= */
+  .hero {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center; height: 100%;
+  }
+  .hero-mark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14em;
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    background: var(--grad-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 60px rgba(6, 212, 255, 0.3));
+  }
+  .hero-sub {
+    font-family: var(--font-body);
+    font-size: 1.4em;
+    color: var(--ink);
+    margin-top: 0.4em;
+    letter-spacing: 0.02em;
+  }
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 0.5em;
+    letter-spacing: 0.4em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 2em;
+  }
+  .hero-particles {
+    position: absolute; inset: 0; pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-particle {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: var(--teal);
+    border-radius: 50%;
+    box-shadow: 0 0 16px var(--teal);
+    opacity: 0;
+  }
+
+  /* ============= Big stat block ============= */
+  .big-stat {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    height: 100%;
+  }
+  .stat-number {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 11em;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+  .stat-label {
+    font-size: 0.9em;
+    color: var(--ink-dim);
+    margin-top: 0.6em;
+    max-width: 18em;
+    line-height: 1.4;
+  }
+
+  /* ============= Formula slide ============= */
+  .formula-wrap {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    height: 100%; text-align: center;
+  }
+  .formula {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 4.2em;
+    letter-spacing: -0.02em;
+    display: flex; flex-wrap: nowrap;
+    align-items: center; justify-content: center;
+    gap: 0.25em;
+    margin: 0.8em 0;
+  }
+  .formula-term {
+    display: inline-block;
+    padding: 0.15em 0.35em;
+    border-radius: 0.2em;
+    transition: all 0.4s ease;
+    opacity: 0; transform: translateY(20px);
+  }
+  .formula-term.t-v   { color: var(--gold); }
+  .formula-term.t-eq  { color: var(--ink-dim); }
+  .formula-term.t-eb  { color: var(--teal); }
+  .formula-term.t-mx  { color: var(--ink-dim); }
+  .formula-term.t-m   { color: var(--rose); }
+  .formula-term.t-sqf { color: var(--violet); }
+  .formula-term.t-gf  { color: var(--green); }
+  .formula-legend {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5em;
+    max-width: 80%;
+    margin-top: 2em;
+    font-size: 0.55em;
+  }
+  .leg-item {
+    border-top: 2px solid;
+    padding-top: 0.6em;
+    opacity: 0;
+  }
+  .leg-item .leg-sym {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.6em;
+    margin-bottom: 0.2em;
+  }
+  .leg-item .leg-name { color: var(--ink); font-weight: 500; }
+  .leg-item .leg-desc { color: var(--ink-dim); margin-top: 0.4em; line-height: 1.4; }
+
+  /* ============= Capitals (radar slide) ============= */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4vw; align-items: center;
+    height: 100%; padding: 6vh 4vw;
+  }
+  .capital-list { display: flex; flex-direction: column; gap: 1.2em; }
+  .capital-item {
+    display: flex; align-items: flex-start; gap: 1em;
+    opacity: 0; transform: translateX(-20px);
+  }
+  .capital-bullet {
+    flex: 0 0 12px; width: 12px; height: 12px; border-radius: 50%;
+    margin-top: 0.45em;
+    box-shadow: 0 0 16px currentColor;
+  }
+  .capital-bullet.c1 { background: var(--teal);   color: var(--teal); }
+  .capital-bullet.c2 { background: var(--rose);   color: var(--rose); }
+  .capital-bullet.c3 { background: var(--gold);   color: var(--gold); }
+  .capital-bullet.c4 { background: var(--violet); color: var(--violet); }
+  .capital-item h4 {
+    font-size: 1.1em; margin: 0 0 0.15em 0; color: var(--ink);
+  }
+  .capital-item p { font-size: 0.7em; margin: 0; color: var(--ink-dim); }
+
+  /* ============= Demo dashboard slide ============= */
+  .demo-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 1.4em 1.6em;
+    backdrop-filter: blur(8px);
+    position: relative; overflow: hidden;
+  }
+  .demo-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(6,212,255,0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .demo-label {
+    font-family: var(--font-mono); font-size: 0.4em;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .demo-value {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 2.4em; letter-spacing: -0.03em;
+    line-height: 1; margin: 0.2em 0;
+    color: var(--ink);
+  }
+  .demo-meta { font-size: 0.55em; color: var(--ink-dim); }
+
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1em;
+    padding: 4vh 4vw;
+    height: 100%;
+    align-content: center;
+  }
+  .demo-grid .span-2 { grid-row: span 2; }
+
+  /* ============= ROV ranking ============= */
+  .rov-list {
+    display: flex; flex-direction: column; gap: 1em;
+    padding: 0 6vw;
+  }
+  .rov-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 200px 140px;
+    align-items: center; gap: 1.4em;
+    padding: 1em 1.4em;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .rov-rank {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 2.2em; line-height: 1;
+    background: var(--grad-1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .rov-title { font-size: 0.8em; color: var(--ink); font-weight: 500; }
+  .rov-sub { font-size: 0.55em; color: var(--ink-dim); margin-top: 0.3em; }
+  .rov-bar-wrap {
+    height: 8px; border-radius: 100px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .rov-bar-fill {
+    height: 100%; width: 0;
+    background: var(--grad-1);
+    border-radius: 100px;
+  }
+  .rov-uplift {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 1.4em; text-align: right; color: var(--green);
+  }
+
+  /* ============= Value Gap slide ============= */
+  .gap-wrap {
+    display: flex; flex-direction: column;
+    justify-content: center; height: 100%; padding: 0 8vw;
+  }
+  .gap-bar {
+    position: relative;
+    height: 80px; border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    margin: 1em 0;
+  }
+  .gap-current {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: linear-gradient(90deg, var(--teal-dim), var(--teal));
+    border-radius: 20px 0 0 20px;
+  }
+  .gap-potential {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: linear-gradient(90deg, var(--gold), var(--rose));
+    border-radius: 20px;
+    opacity: 0;
+  }
+  .gap-labels {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 0.5em;
+    color: var(--ink-dim); margin-top: 0.4em;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .gap-arrow {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 5em;
+    background: var(--grad-2);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; margin: 0.2em 0;
+    opacity: 0;
+  }
+
+  /* ============= Comparison / split slide ============= */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; height: 100%;
+  }
+  .split-half {
+    padding: 6vh 4vw;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .split-half.left { border-right: 1px solid rgba(255,255,255,0.08); }
+  .split-half h3 { font-size: 1.3em; }
+  .split-half ul { list-style: none; padding: 0; font-size: 0.75em; }
+  .split-half li {
+    padding: 0.5em 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: var(--ink-dim);
+  }
+  .split-half li::before {
+    content: '— '; color: var(--ink-faint);
+  }
+  .split-half.right li::before { content: '✓ '; color: var(--teal); }
+
+  /* ============= Roadmap / timeline ============= */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2em;
+    padding: 0 4vw;
+    margin-top: 2em;
+  }
+  .timeline-step {
+    border-top: 2px solid rgba(255,255,255,0.1);
+    padding-top: 1em;
+    position: relative;
+    opacity: 0;
+  }
+  .timeline-step::before {
+    content: ''; position: absolute; top: -7px; left: 0;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--teal); box-shadow: 0 0 16px var(--teal);
+  }
+  .timeline-when {
+    font-family: var(--font-mono); font-size: 0.45em;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--teal);
+  }
+  .timeline-what {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 0.9em; margin: 0.3em 0 0.4em 0; color: var(--ink);
+  }
+  .timeline-desc { font-size: 0.55em; color: var(--ink-dim); line-height: 1.5; }
+
+  /* ============= Closing slide ============= */
+  .closing {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center; height: 100%;
+  }
+  .closing h1 {
+    font-size: 5em; max-width: 14ch;
+    line-height: 1.05;
+  }
+  .closing .signature {
+    margin-top: 3em;
+    font-family: var(--font-mono); font-size: 0.55em;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ============= Histogram (calibration slide) ============= */
+  .histo-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; gap: 1em;
+    padding: 4vh 4vw;
+  }
+  .histo {
+    display: flex; align-items: flex-end; gap: 4px;
+    height: 280px; width: 80%;
+  }
+  .histo-bar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--teal), var(--teal-dim));
+    border-radius: 4px 4px 0 0;
+    height: 0;
+    transition: height 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 0 12px rgba(6,212,255,0.25);
+  }
+  .histo-axis {
+    width: 80%; display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 0.4em;
+    color: var(--ink-faint); letter-spacing: 0.1em;
+    padding-top: 0.4em;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* ============= Q-flow slide ============= */
+  .qflow {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1em; padding: 0 4vw;
+  }
+  .qcard {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1em;
+    font-size: 0.55em;
+    color: var(--ink-dim);
+    opacity: 0; transform: translateY(20px);
+  }
+  .qcard .qnum {
+    font-family: var(--font-mono); color: var(--teal);
+    font-size: 0.85em;
+  }
+  .qcard .qtitle {
+    color: var(--ink); font-weight: 500; margin-top: 0.4em;
+    font-size: 1.1em;
+  }
+
+  /* ============= Why Now signals ============= */
+  .signals {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2em; padding: 0 4vw; margin-top: 1.5em;
+  }
+  .signal-card {
+    padding: 1.6em;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+  }
+  .signal-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: var(--gradient, var(--grad-1));
+    opacity: 0.04; pointer-events: none;
+  }
+  .signal-num {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 2.4em; line-height: 1;
+    background: var(--grad-1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .signal-card.gold .signal-num { background: var(--grad-2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .signal-card.green .signal-num { background: var(--grad-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .signal-h {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 1em; color: var(--ink); margin-top: 0.4em;
+  }
+  .signal-p { font-size: 0.6em; color: var(--ink-dim); line-height: 1.5; margin-top: 0.4em; }
+
+  /* ============= Simulator preview ============= */
+  .sim-frame {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 2em;
+    width: 60%;
+    margin: 0 auto;
+    box-shadow:
+      0 0 0 1px rgba(6,212,255,0.15),
+      0 30px 80px rgba(0,0,0,0.5),
+      0 0 80px rgba(6,212,255,0.08);
+  }
+  .sim-row {
+    display: grid; grid-template-columns: 150px 1fr 100px;
+    align-items: center; gap: 1em;
+    padding: 0.6em 0;
+    font-size: 0.6em;
+  }
+  .sim-label { color: var(--ink-dim); font-family: var(--font-mono); }
+  .sim-track {
+    height: 4px; border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    position: relative;
+  }
+  .sim-thumb {
+    position: absolute; top: 50%; transform: translate(-50%,-50%);
+    width: 18px; height: 18px;
+    background: var(--teal); border-radius: 50%;
+    box-shadow: 0 0 16px var(--teal);
+    transition: left 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sim-track-fill {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: var(--teal); border-radius: 4px;
+    transition: width 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sim-val {
+    font-family: var(--font-mono); color: var(--ink);
+    text-align: right;
+  }
+  .sim-result {
+    margin-top: 2em; padding-top: 1.5em;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .sim-result-label {
+    font-family: var(--font-mono); font-size: 0.55em;
+    color: var(--ink-dim); letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .sim-result-val {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 2.2em;
+    background: var(--grad-2);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  /* ============= Markets / TAM bubbles ============= */
+  .tam-stack {
+    display: flex; flex-direction: column; gap: 1em;
+    padding: 0 8vw; margin-top: 2em;
+  }
+  .tam-row {
+    display: grid; grid-template-columns: 140px 1fr 220px;
+    align-items: center; gap: 2em;
+    padding: 1.2em 1.4em;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    opacity: 0; transform: translateX(-30px);
+  }
+  .tam-lbl { font-family: var(--font-mono); font-size: 0.5em; color: var(--ink-dim); letter-spacing: 0.18em; text-transform: uppercase; }
+  .tam-num { font-family: var(--font-display); font-weight: 700; font-size: 1.6em; }
+  .tam-num.tam { background: var(--grad-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tam-num.sam { background: var(--grad-2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tam-num.som { background: var(--grad-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tam-desc { color: var(--ink-dim); font-size: 0.6em; }
+
+  /* ============= Helpers ============= */
+  .center { text-align: center; }
+  .muted { color: var(--ink-dim); }
+  .spacer-1 { height: 1em; }
+  .spacer-2 { height: 2em; }
+  .full-h { height: 100%; }
+  .full-center {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; height: 100%;
+  }
+
+  /* Reveal progress + controls */
+  .reveal .progress { color: var(--teal); height: 2px; }
+  .reveal .controls { color: var(--ink-faint); }
+  .reveal .slide-number {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-faint); background: transparent;
+    letter-spacing: 0.2em;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
+<div class="slide-meta"><span class="dot"></span><span id="meta-text">VIP · 2026</span></div>
+
+<div class="reveal">
+<div class="slides">
+
+  <!-- ========= 1. HERO ========= -->
+  <section data-bg-color="#05060a" data-meta="01 · COVER">
+    <div class="hero">
+      <div class="hero-particles" id="particles"></div>
+      <div class="hero-mark" id="hero-mark">VIP</div>
+      <div class="hero-sub">Value Intelligence Platform</div>
+      <div class="hero-tag">What is your company actually worth?</div>
+    </div>
+  </section>
+
+  <!-- ========= 2. THE QUIET CRISIS ========= -->
+  <section data-meta="02 · PROBLEM">
+    <div class="big-stat">
+      <div class="kicker">The quiet crisis</div>
+      <div class="stat-number gradient-text-gold">
+        <span data-count="25" data-suffix="M">0</span>
+      </div>
+      <div class="stat-label" style="font-size:1.1em;max-width:22em;">
+        SMEs across Europe.<br />
+        <span class="muted">99% of all businesses.</span><br />
+        <span class="muted">2 out of 3 jobs.</span>
+      </div>
+      <div class="stat-label" style="margin-top:2em;font-size:0.9em;max-width:28em;">
+        And almost none of them know what they're worth — until it's too late.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 3. THE ASYMMETRY ========= -->
+  <section data-meta="03 · ASYMMETRY">
+    <div class="full-center">
+      <div class="kicker">The asymmetry</div>
+      <h1 style="max-width:18ch;text-align:center;">
+        The <span class="gradient-text-gold">biggest financial decision</span>
+        of an owner's life — made <em>blind</em>.
+      </h1>
+      <p style="max-width:34em;text-align:center;margin-top:2em;font-size:0.85em;">
+        Succession. Investment. Exit. Refinancing. Every one of these depends on a number
+        most SMEs only see once — from someone with a different agenda.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========= 4. THE OLD ANSWER ========= -->
+  <section data-meta="04 · STATUS QUO">
+    <div class="split">
+      <div class="split-half left">
+        <div class="kicker" style="border-color:rgba(255,93,143,0.3);color:var(--rose);background:rgba(255,93,143,0.05);">
+          The old answer
+        </div>
+        <h3 style="font-size:1.6em;color:var(--ink-dim);">EBITDA × multiple</h3>
+        <ul>
+          <li>One number, no context</li>
+          <li>Stale sector benchmarks</li>
+          <li>Ignores everything <em>making</em> the EBITDA</li>
+          <li>€10k–€30k consulting report. Annual at best.</li>
+          <li>No prescription. No "what to do next."</li>
+        </ul>
+      </div>
+      <div class="split-half right">
+        <div class="kicker">VIP</div>
+        <h3 class="gradient-text">A living model of value</h3>
+        <ul>
+          <li>17 inputs · 4 capitals · 1 score</li>
+          <li>Calibrated on 14,999 real SMEs</li>
+          <li>Quality &amp; risk priced in</li>
+          <li>Self-service. 8 minutes. Re-runnable.</li>
+          <li>Top-3 actions ranked by Return on Value</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 5. THE INSIGHT ========= -->
+  <section data-meta="05 · INSIGHT">
+    <div class="full-center">
+      <div class="kicker">The insight</div>
+      <h1 style="text-align:center;max-width:20ch;">
+        Value isn't earnings.<br />
+        It's the <span class="gradient-text">quality</span> of those earnings.
+      </h1>
+      <p style="max-width:38em;text-align:center;margin-top:2em;font-size:0.8em;">
+        Two companies with identical EBITDA can be worth 3× apart — depending on what's
+        <em>underneath</em>. Concentration risk. Recurring revenue. Tech debt. Key-person dependency.
+        VIP makes that underneath <em>visible</em>, <em>priced</em>, and <em>actionable</em>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========= 6. THE FORMULA ========= -->
+  <section data-meta="06 · MODEL">
+    <div class="formula-wrap">
+      <div class="kicker">The model, in one line</div>
+      <div class="formula" id="formula">
+        <span class="formula-term t-v">V</span>
+        <span class="formula-term t-eq">=</span>
+        <span class="formula-term t-eb">EBITDA</span>
+        <span class="formula-term t-mx">×</span>
+        <span class="formula-term t-m">M<sub>sector</sub></span>
+        <span class="formula-term t-mx">×</span>
+        <span class="formula-term t-sqf">SQF</span>
+        <span class="formula-term t-mx">×</span>
+        <span class="formula-term t-gf">GF</span>
+      </div>
+      <div class="formula-legend" id="formula-legend">
+        <div class="leg-item" style="border-color:var(--teal);">
+          <div class="leg-sym" style="color:var(--teal);">EBITDA</div>
+          <div class="leg-name">Earnings</div>
+          <div class="leg-desc">Pulled from AIDA. No typing.</div>
+        </div>
+        <div class="leg-item" style="border-color:var(--rose);">
+          <div class="leg-sym" style="color:var(--rose);">M<sub>sector</sub></div>
+          <div class="leg-name">Sector multiple</div>
+          <div class="leg-desc">NACE-keyed, illiquidity-discounted.</div>
+        </div>
+        <div class="leg-item" style="border-color:var(--violet);">
+          <div class="leg-sym" style="color:var(--violet);">SQF</div>
+          <div class="leg-name">Structural Quality Factor</div>
+          <div class="leg-desc">The 4-capital quality score.</div>
+        </div>
+        <div class="leg-item" style="border-color:var(--green);">
+          <div class="leg-sym" style="color:var(--green);">GF</div>
+          <div class="leg-name">Growth Factor</div>
+          <div class="leg-desc">Forward signal, capped &amp; smoothed.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 7. THE FOUR CAPITALS (RADAR) ========= -->
+  <section data-meta="07 · CAPITALS">
+    <div class="two-col">
+      <div>
+        <div class="kicker">Four capitals</div>
+        <h2>What's actually driving the number.</h2>
+        <div class="capital-list" id="capital-list">
+          <div class="capital-item">
+            <div class="capital-bullet c1"></div>
+            <div>
+              <h4>Financial</h4>
+              <p>Margins, leverage, working-capital discipline, cash conversion.</p>
+            </div>
+          </div>
+          <div class="capital-item">
+            <div class="capital-bullet c2"></div>
+            <div>
+              <h4>Technological</h4>
+              <p>R&amp;D intensity, automation, software stack, data maturity.</p>
+            </div>
+          </div>
+          <div class="capital-item">
+            <div class="capital-bullet c3"></div>
+            <div>
+              <h4>Human &amp; Organizational</h4>
+              <p>Middle management depth, key-person risk, retention, succession.</p>
+            </div>
+          </div>
+          <div class="capital-item">
+            <div class="capital-bullet c4"></div>
+            <div>
+              <h4>Relational</h4>
+              <p>Customer concentration, recurring revenue, brand &amp; channel power.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="center">
+        <svg id="radar" viewBox="-160 -160 320 320" style="width:100%;max-width:520px;">
+          <!-- Grid rings -->
+          <g stroke="rgba(255,255,255,0.08)" fill="none">
+            <polygon points="0,-120 120,0 0,120 -120,0" />
+            <polygon points="0,-90 90,0 0,90 -90,0" />
+            <polygon points="0,-60 60,0 0,60 -60,0" />
+            <polygon points="0,-30 30,0 0,30 -30,0" />
+          </g>
+          <!-- Axes -->
+          <g stroke="rgba(255,255,255,0.12)">
+            <line x1="0" y1="-120" x2="0" y2="120" />
+            <line x1="-120" y1="0" x2="120" y2="0" />
+          </g>
+          <!-- Labels -->
+          <g font-family="JetBrains Mono, monospace" font-size="9" fill="#98a0b8" letter-spacing="2">
+            <text x="0" y="-138" text-anchor="middle">FIN</text>
+            <text x="138" y="4" text-anchor="start">TECH</text>
+            <text x="0" y="148" text-anchor="middle">H&amp;O</text>
+            <text x="-138" y="4" text-anchor="end">REL</text>
+          </g>
+          <!-- Industry benchmark (faint) -->
+          <polygon
+            id="radar-benchmark"
+            points="0,-60 60,0 0,60 -60,0"
+            fill="rgba(255,255,255,0.05)"
+            stroke="rgba(255,255,255,0.2)"
+            stroke-dasharray="4 4"
+            stroke-width="1.5"
+          />
+          <!-- Live company polygon (ACME) — animates -->
+          <polygon
+            id="radar-poly"
+            points="0,0 0,0 0,0 0,0"
+            fill="url(#radarFill)"
+            stroke="#06d4ff"
+            stroke-width="2"
+          />
+          <defs>
+            <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#06d4ff" stop-opacity="0.6" />
+              <stop offset="100%" stop-color="#a855f7" stop-opacity="0.15" />
+            </radialGradient>
+          </defs>
+          <!-- Vertex dots -->
+          <g id="radar-dots" fill="#06d4ff"></g>
+        </svg>
+        <div style="font-family:var(--font-mono);font-size:0.45em;color:var(--ink-faint);letter-spacing:0.2em;margin-top:1em;text-transform:uppercase;">
+          ACME · benchmark dashed
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 8. CALIBRATION (HISTOGRAM) ========= -->
+  <section data-meta="08 · CALIBRATION">
+    <div class="histo-wrap">
+      <div class="kicker">Calibration</div>
+      <h2 class="center" style="margin-bottom:0.2em;">
+        Trained on <span class="gradient-text" data-count="14999">0</span> Italian SMEs.
+      </h2>
+      <p class="muted" style="text-align:center;max-width:36em;font-size:0.72em;">
+        AIDA / Bureau van Dijk · NACE-keyed manufacturing universe ·
+        five years of financials per company. The peer-percentile engine runs over real
+        distributions — not consultant intuition.
+      </p>
+      <div class="histo" id="histo"></div>
+      <div class="histo-axis">
+        <span>EBITDA · €100k</span>
+        <span>€500k</span>
+        <span>€1M</span>
+        <span>€2M</span>
+        <span>€5M+</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 9. THE 20-Q DIAGNOSTIC ========= -->
+  <section data-meta="09 · PRODUCT">
+    <div style="padding:6vh 4vw;">
+      <div class="kicker">The product</div>
+      <h2>20 questions. 8 minutes. <span class="gradient-text">No accountant needed.</span></h2>
+      <p class="muted" style="font-size:0.72em;max-width:40em;margin-top:0.6em;">
+        Quantitative data comes from the AIDA snapshot at submission time. The owner only
+        answers what only the owner can know — the qualitative texture.
+      </p>
+      <div class="qflow" style="margin-top:2.4em;" id="qflow">
+        <div class="qcard"><div class="qnum">Q1–Q5</div><div class="qtitle">Strategy &amp; positioning</div>Customer mix, pricing power, market posture.</div>
+        <div class="qcard"><div class="qnum">Q6–Q10</div><div class="qtitle">Operations &amp; tech</div>Process maturity, software stack, data discipline.</div>
+        <div class="qcard"><div class="qnum">Q11–Q15</div><div class="qtitle">People &amp; org</div>Middle management, succession, retention.</div>
+        <div class="qcard"><div class="qnum">Q16–Q20</div><div class="qtitle">Relationships</div>Recurring revenue, churn, channel depth.</div>
+        <div class="qcard" style="background:linear-gradient(160deg,rgba(6,212,255,0.12),rgba(168,85,247,0.06));border-color:rgba(6,212,255,0.3);">
+          <div class="qnum" style="color:var(--gold);">+ AIDA</div>
+          <div class="qtitle">Financials, auto-filled</div>EBITDA, leverage, capex, R&amp;D — joined on tax code.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 10. LIVE DEMO — ACME ========= -->
+  <section data-meta="10 · DEMO">
+    <div class="demo-grid">
+      <div class="demo-card span-2" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="demo-label">Enterprise value</div>
+        <div class="demo-value" style="font-size:4.4em;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+          €<span data-count="4.2" data-decimals="1">0</span>M
+        </div>
+        <div class="demo-meta">Range €3.8M – €4.7M · 750k × 5.0 × 1.05 × 1.07</div>
+        <div style="margin-top:1.4em;font-family:var(--font-mono);font-size:0.5em;color:var(--ink-faint);letter-spacing:0.16em;text-transform:uppercase;">
+          ACME Manifatture S.r.l.
+        </div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-label">Quality score</div>
+        <div class="demo-value"><span data-count="67">0</span><span style="font-size:0.5em;color:var(--ink-dim);">/100</span></div>
+        <div class="demo-meta">SQF 1.05</div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-label">Risk index</div>
+        <div class="demo-value" style="color:var(--gold);">MEDIUM</div>
+        <div class="demo-meta">2 fragility flags</div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-label">Growth factor</div>
+        <div class="demo-value">1.0<span data-count="7">0</span></div>
+        <div class="demo-meta">3-yr revenue CAGR 6.4%</div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-label">EBITDA · multiple</div>
+        <div class="demo-value">€750k <span style="color:var(--ink-dim);font-size:0.6em;">·</span> 5.0×</div>
+        <div class="demo-meta">NACE 25 · illiquidity-adj.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 11. VALUE GAP ========= -->
+  <section data-meta="11 · VALUE GAP">
+    <div class="gap-wrap">
+      <div class="kicker">The most important number</div>
+      <h2>What you have. <span class="muted">→</span> What you could have.</h2>
+      <div class="spacer-2"></div>
+      <div style="font-family:var(--font-mono);font-size:0.55em;color:var(--ink-dim);letter-spacing:0.2em;text-transform:uppercase;">Current valuation</div>
+      <div class="gap-bar">
+        <div class="gap-current" id="gap-current"></div>
+        <div class="gap-potential" id="gap-potential"></div>
+      </div>
+      <div class="gap-labels">
+        <span>€0</span><span>€2M</span><span>€4M</span><span>€6M</span>
+      </div>
+      <div class="gap-arrow" id="gap-arrow">+ 38%</div>
+      <div class="center" style="font-family:var(--font-display);font-size:1.6em;font-weight:600;margin-top:0.3em;">
+        <span style="color:var(--teal);">€4.2M</span>
+        <span class="muted">→</span>
+        <span class="gradient-text-gold">€5.8M</span>
+      </div>
+      <p class="center muted" style="font-size:0.65em;margin-top:1em;max-width:32em;margin-left:auto;margin-right:auto;">
+        Not theoretical. Optimised V is what the model predicts <em>if</em> the top-3
+        recommended actions land.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========= 12. ROV — TOP 3 ACTIONS ========= -->
+  <section data-meta="12 · ROV">
+    <div style="padding:5vh 0;">
+      <div style="padding:0 6vw;">
+        <div class="kicker">Return on Value</div>
+        <h2>Three moves. Ranked.</h2>
+        <p class="muted" style="font-size:0.7em;max-width:36em;">
+          Every recommendation is priced — modelled uplift on V, divided by effort &amp; capital.
+          No vague advice. No 60-page consulting deck.
+        </p>
+      </div>
+      <div class="spacer-2"></div>
+      <div class="rov-list" id="rov-list">
+        <div class="rov-row">
+          <div class="rov-rank">01</div>
+          <div>
+            <div class="rov-title">De-risk client concentration</div>
+            <div class="rov-sub">Top 3 clients are 62% of revenue · target &lt; 40% within 18 mo.</div>
+          </div>
+          <div class="rov-bar-wrap"><div class="rov-bar-fill" data-fill="100"></div></div>
+          <div class="rov-uplift">+12% V</div>
+        </div>
+        <div class="rov-row">
+          <div class="rov-rank">02</div>
+          <div>
+            <div class="rov-title">Convert one-off to recurring revenue</div>
+            <div class="rov-sub">Service contracts on installed base · multiple re-rates with revenue quality.</div>
+          </div>
+          <div class="rov-bar-wrap"><div class="rov-bar-fill" data-fill="75"></div></div>
+          <div class="rov-uplift">+9% V</div>
+        </div>
+        <div class="rov-row">
+          <div class="rov-rank">03</div>
+          <div>
+            <div class="rov-title">Build middle management depth</div>
+            <div class="rov-sub">Reduce key-person risk · raises H&amp;O capital score &amp; lowers risk index.</div>
+          </div>
+          <div class="rov-bar-wrap"><div class="rov-bar-fill" data-fill="58"></div></div>
+          <div class="rov-uplift">+7% V</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 13. SIMULATION ENGINE ========= -->
+  <section data-meta="13 · SIMULATION">
+    <div class="full-center" style="padding-top:6vh;">
+      <div class="kicker">From diagnostic to co-pilot</div>
+      <h2 class="center" style="max-width:20ch;">Pull a lever. <br />Watch the value move.</h2>
+      <div class="spacer-2"></div>
+      <div class="sim-frame">
+        <div class="sim-row">
+          <div class="sim-label">Client concentration</div>
+          <div class="sim-track">
+            <div class="sim-track-fill" id="sim-fill-1" style="width:0%;"></div>
+            <div class="sim-thumb" id="sim-thumb-1" style="left:0%;"></div>
+          </div>
+          <div class="sim-val" id="sim-val-1">—</div>
+        </div>
+        <div class="sim-row">
+          <div class="sim-label">Recurring revenue</div>
+          <div class="sim-track">
+            <div class="sim-track-fill" id="sim-fill-2" style="width:0%;"></div>
+            <div class="sim-thumb" id="sim-thumb-2" style="left:0%;"></div>
+          </div>
+          <div class="sim-val" id="sim-val-2">—</div>
+        </div>
+        <div class="sim-row">
+          <div class="sim-label">Middle mgmt depth</div>
+          <div class="sim-track">
+            <div class="sim-track-fill" id="sim-fill-3" style="width:0%;"></div>
+            <div class="sim-thumb" id="sim-thumb-3" style="left:0%;"></div>
+          </div>
+          <div class="sim-val" id="sim-val-3">—</div>
+        </div>
+        <div class="sim-result">
+          <div class="sim-result-label">Projected V</div>
+          <div class="sim-result-val">€<span id="sim-v" data-count="5.8" data-decimals="1">0</span>M</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 14. WHY NOW ========= -->
+  <section data-meta="14 · WHY NOW">
+    <div style="padding:6vh 4vw;">
+      <div class="kicker">Why now</div>
+      <h2>Three forces converging.</h2>
+      <div class="signals">
+        <div class="signal-card">
+          <div class="signal-num"><span data-count="40" data-suffix="%">0</span></div>
+          <div class="signal-h">Of EU SME owners are over 55.</div>
+          <div class="signal-p">A succession wave is here. €4T+ of EU SME value will change hands this decade.</div>
+        </div>
+        <div class="signal-card gold">
+          <div class="signal-num">AI</div>
+          <div class="signal-h">Self-service finally works.</div>
+          <div class="signal-p">A 17-input diagnostic that used to require an analyst now runs in a browser tab.</div>
+        </div>
+        <div class="signal-card green">
+          <div class="signal-num">€0</div>
+          <div class="signal-h">Marginal cost per valuation.</div>
+          <div class="signal-p">AIDA-grade data + a deterministic pipeline. Every re-run is a copy-paste of compute.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 15. MARKET ========= -->
+  <section data-meta="15 · MARKET">
+    <div style="padding:5vh 0;">
+      <div style="padding:0 8vw;">
+        <div class="kicker">Market</div>
+        <h2>A €10B+ category, with no software-native incumbent.</h2>
+      </div>
+      <div class="tam-stack" id="tam-stack">
+        <div class="tam-row">
+          <div class="tam-lbl">TAM</div>
+          <div>
+            <div class="tam-num tam">€12B</div>
+            <div class="tam-desc">EU SME advisory, valuation &amp; succession services · annual.</div>
+          </div>
+          <div class="tam-desc" style="text-align:right;">25M SMEs · all sectors</div>
+        </div>
+        <div class="tam-row">
+          <div class="tam-lbl">SAM</div>
+          <div>
+            <div class="tam-num sam">€2.4B</div>
+            <div class="tam-desc">IT &amp; DACH manufacturing SMEs above €1M EBITDA — VIP's calibrated core.</div>
+          </div>
+          <div class="tam-desc" style="text-align:right;">~480k companies</div>
+        </div>
+        <div class="tam-row">
+          <div class="tam-lbl">SOM (Yr 3)</div>
+          <div>
+            <div class="tam-num som">€48M</div>
+            <div class="tam-desc">2% of SAM at a €1k–€3k average annual seat · advisor + direct.</div>
+          </div>
+          <div class="tam-desc" style="text-align:right;">~24k subscribers</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 16. ROADMAP + ASK ========= -->
+  <section data-meta="16 · ASK">
+    <div style="padding:5vh 4vw 2vh 4vw;">
+      <div class="kicker">Where we are. Where we go.</div>
+      <h2>Built, calibrated, shipping.</h2>
+      <div class="timeline" id="timeline">
+        <div class="timeline-step">
+          <div class="timeline-when">Today · 2026 Q2</div>
+          <div class="timeline-what">v1 live</div>
+          <div class="timeline-desc">14,999-SME calibration set. Full pipeline shipped. Academic validation at Cattolica.</div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-when">2026 Q4</div>
+          <div class="timeline-what">Italy launch</div>
+          <div class="timeline-desc">Advisor partnership channel. First 500 paying SMEs. Sector multiples expanded beyond manufacturing.</div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-when">2027 Q3</div>
+          <div class="timeline-what">DACH expansion</div>
+          <div class="timeline-desc">Bundesanzeiger + Bisnode integration. German &amp; Austrian SME coverage live.</div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-when">2028</div>
+          <div class="timeline-what">The default</div>
+          <div class="timeline-desc">Every European SME owner's first stop when value matters. Embedded in banks, M&amp;A advisors, succession workflows.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= 17. CLOSING ========= -->
+  <section data-meta="17 · CLOSING" data-bg-color="#05060a">
+    <div class="closing">
+      <div class="kicker" style="margin-bottom:2em;">The vision</div>
+      <h1>
+        Every SME owner<br />
+        should know what they're <span class="gradient-text-gold">worth</span> —<br />
+        and how to <span class="gradient-text">grow it</span>.
+      </h1>
+      <div class="signature">VIP · Value Intelligence Platform · 2026</div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<!-- ============================================================
+     Scripts: Reveal.js + GSAP + custom slide animations
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+<script>
+  // ---------- Reveal init ----------
+  Reveal.initialize({
+    width: 1920,
+    height: 1080,
+    margin: 0.04,
+    transition: 'fade',
+    transitionSpeed: 'default',
+    backgroundTransition: 'fade',
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    hash: true,
+    overview: true,
+    keyboard: true,
+    touch: true,
+    autoAnimateEasing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+  });
+
+  // ---------- Slide-meta updater ----------
+  const meta = document.getElementById('meta-text');
+  Reveal.on('slidechanged', e => {
+    const m = e.currentSlide.dataset.meta || 'VIP';
+    meta.textContent = m;
+    runSlideAnimation(e.currentSlide);
+  });
+  Reveal.on('ready', e => {
+    const m = e.currentSlide.dataset.meta || 'VIP';
+    meta.textContent = m;
+    runSlideAnimation(e.currentSlide);
+  });
+
+  // ---------- Animated count-up helper ----------
+  function animateCount(el) {
+    const target = parseFloat(el.dataset.count);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const suffix = el.dataset.suffix || '';
+    if (isNaN(target)) return;
+    const start = 0;
+    const dur = 1400;
+    const t0 = performance.now();
+    function tick(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      // ease-out cubic
+      const e = 1 - Math.pow(1 - p, 3);
+      const v = start + (target - start) * e;
+      el.textContent = decimals > 0
+        ? v.toFixed(decimals)
+        : Math.round(v).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = (decimals > 0 ? target.toFixed(decimals) : target.toLocaleString()) + (suffix || '');
+      if (suffix && p < 1) {
+        el.textContent += suffix;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- Particles for hero ----------
+  function spawnHeroParticles() {
+    const wrap = document.getElementById('particles');
+    if (!wrap || wrap.dataset.spawned) return;
+    wrap.dataset.spawned = '1';
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'hero-particle';
+      const size = 2 + Math.random() * 4;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      // recolour ~30% of particles
+      if (i % 3 === 0) {
+        p.style.background = '#a855f7';
+        p.style.boxShadow = '0 0 16px #a855f7';
+      } else if (i % 5 === 0) {
+        p.style.background = '#ffc857';
+        p.style.boxShadow = '0 0 16px #ffc857';
+      }
+      wrap.appendChild(p);
+      gsap.to(p, {
+        opacity: 0.3 + Math.random() * 0.7,
+        duration: 1.5 + Math.random() * 2,
+        delay: Math.random() * 1.2,
+        yoyo: true, repeat: -1,
+        ease: 'sine.inOut',
+      });
+      gsap.to(p, {
+        y: (Math.random() - 0.5) * 80,
+        x: (Math.random() - 0.5) * 80,
+        duration: 6 + Math.random() * 6,
+        yoyo: true, repeat: -1,
+        ease: 'sine.inOut',
+      });
+    }
+  }
+
+  // ---------- Per-slide entrance animations ----------
+  function runSlideAnimation(slide) {
+    // Count-ups: fire any element with [data-count] in this slide
+    slide.querySelectorAll('[data-count]').forEach(el => {
+      // reset
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      el.textContent = decimals > 0 ? '0' + '.' + '0'.repeat(decimals) : '0';
+      // fire after small delay so user sees motion
+      setTimeout(() => animateCount(el), 250);
+    });
+
+    const meta = slide.dataset.meta || '';
+
+    // 1 · Hero
+    if (meta.startsWith('01')) {
+      spawnHeroParticles();
+      const mark = document.getElementById('hero-mark');
+      if (mark) {
+        gsap.fromTo(mark,
+          { scale: 0.6, opacity: 0, filter: 'blur(20px)' },
+          { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.4, ease: 'expo.out' }
+        );
+      }
+      gsap.fromTo('.hero-sub',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, delay: 0.6, ease: 'expo.out' });
+      gsap.fromTo('.hero-tag',
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, delay: 1.0, ease: 'expo.out' });
+    }
+
+    // 6 · Formula
+    if (meta.startsWith('06')) {
+      const terms = slide.querySelectorAll('.formula-term');
+      terms.forEach(t => gsap.set(t, { opacity: 0, y: 20 }));
+      gsap.to(terms, {
+        opacity: 1, y: 0,
+        duration: 0.6, stagger: 0.18, ease: 'expo.out', delay: 0.2,
+      });
+      const legs = slide.querySelectorAll('.leg-item');
+      gsap.to(legs, {
+        opacity: 1, duration: 0.8,
+        stagger: 0.15, delay: 1.6, ease: 'power2.out',
+      });
+    }
+
+    // 7 · Radar
+    if (meta.startsWith('07')) {
+      // Capital list reveal
+      const items = slide.querySelectorAll('.capital-item');
+      items.forEach(i => gsap.set(i, { opacity: 0, x: -20 }));
+      gsap.to(items, {
+        opacity: 1, x: 0,
+        duration: 0.7, stagger: 0.12, delay: 0.2, ease: 'expo.out',
+      });
+
+      // Radar polygon morph
+      // Mapping: Fin=top, Tech=right, H&O=bottom, Rel=left
+      // ACME scores (0-100): Fin 68, Tech 54, H&O 71, Rel 55
+      const SCALE = 1.2; // 100 score -> 120 px radius
+      const fin = 68 * SCALE / 100 * 100; // ugh — keep simple
+      const pts = {
+        fin:  68 * SCALE,
+        tech: 54 * SCALE,
+        ho:   71 * SCALE,
+        rel:  55 * SCALE,
+      };
+      const target = `0,${-pts.fin} ${pts.tech},0 0,${pts.ho} ${-pts.rel},0`;
+      const poly = document.getElementById('radar-poly');
+      if (poly) {
+        gsap.fromTo(poly,
+          { attr: { points: '0,0 0,0 0,0 0,0' } },
+          { attr: { points: target }, duration: 1.4, delay: 0.4, ease: 'expo.out' }
+        );
+      }
+      // Vertex dots
+      const dotsG = document.getElementById('radar-dots');
+      if (dotsG) {
+        dotsG.innerHTML = '';
+        const verts = [
+          { x: 0, y: -pts.fin },
+          { x: pts.tech, y: 0 },
+          { x: 0, y: pts.ho },
+          { x: -pts.rel, y: 0 },
+        ];
+        verts.forEach((v, i) => {
+          const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          c.setAttribute('cx', v.x);
+          c.setAttribute('cy', v.y);
+          c.setAttribute('r', 0);
+          dotsG.appendChild(c);
+          gsap.to(c, {
+            attr: { r: 5 }, duration: 0.4,
+            delay: 1.0 + i * 0.1, ease: 'expo.out',
+          });
+        });
+      }
+    }
+
+    // 8 · Calibration histogram
+    if (meta.startsWith('08')) {
+      const histo = document.getElementById('histo');
+      if (histo && !histo.dataset.built) {
+        histo.dataset.built = '1';
+        // Build 40 bars in a roughly log-normal shape
+        const bars = 40;
+        const heights = [];
+        for (let i = 0; i < bars; i++) {
+          const x = (i + 1) / bars;
+          // log-normal-ish density
+          const mu = 0.32, sigma = 0.45;
+          const lx = Math.log(x + 0.01);
+          const d = Math.exp(-Math.pow((lx + 0.9) / sigma, 2) / 2) / (x + 0.05);
+          heights.push(d);
+        }
+        const max = Math.max(...heights);
+        heights.forEach((h, i) => {
+          const b = document.createElement('div');
+          b.className = 'histo-bar';
+          b.dataset.h = (h / max * 100).toFixed(0);
+          histo.appendChild(b);
+        });
+      }
+      // animate
+      setTimeout(() => {
+        histo.querySelectorAll('.histo-bar').forEach((b, i) => {
+          setTimeout(() => {
+            b.style.height = b.dataset.h + '%';
+          }, i * 28);
+        });
+      }, 400);
+    }
+
+    // 9 · Q-flow cards
+    if (meta.startsWith('09')) {
+      const cards = slide.querySelectorAll('.qcard');
+      cards.forEach(c => gsap.set(c, { opacity: 0, y: 24 }));
+      gsap.to(cards, {
+        opacity: 1, y: 0, duration: 0.6,
+        stagger: 0.12, delay: 0.3, ease: 'expo.out',
+      });
+    }
+
+    // 11 · Value gap bars
+    if (meta.startsWith('11')) {
+      const cur = document.getElementById('gap-current');
+      const pot = document.getElementById('gap-potential');
+      const arr = document.getElementById('gap-arrow');
+      if (cur && pot && arr) {
+        gsap.set(cur, { width: '0%' });
+        gsap.set(pot, { width: '0%', opacity: 0 });
+        gsap.set(arr, { opacity: 0, scale: 0.8 });
+        // 4.2M out of ~6M (max axis) = 70%
+        gsap.to(cur, { width: '70%', duration: 1.2, delay: 0.3, ease: 'expo.out' });
+        gsap.to(pot, {
+          width: '96%', opacity: 0.8, duration: 1.2,
+          delay: 1.2, ease: 'expo.out',
+        });
+        gsap.to(arr, {
+          opacity: 1, scale: 1, duration: 0.7,
+          delay: 1.8, ease: 'back.out(1.6)',
+        });
+      }
+    }
+
+    // 12 · ROV ranking
+    if (meta.startsWith('12')) {
+      const rows = slide.querySelectorAll('.rov-row');
+      rows.forEach(r => gsap.set(r, { opacity: 0, y: 20 }));
+      gsap.to(rows, {
+        opacity: 1, y: 0, duration: 0.7,
+        stagger: 0.2, delay: 0.2, ease: 'expo.out',
+      });
+      rows.forEach((r, i) => {
+        const fill = r.querySelector('.rov-bar-fill');
+        if (fill) {
+          gsap.fromTo(fill,
+            { width: '0%' },
+            { width: fill.dataset.fill + '%', duration: 1.0, delay: 0.6 + i * 0.2, ease: 'expo.out' }
+          );
+        }
+      });
+    }
+
+    // 13 · Simulator
+    if (meta.startsWith('13')) {
+      const setSlider = (n, pct, valText, delay) => {
+        const thumb = document.getElementById('sim-thumb-' + n);
+        const fill  = document.getElementById('sim-fill-' + n);
+        const val   = document.getElementById('sim-val-' + n);
+        if (thumb && fill && val) {
+          gsap.to(thumb, { left: pct + '%', duration: 1.4, delay, ease: 'expo.out' });
+          gsap.to(fill,  { width: pct + '%', duration: 1.4, delay, ease: 'expo.out' });
+          setTimeout(() => { val.textContent = valText; }, delay * 1000 + 400);
+        }
+      };
+      setSlider(1, 38, '38%', 0.3);
+      setSlider(2, 64, '64%', 0.7);
+      setSlider(3, 70, '70%', 1.1);
+    }
+
+    // 14 · Why-now signals
+    if (meta.startsWith('14')) {
+      const cards = slide.querySelectorAll('.signal-card');
+      cards.forEach(c => gsap.set(c, { opacity: 0, y: 24 }));
+      gsap.to(cards, {
+        opacity: 1, y: 0, duration: 0.8,
+        stagger: 0.18, delay: 0.3, ease: 'expo.out',
+      });
+    }
+
+    // 15 · TAM
+    if (meta.startsWith('15')) {
+      const rows = slide.querySelectorAll('.tam-row');
+      rows.forEach(r => gsap.set(r, { opacity: 0, x: -30 }));
+      gsap.to(rows, {
+        opacity: 1, x: 0, duration: 0.8,
+        stagger: 0.2, delay: 0.2, ease: 'expo.out',
+      });
+    }
+
+    // 16 · Timeline
+    if (meta.startsWith('16')) {
+      const steps = slide.querySelectorAll('.timeline-step');
+      steps.forEach(s => gsap.set(s, { opacity: 0, y: 24 }));
+      gsap.to(steps, {
+        opacity: 1, y: 0, duration: 0.7,
+        stagger: 0.2, delay: 0.3, ease: 'expo.out',
+      });
+    }
+  }
+</script>
+
+</body>
+</html>
