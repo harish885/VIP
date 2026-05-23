@@ -1,15 +1,27 @@
 /**
- * Bridge between the new questionnaire-only `DiagnosticInput` and the
- * augmented `ScoringInput` consumed by the scoring engine.
+ * Bridge between the questionnaire-only `DiagnosticInput` and the augmented
+ * `ScoringInput` consumed by the scoring engine.
  *
- * The pivot moved quantitative data into AIDA (per-company snapshot)
- * and removed it from the entrepreneur's form. The scoring engine still
- * needs revenue history, EBITDA, and three proxy ratios (recurring
- * revenue, top-3 concentration, tech investment / revenue) — those are
- * derived here either from the AIDA snapshot directly, or from
- * qualitative answers that proxy the unobservable ones.
+ * Two paths converge here:
+ *
+ *   1. AIDA-only path. Revenue history + EBITDA come from the AIDA
+ *      snapshot, and the missing ratios (recurring revenue, top-3 client
+ *      concentration, tech-investment / revenue) are proxied from
+ *      qualitative answers.
+ *
+ *   2. Override path. If the entrepreneur enters their own financial
+ *      values, those win over both AIDA and the qualitative proxies.
+ *      Whatever they leave blank still falls back to AIDA / proxy.
+ *
+ * Either way the engine sees one fully-populated `ScoringInput`. The
+ * server action records which path was taken on the submission row so
+ * the valuation is reproducible.
  */
-import { EXAMPLE_DIAGNOSTIC, type DiagnosticInput } from '@/lib/diagnostic-schema';
+import {
+  EXAMPLE_DIAGNOSTIC,
+  type DiagnosticInput,
+  type OverridesInput,
+} from '@/lib/diagnostic-schema';
 import type { AidaSnapshot } from '@/lib/aida';
 
 /** Lifecycle modifier names — used by valuation.ts Growth Factor. */
@@ -27,19 +39,21 @@ export type ScoringSector =
   | 'Other';
 
 /**
- * The combined scoring input. Includes every field the engine reads.
- * Field names match the legacy schema so existing scoring code keeps
- * compiling against `inputs.<field>`.
+ * The combined scoring input. Field names match the legacy schema so
+ * existing scoring code keeps compiling against `inputs.<field>`.
+ *
+ * Likert fields stay nullable (inherited from `DiagnosticInput`) because
+ * the entrepreneur may have marked any of them "not relevant".
  */
 export interface ScoringInput extends DiagnosticInput {
-  // AIDA-derived quantitative fields
+  // AIDA / override-derived quantitative fields
   revenue_y_1: number;
   revenue_y_2: number;
   revenue_y_3: number;
   ebitda: number;
   ebitda_margin_pct: number;
 
-  // Proxy ratios (computed from Qs when AIDA does not carry them directly)
+  // Proxy ratios (computed from overrides → AIDA → Q answers in that order)
   recurring_revenue_pct: number;
   top3_client_concentration: number;
   tech_investment_ratio_pct: number;
@@ -55,51 +69,79 @@ export interface ScoringInput extends DiagnosticInput {
 export interface BuildOptions {
   diagnostic: DiagnosticInput;
   snapshot: AidaSnapshot;
+  /** Optional financial overrides; only consumed when `overrides.enabled`. */
+  overrides?: OverridesInput | null;
 }
 
-export function buildScoringInput({ diagnostic, snapshot }: BuildOptions): ScoringInput {
-  // ---- Revenue history (k EUR in AIDA → EUR for scoring) -------------------
-  // AIDA exposes thousands of EUR; the scoring engine works in EUR.
-  // Build the 3-point series newest → oldest with deterministic carry-back so
-  // CAGR stays computable when a single year is missing.
-  const revLast = thkToEur(snapshot.revenue_last_thk);
-  const rev2024 = thkToEur(snapshot.revenue_2024_thk) || revLast;
-  const rev2023 = thkToEur(snapshot.revenue_2023_thk) || rev2024;
-  const rev2022 = thkToEur(snapshot.revenue_2022_thk) || rev2023;
-  const revY3 = revLast || rev2024 || rev2023 || rev2022; // newest
-  const revY2 = rev2023 || revY3;
-  const revY1 = rev2022 || revY2;                          // oldest
+/** Treat `null`/`undefined` as "user didn't fill this field". */
+function num(v: number | null | undefined): number | null {
+  if (v == null) return null;
+  if (typeof v !== 'number' || Number.isNaN(v)) return null;
+  return v;
+}
 
-  const ebitda = thkToEur(snapshot.ebitda_last_thk) || thkToEur(snapshot.ebitda_2024_thk);
+export function buildScoringInput({ diagnostic, snapshot, overrides }: BuildOptions): ScoringInput {
+  const o = overrides && overrides.enabled ? overrides : null;
+  const excluded = new Set(diagnostic.excluded_questions ?? []);
+
+  // ---- Revenue history (k EUR in AIDA → EUR) ------------------------------
+  const revLastAida = thkToEur(snapshot.revenue_last_thk);
+  const rev2024Aida = thkToEur(snapshot.revenue_2024_thk) || revLastAida;
+  const rev2023Aida = thkToEur(snapshot.revenue_2023_thk) || rev2024Aida;
+  const rev2022Aida = thkToEur(snapshot.revenue_2022_thk) || rev2023Aida;
+  const aidaY3 = revLastAida || rev2024Aida || rev2023Aida || rev2022Aida;
+  const aidaY2 = rev2023Aida || aidaY3;
+  const aidaY1 = rev2022Aida || aidaY2;
+
+  const revY3 = num(o?.revenue_y_3) ?? aidaY3;
+  const revY2 = num(o?.revenue_y_2) ?? aidaY2;
+  const revY1 = num(o?.revenue_y_1) ?? aidaY1;
+
+  const aidaEbitda =
+    thkToEur(snapshot.ebitda_last_thk) || thkToEur(snapshot.ebitda_2024_thk);
+  const ebitda = num(o?.ebitda) ?? aidaEbitda;
+
   const margin =
-    snapshot.ebitda_margin_pct ?? (revY3 > 0 ? (ebitda / revY3) * 100 : 0);
+    revY3 > 0 ? (ebitda / revY3) * 100 : (snapshot.ebitda_margin_pct ?? 0);
 
-  // ---- Proxies for unobservable ratios -------------------------------------
-  // top-3 client concentration: Q9 client_portfolio_quality (1 = concentrated,
-  // 5 = well diversified). Map 1 → 80%, 5 → 25%.
-  const top3 = linMap(diagnostic.client_portfolio_quality, 1, 5, 80, 25);
-  // recurring revenue: drives off Q9 + Q13 (quality_of_growth). Approx:
-  // average × 10 + 10 → roughly 20% baseline, 60% if both top.
-  const recurring = clamp(
-    10 + ((diagnostic.client_portfolio_quality + diagnostic.q_quality_of_growth) / 2) * 10,
-    0,
-    100,
-  );
-  // tech investment ratio: prefer AIDA R&D / revenue; fall back to Q-driven proxy.
-  const aidaRD = snapshot.rd_expense_thk !== null && revY3 > 0
+  // ---- Proxies: overrides → AIDA → Q answers -----------------------------
+  const cpq = excluded.has('client_portfolio_quality') ? null : num(diagnostic.client_portfolio_quality);
+  const qog = excluded.has('q_quality_of_growth')       ? null : num(diagnostic.q_quality_of_growth);
+  const dm  = excluded.has('digital_maturity')          ? null : num(diagnostic.digital_maturity);
+  const qdta = excluded.has('q_distinctive_tech_assets') ? null : num(diagnostic.q_distinctive_tech_assets);
+
+  // top-3 client concentration
+  let top3: number;
+  if (num(o?.top3_client_concentration) != null) top3 = num(o!.top3_client_concentration)!;
+  else if (cpq != null) top3 = linMap(cpq, 1, 5, 80, 25);
+  else top3 = 50; // neutral mid-cohort when Q9 excluded and no override
+
+  // recurring revenue share
+  let recurring: number;
+  if (num(o?.recurring_revenue_pct) != null) recurring = num(o!.recurring_revenue_pct)!;
+  else if (cpq != null && qog != null) recurring = clamp(10 + ((cpq + qog) / 2) * 10, 0, 100);
+  else if (cpq != null)                 recurring = clamp(10 + cpq * 10, 0, 100);
+  else if (qog != null)                 recurring = clamp(10 + qog * 10, 0, 100);
+  else                                  recurring = 30;
+
+  // tech investment ratio (R&D / revenue %)
+  const aidaRD = snapshot.rd_expense_thk != null && revY3 > 0
     ? (snapshot.rd_expense_thk * 1000 / revY3) * 100
     : null;
-  const techRatio = aidaRD ?? linMap(
-    (diagnostic.digital_maturity + diagnostic.q_distinctive_tech_assets) / 2,
-    1,
-    5,
-    0.3,
-    6,
-  );
+  let techRatio: number;
+  if (num(o?.tech_investment_ratio_pct) != null) techRatio = num(o!.tech_investment_ratio_pct)!;
+  else if (aidaRD != null) techRatio = aidaRD;
+  else if (dm != null && qdta != null) techRatio = linMap((dm + qdta) / 2, 1, 5, 0.3, 6);
+  else if (dm != null)                 techRatio = linMap(dm, 1, 5, 0.3, 6);
+  else if (qdta != null)               techRatio = linMap(qdta, 1, 5, 0.3, 6);
+  else                                 techRatio = 1.0;
 
-  // ---- Lifecycle resolution -------------------------------------------------
+  // ---- Lifecycle resolution ----------------------------------------------
+  const qlife = excluded.has('q_lifecycle_score') ? null : num(diagnostic.q_lifecycle_score);
+  const fromScore: ScoringInput['lifecycle_stage'] | undefined =
+    qlife != null ? LIFECYCLE_FROM_SCORE[qlife - 1] : undefined;
   const lifecycle: ScoringInput['lifecycle_stage'] =
-    diagnostic.lifecycle_stage ?? LIFECYCLE_FROM_SCORE[diagnostic.q_lifecycle_score - 1] ?? 'Maturity';
+    diagnostic.lifecycle_stage ?? fromScore ?? 'Maturity';
 
   const sector: ScoringSector =
     (diagnostic.sector as ScoringSector | undefined) ?? 'Manufacturing';
@@ -137,7 +179,7 @@ function round1(n: number): number {
 }
 
 // =============================================================================
-// Demo ScoringInput — ACME profile, used by the dashboard's demo fallback
+// Demo ScoringInput — ACME profile, used by the dashboard demo fallback
 // and the simulation panel when no real submission exists yet.
 // =============================================================================
 export const DEMO_SCORING_INPUT: ScoringInput = {

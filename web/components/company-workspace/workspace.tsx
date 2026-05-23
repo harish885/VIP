@@ -543,17 +543,20 @@ function ScenarioTab({ data }: { data: DashboardData }) {
   const { source, simulationBaseline, valuation } = data;
   if (source !== 'submission') return <EmptySectionPanel />;
   return (
-    <div className="space-y-4">
-      <Card
-        title="Scenario lab"
-        subtitle="Move the sliders to see how the value would change. Math runs locally."
-      >
-        <SimulationPanel
-          baseline={simulationBaseline}
-          vCurrentEur={valuation.v_current_eur}
-          vPotentialEur={valuation.v_potential_eur}
-        />
-      </Card>
+    <div className="space-y-3">
+      <header>
+        <h3 className="font-serif text-[16px] font-medium tracking-tight text-text">
+          Scenario lab
+        </h3>
+        <p className="mt-0.5 text-[12.5px] text-text-faint">
+          Move the sliders to see how the value would change. Math runs locally.
+        </p>
+      </header>
+      <SimulationPanel
+        baseline={simulationBaseline}
+        vCurrentEur={valuation.v_current_eur}
+        vPotentialEur={valuation.v_potential_eur}
+      />
     </div>
   );
 }

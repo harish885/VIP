@@ -69,7 +69,8 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     effort_score: 4,
     time_to_impact_months: 18,
     objective_weights: { growth: 1.2 },
-    fires_when: (r) => r.percentiles.network < 60 && r.inputs.business_scalability >= 3,
+    fires_when: (r) =>
+      r.percentiles.network < 60 && (r.inputs.business_scalability ?? 3) >= 3,
   },
 
   // ===========================================================================
@@ -85,7 +86,11 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     time_to_impact_months: 24,
     objective_weights: { succession: 1.4, exit_preparation: 1.2, growth: 1.3 },
     // New Q5 scale: low score = high founder dependency. Fire when ≤ 3.
-    fires_when: (r) => r.inputs.founder_dependency <= 3 || r.inputs.management_structure <= 3,
+    // Null answers (question excluded) do not fire — we don't recommend
+    // governance changes against absent data.
+    fires_when: (r) =>
+      (r.inputs.founder_dependency != null && r.inputs.founder_dependency <= 3) ||
+      (r.inputs.management_structure != null && r.inputs.management_structure <= 3),
   },
   {
     id: 'governance_upgrade',
@@ -112,7 +117,8 @@ export const ACTION_CATALOGUE: ReadonlyArray<ActionCatalogueEntry> = [
     effort_score: 4,
     time_to_impact_months: 18,
     objective_weights: { growth: 1.15, investor_readiness: 1.1 },
-    fires_when: (r) => r.inputs.digital_maturity <= 3,
+    fires_when: (r) =>
+      r.inputs.digital_maturity != null && r.inputs.digital_maturity <= 3,
   },
   {
     id: 'rd_investment',

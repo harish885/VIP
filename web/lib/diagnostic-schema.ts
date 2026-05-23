@@ -1,20 +1,23 @@
 import { z } from 'zod';
 
 /**
- * Diagnostic schema — Pivot edition.
+ * Diagnostic schema — Pivot edition (v2 + overrides + exclusions).
  *
  * Aligned with the Value_Intelligence_Questionnaire+contextdata.docx PoC
- * (20 questions). All scored questions are 1–5 Likert; classificatory
- * questions are enums.
+ * (19 scored Likert + 2 enums). Two product extensions over the v2 PoC:
  *
- * Quantitative inputs (revenue history, EBITDA, margin, R&D ratio,
- * recurring revenue, top-3 client concentration) are NOT collected here
- * any more — they are pulled from the AIDA snapshot for the selected
- * company at submission time.
+ *   · Any qualitative question can be marked "not relevant for this
+ *     company" — its Likert column on vip.submissions stores NULL and the
+ *     key is recorded in `excluded_questions`. The scoring engine drops
+ *     excluded metrics from the within-capital weighted mean and
+ *     renormalises across the remaining weights.
  *
- * Backwards-compatible: every field on the old schema either survived as
- * one of the new questions (Q5/Q6/Q9/Q12/Q14 etc.) or is now optional
- * with a sensible default (sector, distinctive_assets text).
+ *   · The entrepreneur can override AIDA-derived quantitative inputs
+ *     (revenue history, EBITDA, recurring revenue, top-3 concentration,
+ *     R&D ratio) with their own numbers. AIDA values stay on the
+ *     submission row as the snapshot; `overrides` records what the user
+ *     wanted scored instead. `overrides.enabled` is what the scoring run
+ *     actually consumed.
  */
 
 // =============================================================================
@@ -68,64 +71,124 @@ export const OBJECTIVES = [
 ] as const;
 
 // =============================================================================
-// SCHEMA — 20 PoC questions
+// SCHEMA — 19 Likert + 2 enums + optional text
 // =============================================================================
 
-const likert = z.number().int().min(1).max(5);
+/** Likert value that may be omitted when the question is marked "not relevant". */
+const likert = z.number().int().min(1).max(5).nullable();
 
-export const DiagnosticSchema = z.object({
+/** Optional non-negative number (allowed: null, undefined, empty string). */
+const optionalMoney = z
+  .union([z.number().nonnegative(), z.literal('').transform(() => undefined), z.null()])
+  .optional();
+
+/** Optional percentage 0–100 (allowed: null, undefined, empty string). */
+const optionalPct = z
+  .union([z.number().min(0).max(100), z.literal('').transform(() => undefined), z.null()])
+  .optional();
+
+/** EBITDA may be negative (loss-making companies). */
+const optionalEbitda = z
+  .union([z.number(), z.literal('').transform(() => undefined), z.null()])
+  .optional();
+
+export const OverridesSchema = z.object({
+  enabled: z.boolean().default(false),
+  revenue_y_1: optionalMoney,
+  revenue_y_2: optionalMoney,
+  revenue_y_3: optionalMoney,
+  ebitda: optionalEbitda,
+  recurring_revenue_pct: optionalPct,
+  top3_client_concentration: optionalPct,
+  tech_investment_ratio_pct: optionalPct,
+});
+export type OverridesInput = z.infer<typeof OverridesSchema>;
+
+export const OVERRIDE_FIELD_KEYS = [
+  'revenue_y_1',
+  'revenue_y_2',
+  'revenue_y_3',
+  'ebitda',
+  'recurring_revenue_pct',
+  'top3_client_concentration',
+  'tech_investment_ratio_pct',
+] as const;
+export type OverrideFieldKey = (typeof OVERRIDE_FIELD_KEYS)[number];
+
+const RawDiagnosticSchema = z.object({
   // ---- Section 1 · Technological Capital (Q1-Q4) ----------------------------
-  /** Q1 — digitalization of core processes */
-  digital_maturity:        likert,
-  /** Q2 — automation of repetitive tasks */
-  q_automation:            likert,
-  /** Q3 — integration of enabling systems (ERP/CRM/…) */
-  q_enabling_systems:      likert,
-  /** Q4 — proprietary tech / IP / codified know-how */
-  q_distinctive_tech_assets: likert,
+  digital_maturity:           likert,
+  q_automation:               likert,
+  q_enabling_systems:         likert,
+  q_distinctive_tech_assets:  likert,
 
   // ---- Section 2 · Human & Organisational Capital (Q5-Q8) -------------------
-  /** Q5 — founder dependency (1 = severely affected, 5 = minimally) */
-  founder_dependency:      likert,
-  /** Q6 — strength of second management line */
-  management_structure:    likert,
-  /** Q7 — process formalisation / maturity */
-  q_process_maturity:      likert,
-  /** Q8 — transferability of ownership */
-  q_transferability:       likert,
+  founder_dependency:         likert,   // Q5 reversed
+  management_structure:       likert,
+  q_process_maturity:         likert,
+  q_transferability:          likert,
 
   // ---- Section 3 · Relational Capital (Q9-Q12) -----------------------------
-  /** Q9 — client portfolio quality & diversification */
-  client_portfolio_quality: likert,
-  /** Q10 — strategic partnerships */
-  q_strategic_partnerships: likert,
-  /** Q11 — reputation / market recognition */
-  q_reputation:            likert,
-  /** Q12 — network / ecosystem position */
-  network_partnerships:    likert,
+  client_portfolio_quality:   likert,
+  q_strategic_partnerships:   likert,
+  q_reputation:               likert,
+  network_partnerships:       likert,
 
   // ---- Section 4 · Growth Quality & Context (Q13-Q14) ----------------------
-  /** Q13 — quality of growth (episodic vs organic) */
-  q_quality_of_growth:     likert,
-  /** Q14 — business model scalability */
-  business_scalability:    likert,
+  q_quality_of_growth:        likert,
+  business_scalability:       likert,
 
-  // ---- Section 5 · Classificatory + extended context (Q15-Q20) -------------
-  /** Q15 — entrepreneur's main objective over 24–36 months */
-  stated_objective:        z.enum(STATED_OBJECTIVES),
-  /** Q16 — declared time horizon */
-  time_horizon:            z.enum(TIME_HORIZONS),
-  /** Q17 — business lifecycle stage (1–5 maturity scale) */
-  q_lifecycle_score:       likert,
-  /** Q18 — strength of distinctive assets */
+  // ---- Section 5 · Classificatory + extended context (Q15-Q19) -------------
+  stated_objective:           z.enum(STATED_OBJECTIVES),
+  time_horizon:               z.enum(TIME_HORIZONS),
+  q_lifecycle_score:          likert,
   q_distinctive_assets_score: likert,
-  /** Q19 — M&A / exit history */
-  q_ma_history:            likert,
+  q_ma_history:               likert,
 
-  // ---- Optional free-text context that the form still supports -------------
-  distinctive_assets:      z.string().max(200).optional().or(z.literal('')),
-  sector:                  z.enum(SECTORS).optional(),
-  lifecycle_stage:         z.enum(LIFECYCLES).optional(),
+  // ---- Optional free-text context ------------------------------------------
+  distinctive_assets:         z.string().max(200).optional().or(z.literal('')),
+  sector:                     z.enum(SECTORS).optional(),
+  lifecycle_stage:            z.enum(LIFECYCLES).optional(),
+
+  // ---- Exclusions + overrides ---------------------------------------------
+  excluded_questions:         z.array(z.string()).default([]),
+  overrides:                  OverridesSchema.default({ enabled: false }),
+});
+
+/** Every scored Likert field — superRefine walks this to enforce
+ *  "answer 1–5 OR mark not relevant". */
+export const SCORED_QUESTION_KEYS = [
+  'digital_maturity',
+  'q_automation',
+  'q_enabling_systems',
+  'q_distinctive_tech_assets',
+  'founder_dependency',
+  'management_structure',
+  'q_process_maturity',
+  'q_transferability',
+  'client_portfolio_quality',
+  'q_strategic_partnerships',
+  'q_reputation',
+  'network_partnerships',
+  'q_quality_of_growth',
+  'business_scalability',
+  'q_lifecycle_score',
+  'q_distinctive_assets_score',
+  'q_ma_history',
+] as const;
+export type ScoredQuestionKey = (typeof SCORED_QUESTION_KEYS)[number];
+
+export const DiagnosticSchema = RawDiagnosticSchema.superRefine((data, ctx) => {
+  for (const key of SCORED_QUESTION_KEYS) {
+    if (data.excluded_questions.includes(key)) continue;
+    if (data[key] == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [key],
+        message: 'Answer 1–5 or mark this question as not relevant.',
+      });
+    }
+  }
 });
 
 export type DiagnosticInput = z.infer<typeof DiagnosticSchema>;
@@ -135,41 +198,49 @@ export type DiagnosticInput = z.infer<typeof DiagnosticSchema>;
 // =============================================================================
 
 export const EMPTY_DIAGNOSTIC: Partial<DiagnosticInput> = {
-  // Likert questions intentionally have NO default — every answer must be a
-  // deliberate choice from the entrepreneur. The diagnostic form surfaces
-  // the unanswered ones at submit time.
+  digital_maturity: null,
+  q_automation: null,
+  q_enabling_systems: null,
+  q_distinctive_tech_assets: null,
+  founder_dependency: null,
+  management_structure: null,
+  q_process_maturity: null,
+  q_transferability: null,
+  client_portfolio_quality: null,
+  q_strategic_partnerships: null,
+  q_reputation: null,
+  network_partnerships: null,
+  q_quality_of_growth: null,
+  business_scalability: null,
+  q_lifecycle_score: null,
+  q_distinctive_assets_score: null,
+  q_ma_history: null,
   distinctive_assets: '',
-  // Classificatory anchors only — Q15 / Q16 default to neutral sensible
-  // choices so the form still validates if the user is in a hurry; they
-  // can override before submitting.
   stated_objective: 'growth',
   time_horizon: '24m',
+  excluded_questions: [],
+  overrides: { enabled: false },
 };
 
 // =============================================================================
-// EXAMPLE VALUES — same ACME profile as before, expressed in the new schema
+// EXAMPLE VALUES — ACME profile in the new schema
 // =============================================================================
 
 export const EXAMPLE_DIAGNOSTIC: DiagnosticInput = {
-  // Tech
   digital_maturity: 2,
   q_automation: 2,
   q_enabling_systems: 2,
   q_distinctive_tech_assets: 3,
-  // Human & Org
-  founder_dependency: 2,            // Q5 reversed scale: 2 = strongly affected
+  founder_dependency: 2,
   management_structure: 3,
   q_process_maturity: 3,
   q_transferability: 2,
-  // Relational
   client_portfolio_quality: 2,
   q_strategic_partnerships: 3,
   q_reputation: 4,
   network_partnerships: 3,
-  // Growth
   q_quality_of_growth: 3,
   business_scalability: 4,
-  // Context
   stated_objective: 'growth',
   time_horizon: '24m',
   q_lifecycle_score: 4,
@@ -178,6 +249,8 @@ export const EXAMPLE_DIAGNOSTIC: DiagnosticInput = {
   distinctive_assets: 'Patent on cooling-coil design; 3 long-term automotive OEM contracts',
   sector: 'Manufacturing',
   lifecycle_stage: 'Maturity',
+  excluded_questions: [],
+  overrides: { enabled: false },
 };
 
 /**
@@ -185,7 +258,6 @@ export const EXAMPLE_DIAGNOSTIC: DiagnosticInput = {
  * The form renders by walking this object.
  */
 export const QUESTIONS = {
-  // ---- Tech --------
   digital_maturity: {
     section: 'Technological Capital',
     n: 'Q1',
@@ -238,14 +310,11 @@ export const QUESTIONS = {
       'Strong and strategically relevant',
     ],
   },
-
-  // ---- Human & Org --------
   founder_dependency: {
     section: 'Human & Organisational Capital',
     n: 'Q5',
     title: 'Founder dependency',
     hint: 'If the founder were out for 3 months, how much would operations suffer?',
-    /** Note: scored "minimal dependency = 5". 1 = very severely affected. */
     options: [
       'Very severely affected',
       'Strongly affected',
@@ -293,8 +362,6 @@ export const QUESTIONS = {
       'Highly transferable',
     ],
   },
-
-  // ---- Relational --------
   client_portfolio_quality: {
     section: 'Relational Capital',
     n: 'Q9',
@@ -347,8 +414,6 @@ export const QUESTIONS = {
       'Strong and defensible',
     ],
   },
-
-  // ---- Growth --------
   q_quality_of_growth: {
     section: 'Growth Quality & Context',
     n: 'Q13',
@@ -375,8 +440,6 @@ export const QUESTIONS = {
       'Highly scalable',
     ],
   },
-
-  // ---- Extended context (Q17-Q19) --------
   q_lifecycle_score: {
     section: 'Contextual Inputs',
     n: 'Q17',
@@ -447,7 +510,7 @@ export const QUESTIONS_BY_SECTION: Record<QuestionSection, QuestionKey[]> = {
 // =============================================================================
 // Field labels for the review step
 // =============================================================================
-export const FIELD_LABELS: Record<keyof DiagnosticInput, string> = {
+export const FIELD_LABELS: Record<QuestionKey | 'stated_objective' | 'time_horizon' | 'distinctive_assets' | 'sector' | 'lifecycle_stage', string> = {
   digital_maturity:              'Q1 · Digitalization',
   q_automation:                  'Q2 · Automation',
   q_enabling_systems:            'Q3 · Enabling systems',
@@ -471,4 +534,3 @@ export const FIELD_LABELS: Record<keyof DiagnosticInput, string> = {
   sector:                        'Sector',
   lifecycle_stage:               'Lifecycle (legacy)',
 };
-

@@ -56,11 +56,12 @@ export async function runScoring(
   const composite = composeScores(capitals);
   const scal_idx = scalabilityIndex(capitals, percentiles);
 
-  // Stage 5
+  // Stage 5. business_scalability may be null (Q14 marked "not relevant") —
+  // fall back to a neutral 3 so the scalability modifier sits at 1.0×.
   const growth = computeGrowthFactor({
     revenue_cagr_2y_pct: metrics.revenue_cagr_2y_pct,
     lifecycle_stage: input.lifecycle_stage,
-    business_scalability: input.business_scalability,
+    business_scalability: input.business_scalability ?? 3,
   });
 
   // Stage 6

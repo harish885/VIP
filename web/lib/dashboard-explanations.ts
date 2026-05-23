@@ -204,7 +204,7 @@ export function buildExplanations(
       : 0;
   const lifecycleStage = company.lifecycle_stage || simulationBaseline.lifecycle_stage || 'Maturity';
   const lifecycleMod = LIFECYCLE_MODIFIERS[lifecycleStage] ?? 1.0;
-  const scalability15 = simulationBaseline.business_scalability;
+  const scalability15 = simulationBaseline.business_scalability ?? 3;
   const scalMod = 0.92 + (Math.max(1, Math.min(5, scalability15)) - 1) * 0.03;
   const cagrFrac = Math.max(-0.3, Math.min(0.5, cagr / 100));
   const gfBase = 1.0 + cagrFrac * 0.4;

@@ -16,5 +16,11 @@ export default async function CompanyDiagnosticPage({
   const snapshot = await getCompanySnapshot(service, taxCode);
   if (!snapshot) notFound();
 
-  return <DiagnosticV2Form taxCode={taxCode} companyName={snapshot.company_name} />;
+  return (
+    <DiagnosticV2Form
+      taxCode={taxCode}
+      companyName={snapshot.company_name}
+      snapshot={snapshot}
+    />
+  );
 }

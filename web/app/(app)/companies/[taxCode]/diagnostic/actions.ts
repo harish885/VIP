@@ -70,7 +70,11 @@ export async function submitCompanyDiagnosticAction(
   // ---------------------------------------------------------------------------
   // 2. Build the scoring input + persist the submission
   // ---------------------------------------------------------------------------
-  const scoringInput = buildScoringInput({ diagnostic: q, snapshot });
+  const scoringInput = buildScoringInput({
+    diagnostic: q,
+    snapshot,
+    overrides: q.overrides,
+  });
 
   const ebitdaMargin = scoringInput.revenue_y_3 > 0
     ? (scoringInput.ebitda / scoringInput.revenue_y_3) * 100
@@ -79,12 +83,22 @@ export async function submitCompanyDiagnosticAction(
     ? (Math.pow(scoringInput.revenue_y_3 / scoringInput.revenue_y_1, 1 / 2) - 1) * 100
     : null;
 
+  // Qualitative columns persist NULL when the question was marked
+  // "not relevant". Postgres CHECK BETWEEN 1 AND 5 passes for NULL.
+  const excluded = new Set(q.excluded_questions ?? []);
+  const persistLikert = (key: string, value: number | null | undefined): number | null =>
+    excluded.has(key) ? null : (value ?? null);
+
+  const overrides = q.overrides ?? { enabled: false };
+  const overrideNum = (v: unknown): number | null =>
+    typeof v === 'number' && !Number.isNaN(v) ? v : null;
+
   const { data: submission, error: sErr } = await service
     .from('submissions')
     .insert({
       user_id: user?.id ?? null,
       company_id: companyId.id,
-      // AIDA-derived quant snapshot frozen at submission time
+      // AIDA snapshot frozen at submission time (unchanged regardless of overrides)
       revenue_y_1: scoringInput.revenue_y_1,
       revenue_y_2: scoringInput.revenue_y_2,
       revenue_y_3: scoringInput.revenue_y_3,
@@ -94,25 +108,36 @@ export async function submitCompanyDiagnosticAction(
       top3_client_concentration: scoringInput.top3_client_concentration,
       revenue_cagr_pct: revenueCagr,
       tech_investment_ratio_pct: scoringInput.tech_investment_ratio_pct,
+      // User-entered financial overrides (raw, before they were applied to scoringInput)
+      overrides_enabled: Boolean(overrides.enabled),
+      override_revenue_y_1: overrideNum(overrides.revenue_y_1),
+      override_revenue_y_2: overrideNum(overrides.revenue_y_2),
+      override_revenue_y_3: overrideNum(overrides.revenue_y_3),
+      override_ebitda: overrideNum(overrides.ebitda),
+      override_recurring_revenue_pct: overrideNum(overrides.recurring_revenue_pct),
+      override_top3_client_concentration: overrideNum(overrides.top3_client_concentration),
+      override_tech_investment_ratio_pct: overrideNum(overrides.tech_investment_ratio_pct),
+      // Questions the user explicitly marked "not relevant"
+      excluded_questions: q.excluded_questions ?? [],
       // 6 legacy qualitative columns (overlap with new questionnaire)
-      founder_dependency: q.founder_dependency,
-      management_structure: q.management_structure,
-      digital_maturity: q.digital_maturity,
-      client_portfolio_quality: q.client_portfolio_quality,
-      business_scalability: q.business_scalability,
-      network_partnerships: q.network_partnerships,
-      // 8 new questionnaire columns
-      q_automation: q.q_automation,
-      q_enabling_systems: q.q_enabling_systems,
-      q_distinctive_tech_assets: q.q_distinctive_tech_assets,
-      q_process_maturity: q.q_process_maturity,
-      q_transferability: q.q_transferability,
-      q_strategic_partnerships: q.q_strategic_partnerships,
-      q_reputation: q.q_reputation,
-      q_quality_of_growth: q.q_quality_of_growth,
-      q_lifecycle_score: q.q_lifecycle_score,
-      q_distinctive_assets_score: q.q_distinctive_assets_score,
-      q_ma_history: q.q_ma_history,
+      founder_dependency:        persistLikert('founder_dependency',        q.founder_dependency),
+      management_structure:      persistLikert('management_structure',      q.management_structure),
+      digital_maturity:          persistLikert('digital_maturity',          q.digital_maturity),
+      client_portfolio_quality:  persistLikert('client_portfolio_quality',  q.client_portfolio_quality),
+      business_scalability:      persistLikert('business_scalability',      q.business_scalability),
+      network_partnerships:      persistLikert('network_partnerships',      q.network_partnerships),
+      // 11 newer questionnaire columns
+      q_automation:               persistLikert('q_automation',               q.q_automation),
+      q_enabling_systems:         persistLikert('q_enabling_systems',         q.q_enabling_systems),
+      q_distinctive_tech_assets:  persistLikert('q_distinctive_tech_assets',  q.q_distinctive_tech_assets),
+      q_process_maturity:         persistLikert('q_process_maturity',         q.q_process_maturity),
+      q_transferability:          persistLikert('q_transferability',          q.q_transferability),
+      q_strategic_partnerships:   persistLikert('q_strategic_partnerships',   q.q_strategic_partnerships),
+      q_reputation:               persistLikert('q_reputation',               q.q_reputation),
+      q_quality_of_growth:        persistLikert('q_quality_of_growth',        q.q_quality_of_growth),
+      q_lifecycle_score:          persistLikert('q_lifecycle_score',          q.q_lifecycle_score),
+      q_distinctive_assets_score: persistLikert('q_distinctive_assets_score', q.q_distinctive_assets_score),
+      q_ma_history:               persistLikert('q_ma_history',               q.q_ma_history),
     })
     .select('id')
     .single();

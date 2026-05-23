@@ -1,23 +1,29 @@
 /**
  * Phase 06 · Stage 1 — Metric Engineering.
  *
- * Turn the raw 17-input diagnostic submission into the ~12 metrics the
- * downstream stages actually consume. Two flavours:
+ * Turn the raw diagnostic submission into the ~12 metrics the downstream
+ * stages actually consume. Two flavours:
  *
  *   · Quantitative metrics  — peer-comparable, ranked against AIDA peers
  *     in Stage 2 (revenue CAGR, EBITDA margin, recurring revenue,
- *     client concentration, tech investment ratio).
+ *     client concentration, tech investment ratio). Always defined —
+ *     they come from AIDA snapshot or the entrepreneur's overrides.
  *
  *   · Qualitative metrics   — 1-5 self-assessments mapped to a 0-100
- *     score in this stage. Stage 2 passes them through unchanged.
+ *     score in this stage. The entrepreneur can mark a question "not
+ *     relevant", in which case the value is null in the input and we
+ *     emit NaN. Stage 3 `weightedMean` already skips NaN entries and
+ *     renormalises the remaining weights, so excluded questions simply
+ *     drop out of the within-capital aggregation.
  *
- * Bounds: every metric falls inside finite, well-defined ranges so the
- * downstream weighted mean is meaningful even on extreme inputs.
+ * Bounds: every defined metric falls inside finite, well-defined ranges
+ * so the downstream weighted mean is meaningful even on extreme inputs.
  */
 import type { ScoringInput } from './company-input';
 import type { DerivedMetrics } from './types';
 
 export function deriveMetrics(input: ScoringInput): DerivedMetrics {
+  const excluded = new Set(input.excluded_questions ?? []);
   const cagr = computeCagr2y(input.revenue_y_1, input.revenue_y_3);
   const margin = computeEbitdaMargin(input.ebitda, input.revenue_y_3);
 
@@ -29,13 +35,13 @@ export function deriveMetrics(input: ScoringInput): DerivedMetrics {
     client_concentration_inv: round1(100 - input.top3_client_concentration),
     tech_investment_ratio_pct: round1(input.tech_investment_ratio_pct),
 
-    // New Q5: 5 = minimal founder dependency (good). No inversion needed.
-    founder_independence_pct: qualitativeToPct(input.founder_dependency),
-    management_score_pct:     qualitativeToPct(input.management_structure),
-    digital_maturity_pct:     qualitativeToPct(input.digital_maturity),
-    client_portfolio_quality_pct: qualitativeToPct(input.client_portfolio_quality),
-    business_scalability_pct: qualitativeToPct(input.business_scalability),
-    network_partnerships_pct: qualitativeToPct(input.network_partnerships),
+    // Qualitative: NaN when null OR explicitly excluded.
+    founder_independence_pct:     qualPct(input.founder_dependency,        excluded.has('founder_dependency')),
+    management_score_pct:         qualPct(input.management_structure,      excluded.has('management_structure')),
+    digital_maturity_pct:         qualPct(input.digital_maturity,          excluded.has('digital_maturity')),
+    client_portfolio_quality_pct: qualPct(input.client_portfolio_quality,  excluded.has('client_portfolio_quality')),
+    business_scalability_pct:     qualPct(input.business_scalability,      excluded.has('business_scalability')),
+    network_partnerships_pct:     qualPct(input.network_partnerships,      excluded.has('network_partnerships')),
   };
 }
 
@@ -53,22 +59,14 @@ function computeEbitdaMargin(ebitda: number, rev_y3: number): number {
 }
 
 /**
- * Map a 1–5 Likert response to a 0–100 score.
- *
- * Peer-relative anchoring: a self-rating of "3" puts the company close to
- * the AIDA cohort median (≈ 65 percentile in absolute terms because the
- * cohort is itself heavily mid-rated), not at exactly 50. The table
- * below is calibrated so the ACME demo profile lands on the seeded
- * capital scores; tune here before touching aggregate.ts weights.
+ * Map a 1–5 Likert response to a 0–100 score. Returns NaN if the
+ * question was unanswered or explicitly excluded.
  *
  *   raw 1 → 15
- *   raw 2 → 45
+ *   raw 2 → 60
  *   raw 3 → 65
- *   raw 4 → 85
- *   raw 5 → 97
- *
- * When `invert` is true (founder dependency: 1 = best), the table is
- * read top-down: 1 → 97, …, 5 → 15.
+ *   raw 4 → 82
+ *   raw 5 → 95
  */
 const LIKERT_TO_PCT: Record<1 | 2 | 3 | 4 | 5, number> = {
   1: 15,
@@ -78,10 +76,11 @@ const LIKERT_TO_PCT: Record<1 | 2 | 3 | 4 | 5, number> = {
   5: 95,
 };
 
-function qualitativeToPct(value: number, invert = false): number {
+function qualPct(value: number | null | undefined, excluded: boolean): number {
+  if (excluded) return Number.NaN;
+  if (value == null || Number.isNaN(value)) return Number.NaN;
   const v = clamp(Math.round(value), 1, 5) as 1 | 2 | 3 | 4 | 5;
-  const lookup = (invert ? (6 - v) : v) as 1 | 2 | 3 | 4 | 5;
-  return LIKERT_TO_PCT[lookup];
+  return LIKERT_TO_PCT[v];
 }
 
 function clamp(n: number, lo: number, hi: number): number {

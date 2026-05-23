@@ -9,6 +9,10 @@
  *   1–2 fired       → MEDIUM
  *   ≥ 3 fired       → HIGH
  *
+ * Flags that depend on a qualitative answer (founder_dependency,
+ * digital_maturity) are skipped when the entrepreneur excluded that
+ * question — we don't fabricate fragility signals from absent data.
+ *
  * `over_leveraged` would require a debt input the diagnostic form does
  * not currently collect — we approximate from EBITDA margin instead so
  * the flag still meaningfully fires for thin-margin operators.
@@ -21,15 +25,24 @@ export function deriveFragilityFlags(
   metrics: DerivedMetrics,
 ): FragilityFlag[] {
   const fired: FragilityFlag[] = [];
+  const excluded = new Set(input.excluded_questions ?? []);
 
   if (input.top3_client_concentration > 50) {
     fired.push('client_concentration');
   }
-  // Q5 scale: 1 = severely affected (high dependency), 5 = minimally affected.
-  if (input.founder_dependency <= 1) {
+  // Q5: 1 = severely affected (high dependency), 5 = minimally affected.
+  if (
+    !excluded.has('founder_dependency') &&
+    input.founder_dependency != null &&
+    input.founder_dependency <= 1
+  ) {
     fired.push('founder_dependency');
   }
-  if (input.digital_maturity <= 1) {
+  if (
+    !excluded.has('digital_maturity') &&
+    input.digital_maturity != null &&
+    input.digital_maturity <= 1
+  ) {
     fired.push('low_digital');
   }
   // Approximation of "over-leveraged": very thin EBITDA margin signals

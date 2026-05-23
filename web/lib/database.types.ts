@@ -326,10 +326,19 @@ export type Database = {
           digital_maturity: number | null
           ebitda: number | null
           ebitda_margin_pct: number | null
+          excluded_questions: string[]
           founder_dependency: number | null
           id: string
           management_structure: number | null
           network_partnerships: number | null
+          override_ebitda: number | null
+          override_recurring_revenue_pct: number | null
+          override_revenue_y_1: number | null
+          override_revenue_y_2: number | null
+          override_revenue_y_3: number | null
+          override_tech_investment_ratio_pct: number | null
+          override_top3_client_concentration: number | null
+          overrides_enabled: boolean
           q_automation: number | null
           q_distinctive_assets_score: number | null
           q_distinctive_tech_assets: number | null
@@ -358,10 +367,19 @@ export type Database = {
           digital_maturity?: number | null
           ebitda?: number | null
           ebitda_margin_pct?: number | null
+          excluded_questions?: string[]
           founder_dependency?: number | null
           id?: string
           management_structure?: number | null
           network_partnerships?: number | null
+          override_ebitda?: number | null
+          override_recurring_revenue_pct?: number | null
+          override_revenue_y_1?: number | null
+          override_revenue_y_2?: number | null
+          override_revenue_y_3?: number | null
+          override_tech_investment_ratio_pct?: number | null
+          override_top3_client_concentration?: number | null
+          overrides_enabled?: boolean
           q_automation?: number | null
           q_distinctive_assets_score?: number | null
           q_distinctive_tech_assets?: number | null
@@ -390,10 +408,19 @@ export type Database = {
           digital_maturity?: number | null
           ebitda?: number | null
           ebitda_margin_pct?: number | null
+          excluded_questions?: string[]
           founder_dependency?: number | null
           id?: string
           management_structure?: number | null
           network_partnerships?: number | null
+          override_ebitda?: number | null
+          override_recurring_revenue_pct?: number | null
+          override_revenue_y_1?: number | null
+          override_revenue_y_2?: number | null
+          override_revenue_y_3?: number | null
+          override_tech_investment_ratio_pct?: number | null
+          override_top3_client_concentration?: number | null
+          overrides_enabled?: boolean
           q_automation?: number | null
           q_distinctive_assets_score?: number | null
           q_distinctive_tech_assets?: number | null
