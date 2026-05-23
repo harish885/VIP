@@ -1,9 +1,14 @@
 import Link from 'next/link';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BookOpen, Sparkles, Search } from 'lucide-react';
+import { HomeLink } from '@/components/chrome/home-link';
 
 /**
- * App shell — slim chrome with brand on the left and a methodology link
- * on the right. Auth pill removed; we keep the experience product-focused.
+ * App shell — slim chrome with the VIP home button on the left, a quick
+ * link to the company search, and the methodology links on the right.
+ *
+ * The VIP mark uses the shared HomeLink component, so it behaves the same
+ * way as on every other route group (marketing, auth) and always returns
+ * the user to `/`.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,13 +26,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <header className="relative z-10 border-b border-line bg-bg-1/85 backdrop-blur-glass">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link
-            href="/companies"
-            className="flex min-w-0 items-center gap-2.5 font-mono text-[10px] font-semibold uppercase leading-tight tracking-[0.24em] text-text transition-opacity hover:opacity-80 sm:text-[11px] sm:tracking-eyebrow"
-          >
-            <span className="block h-[18px] w-[18px] shrink-0 rounded-[4px] bg-gradient-to-br from-gold to-gold-soft" />
-            <span className="max-w-[128px] sm:max-w-none">VIP · Value Intelligence</span>
-          </Link>
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <HomeLink variant="inline" />
+            <Link
+              href="/companies"
+              className="hidden items-center gap-1.5 rounded-md border border-line bg-bg-1 px-2.5 py-1.5 text-[12px] font-medium text-text-dim transition-colors hover:border-line-2 hover:text-text sm:inline-flex"
+            >
+              <Search size={13} />
+              Companies
+            </Link>
+          </div>
 
           <div className="flex shrink-0 items-center gap-2">
             <Link

@@ -180,12 +180,6 @@ export const EXAMPLE_DIAGNOSTIC: DiagnosticInput = {
   lifecycle_stage: 'Maturity',
 };
 
-// =============================================================================
-// LIKERT LABELS — used by the form's rating component
-// =============================================================================
-
-export const LIKERT_LABELS: Record<keyof typeof QUESTIONS, readonly [string, string, string, string, string]> = {} as never;
-
 /**
  * Full question metadata — labels, options, sections.
  * The form renders by walking this object.
@@ -478,11 +472,3 @@ export const FIELD_LABELS: Record<keyof DiagnosticInput, string> = {
   lifecycle_stage:               'Lifecycle (legacy)',
 };
 
-// =============================================================================
-// Legacy compatibility — `deriveMetrics` used to derive CAGR + margin from
-// the now-removed quantitative inputs. Kept as an empty stub so nothing
-// importing it breaks. AIDA snapshot supplies these now.
-// =============================================================================
-export function deriveMetrics(_input: DiagnosticInput) {
-  return { revenue_cagr_pct: 0, ebitda_margin_pct: 0 };
-}

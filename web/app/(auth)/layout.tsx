@@ -1,8 +1,9 @@
-import Link from 'next/link';
+import { HomeLink } from '@/components/chrome/home-link';
 
 /**
  * Auth route-group layout — centered card on a calm gradient background.
- * No marketing chrome (no side-nav, no scroll progress, no particles).
+ * The shared VIP HomeLink sits in the top-left so the user can always get
+ * back to `/`.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,17 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         }}
       />
 
-      {/* Brand mark — clickable home link */}
-      <Link
-        href="/"
-        className="absolute left-8 top-6 z-50 flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-text transition-opacity hover:opacity-80"
-      >
-        <span
-          className="block h-[18px] w-[18px] rounded-[4px] bg-gradient-to-br from-gold to-gold-soft"
-          style={{ boxShadow: '0 0 16px rgba(176, 122, 26, 0.30)' }}
-        />
-        VIP · Value Intelligence
-      </Link>
+      <HomeLink variant="fixed" />
 
       <div className="relative z-10 w-full max-w-[440px]">{children}</div>
     </div>

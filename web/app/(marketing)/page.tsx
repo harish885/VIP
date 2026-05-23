@@ -10,11 +10,12 @@ import { Architecture } from '@/components/marketing/scenes/architecture';
 import { Closing }      from '@/components/marketing/scenes/closing';
 
 /**
- * Marketing home — the full cinematic scrollytelling experience.
+ * Marketing home — the scrollytelling pitch.
  *
- * Each scene is its own client component, owns its own GSAP context, and
- * scroll-triggers itself into view. Order matters: the side-nav dot map
- * (lib/nav.ts) follows this sequence.
+ * Each scene is its own client component and fades in via the
+ * `useReveal` IntersectionObserver hook (+ informative animations like
+ * count-ups and the radar morph). Order matters — the narrative reads
+ * top-to-bottom.
  */
 export default function MarketingHome() {
   return (
