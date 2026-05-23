@@ -51,8 +51,8 @@ export function CapitalConstellation({ capitals, sqf, sqfInfo, capitalInfo }: Pr
   ].map(([x, y]) => `${x},${y}`).join(' ');
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
-      <svg viewBox="0 0 240 240" className="mx-auto h-auto w-full max-w-[320px]">
+    <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <svg viewBox="0 0 240 240" className="mx-auto h-auto w-full max-w-[260px]">
         {[0.25, 0.5, 0.75, 1].map((r) => {
           const offset = maxR * r;
           return (
@@ -82,17 +82,17 @@ export function CapitalConstellation({ capitals, sqf, sqfInfo, capitalInfo }: Pr
         <text x={8}      y={center + 4} textAnchor="start"  fontSize="11" fill="rgb(var(--text-dim))">Relational</text>
       </svg>
 
-      <div className="flex flex-col gap-4">
-        <div className="rounded-xl border border-line bg-bg-2/30 px-4 py-3">
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-baseline justify-between gap-3 rounded-xl border border-line bg-bg-2/30 px-4 py-2.5">
           <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
             <span>Strategic Quality Factor</span>
             {sqfInfo}
           </div>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="font-serif text-[32px] font-medium leading-none tracking-tight text-text">
+          <div className="flex items-baseline gap-2">
+            <span className="font-serif text-[24px] font-medium leading-none tracking-tight text-text">
               {sqf.toFixed(2)}
             </span>
-            <span className="font-mono text-[11px] text-text-faint">0.6 – 1.4 · multiplies V</span>
+            <span className="font-mono text-[10.5px] text-text-faint">0.6 – 1.4</span>
           </div>
         </div>
 

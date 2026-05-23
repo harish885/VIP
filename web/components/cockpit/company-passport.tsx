@@ -126,9 +126,13 @@ export function CompanyPassport({
         <PassportFact
           icon={<FlaskConical size={14} />}
           label="R&D / revenue"
-          value={aidaRdRatio != null ? `${aidaRdRatio.toFixed(1)}%` : '—'}
+          value={
+            aidaRdRatio == null || aidaRdRatio === 0
+              ? '—'
+              : `${aidaRdRatio.toFixed(1)}%`
+          }
           sub={
-            snapshot.rd_expense_thk != null
+            snapshot.rd_expense_thk != null && snapshot.rd_expense_thk > 0
               ? `${fmtMoney(thk(snapshot.rd_expense_thk))} reported`
               : 'Not reported by AIDA'
           }
@@ -169,16 +173,21 @@ function PassportFact({
   wide?: boolean;
 }) {
   return (
-    <div className={cn('min-w-0', wide && 'col-span-2 sm:col-span-3 lg:col-span-2')}>
+    <div
+      className={cn(
+        'min-w-0 rounded-xl border border-line bg-bg-1/80 px-4 py-3',
+        wide && 'col-span-2 sm:col-span-3 lg:col-span-2',
+      )}
+    >
       <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         <span className="text-text-faint">{icon}</span>
-        <span>{label}</span>
-        <SourceBadge source="aida" className="ml-1" />
+        <span className="truncate">{label}</span>
+        <SourceBadge source="aida" className="ml-auto shrink-0" />
       </div>
-      <div className="mt-1 font-serif text-[18px] font-medium leading-tight tracking-tight text-text">
+      <div className="mt-1.5 font-serif text-[19px] font-medium leading-tight tracking-tight text-text">
         {value}
       </div>
-      <div className="mt-1 text-[11.5px] text-text-faint">{sub}</div>
+      <div className="mt-1 truncate text-[11.5px] text-text-faint">{sub}</div>
     </div>
   );
 }
@@ -193,7 +202,9 @@ function thk(v: number | null | undefined): number {
 
 function fmtMoney(eur: number): string {
   if (!eur) return '—';
-  if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(2)}M`;
-  if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}K`;
-  return `€${eur}`;
+  const sign = eur < 0 ? '−' : '';
+  const abs = Math.abs(eur);
+  if (abs >= 1_000_000) return `${sign}€${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000) return `${sign}€${(abs / 1_000).toFixed(0)}K`;
+  return `${sign}€${abs}`;
 }
