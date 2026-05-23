@@ -91,91 +91,76 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
   const deltaIsPositive = deltaPct >= 0;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-bg-2/60 to-purple/[0.06] p-6">
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: 'radial-gradient(ellipse 70% 50% at 80% 20%, rgba(91, 95, 214, 0.05), transparent 60%)',
-        }}
-      />
-      <div className="relative">
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
-            Simulation Engine
-          </h4>
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-purple/[0.15] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-purple">
-            <Sliders size={10} /> {pending ? 'updating…' : 'live'}
-          </span>
+    <div className="rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
+          Live levers
         </div>
-
-        <p className="mb-4 text-[13px] leading-relaxed text-text-dim">
-          Move a lever to see V recompute in real time. Math runs locally — no
-          server call per slider tick.
-        </p>
-
-        <div className="space-y-4">
-          {LEVERS.map((l) => {
-            const v = values[l.key];
-            const display =
-              l.step < 1 ? v.toFixed(1) : String(Math.round(v));
-            const ratio = (v - l.min) / (l.max - l.min);
-            return (
-              <div key={l.key} className="rounded-lg border border-line bg-bg-2/60 p-3">
-                <div className="mb-1.5 flex items-baseline justify-between font-mono text-[11px]">
-                  <span className="text-text">{l.label}</span>
-                  <span className="font-mono text-[13px] font-bold text-amber">
-                    {display}
-                    {l.unit}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  className="vip-range w-full"
-                  min={l.min}
-                  max={l.max}
-                  step={l.step}
-                  value={v}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [l.key]: Number(e.target.value) }))
-                  }
-                  style={
-                    {
-                      // CSS var consumed by the .vip-range styles for fill colour.
-                      '--ratio': `${Math.round(ratio * 100)}%`,
-                    } as React.CSSProperties
-                  }
-                />
-                <div className="mt-1 flex justify-between font-mono text-[10px] text-text-faint">
-                  <span>{l.min}{l.unit}</span>
-                  <span>{l.max}{l.unit}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 grid grid-cols-3 gap-3 rounded-lg border border-purple/25 bg-purple/[0.08] px-4 py-3">
-          <SimStat label="V current"        eur={vCurrentEur} tone="text" />
-          <SimStat label={headlineLabel}   eur={headlineEur} tone="green" big />
-          <SimStat
-            label="Δ vs current"
-            eur={null}
-            valueLabel={`${deltaIsPositive ? '+' : ''}${deltaPct.toFixed(1)}%`}
-            tone={deltaIsPositive ? 'green' : 'amber'}
-          />
-        </div>
-
-        {dirty && (
-          <button
-            type="button"
-            className="mt-3 font-mono text-[10.5px] uppercase tracking-eyebrow text-text-faint underline-offset-2 hover:text-text-dim hover:underline"
-            onClick={() => setValues(initial)}
-          >
-            Reset to current values
-          </button>
-        )}
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-purple/[0.10] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-purple">
+          <Sliders size={10} /> {pending ? 'updating…' : 'live'}
+        </span>
       </div>
+
+      {/* Three levers — bare rows, no inner borders. */}
+      <div className="divide-y divide-line-faint">
+        {LEVERS.map((l) => {
+          const v = values[l.key];
+          const display = l.step < 1 ? v.toFixed(1) : String(Math.round(v));
+          const ratio = (v - l.min) / (l.max - l.min);
+          return (
+            <div key={l.key} className="py-3.5 first:pt-0 last:pb-0">
+              <div className="mb-1.5 flex items-baseline justify-between font-mono text-[12px]">
+                <span className="text-text">{l.label}</span>
+                <span className="font-mono text-[14px] font-semibold text-amber">
+                  {display}{l.unit}
+                </span>
+              </div>
+              <input
+                type="range"
+                className="vip-range w-full"
+                min={l.min}
+                max={l.max}
+                step={l.step}
+                value={v}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, [l.key]: Number(e.target.value) }))
+                }
+                style={
+                  {
+                    '--ratio': `${Math.round(ratio * 100)}%`,
+                  } as React.CSSProperties
+                }
+              />
+              <div className="mt-1 flex justify-between font-mono text-[10px] text-text-faint">
+                <span>{l.min}{l.unit}</span>
+                <span>{l.max}{l.unit}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Result row — calm, single border-top instead of a coloured panel. */}
+      <div className="mt-5 grid grid-cols-3 gap-4 border-t border-line pt-4">
+        <SimStat label="V current"      eur={vCurrentEur} tone="text" />
+        <SimStat label={headlineLabel}  eur={headlineEur} tone="green" big />
+        <SimStat
+          label="Δ vs current"
+          eur={null}
+          valueLabel={`${deltaIsPositive ? '+' : ''}${deltaPct.toFixed(1)}%`}
+          tone={deltaIsPositive ? 'green' : 'amber'}
+        />
+      </div>
+
+      {dirty && (
+        <button
+          type="button"
+          className="mt-3 font-mono text-[10.5px] uppercase tracking-eyebrow text-text-faint underline-offset-2 hover:text-text-dim hover:underline"
+          onClick={() => setValues(initial)}
+        >
+          Reset to current values
+        </button>
+      )}
     </div>
   );
 }
