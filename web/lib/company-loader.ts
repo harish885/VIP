@@ -74,6 +74,16 @@ export interface SubmissionRecord {
   client_portfolio_quality: number | null;
   business_scalability: number | null;
   network_partnerships: number | null;
+  /** Provenance audit trail — added by 20260513000000 + 20260513100000. */
+  overrides_enabled: boolean | null;
+  override_revenue_y_3: number | null;
+  override_ebitda: number | null;
+  override_recurring_revenue_pct: number | null;
+  override_top3_client_concentration: number | null;
+  override_tech_investment_ratio_pct: number | null;
+  aida_revenue_y_3: number | null;
+  aida_ebitda: number | null;
+  excluded_questions: string[] | null;
 }
 
 export interface RecommendationRecord {
@@ -100,7 +110,7 @@ const COMPANY_COLUMNS =
   'id, name, sector, nace_code, province, lifecycle_stage, distinctive_assets, stated_objective, time_horizon, tax_code';
 
 const SUBMISSION_COLUMNS =
-  'id, submitted_at, revenue_y_1, revenue_y_2, revenue_y_3, ebitda, recurring_revenue_pct, top3_client_concentration, tech_investment_ratio_pct, founder_dependency, management_structure, digital_maturity, client_portfolio_quality, business_scalability, network_partnerships';
+  'id, submitted_at, revenue_y_1, revenue_y_2, revenue_y_3, ebitda, recurring_revenue_pct, top3_client_concentration, tech_investment_ratio_pct, founder_dependency, management_structure, digital_maturity, client_portfolio_quality, business_scalability, network_partnerships, overrides_enabled, override_revenue_y_3, override_ebitda, override_recurring_revenue_pct, override_top3_client_concentration, override_tech_investment_ratio_pct, aida_revenue_y_3, aida_ebitda, excluded_questions';
 
 const RECOMMENDATION_COLUMNS =
   'rank, title, description, capital_impact, v_uplift_pct, time_horizon_months';

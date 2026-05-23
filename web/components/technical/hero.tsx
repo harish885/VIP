@@ -35,12 +35,17 @@ export function TechHero() {
       id="tech-hero"
       className="relative flex min-h-[80vh] flex-col items-center justify-center px-8 py-24 text-center"
     >
-      <div className="mb-9 inline-flex items-center gap-2 rounded-full border border-line bg-purple/[0.06] px-4 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-purple backdrop-blur-glass">
-        <span
-          className="block h-1.5 w-1.5 rounded-full bg-purple animate-pulse-glow"
-          style={{ boxShadow: '0 0 10px rgb(var(--purple))' }}
-        />
-        Technical architecture
+      <div className="mb-9 flex flex-wrap items-center justify-center gap-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-line bg-purple/[0.06] px-4 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-purple backdrop-blur-glass">
+          <span
+            className="block h-1.5 w-1.5 rounded-full bg-purple animate-pulse-glow"
+            style={{ boxShadow: '0 0 10px rgb(var(--purple))' }}
+          />
+          Technical architecture
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-1 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
+          Project material · /technical
+        </span>
       </div>
 
       <h1

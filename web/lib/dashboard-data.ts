@@ -38,6 +38,19 @@ export interface DashboardCapital {
   color: 'cap-fin' | 'cap-tech' | 'cap-human' | 'cap-rel';
 }
 
+export type ValueFieldSource = 'aida' | 'override' | 'proxy';
+
+export interface ValueProvenance {
+  /** True when overrides_enabled on the submission row. */
+  overrides_enabled: boolean;
+  /** What the engine used for the EBITDA stone in the value bridge. */
+  ebitda_source: ValueFieldSource;
+  /** What the engine used for the top-line revenue figure. */
+  revenue_source: ValueFieldSource;
+  /** Question keys the entrepreneur marked "not relevant". */
+  excluded_questions: string[];
+}
+
 export interface DashboardValuation {
   v_current_eur: number;
   v_low_eur: number;
@@ -53,6 +66,9 @@ export interface DashboardValuation {
   scalability_index: number;
   capitals: DashboardCapital[];
   flags: string[];
+  /** Where each input came from. Populated for real submissions; demo
+   *  rows default to AIDA. */
+  provenance: ValueProvenance;
 }
 
 export interface DashboardAction {
@@ -108,6 +124,12 @@ export function fromDemo(): DashboardData {
       scalability_index: DEMO_VALUATION.scalability_index,
       capitals: DEMO_VALUATION.capitals.map((c) => ({ ...c })),
       flags:    [...DEMO_VALUATION.flags],
+      provenance: {
+        overrides_enabled: false,
+        ebitda_source: 'aida',
+        revenue_source: 'aida',
+        excluded_questions: [],
+      },
     },
     actions: DEMO_ACTIONS.map((a) => ({ ...a })),
     levers:  DEMO_LEVERS.map((l) => ({ ...l })),
@@ -162,6 +184,13 @@ export interface SubmissionRowLike {
   client_portfolio_quality: number | null;
   business_scalability: number | null;
   network_partnerships: number | null;
+  /** Provenance audit trail. Optional so the demo path still type-checks. */
+  overrides_enabled?: boolean | null;
+  override_ebitda?: number | null;
+  override_revenue_y_3?: number | null;
+  aida_ebitda?: number | null;
+  aida_revenue_y_3?: number | null;
+  excluded_questions?: string[] | null;
 }
 
 export interface RecommendationRowLike {
@@ -246,6 +275,7 @@ export function fromValuationRow(opts: FromRealOptions): DashboardData {
       scalability_index: valuation.scalability_index ?? 0,
       capitals,
       flags:            valuation.flags ?? [],
+      provenance: deriveProvenance(submission ?? null),
     },
     actions,
     levers,
@@ -331,6 +361,29 @@ function initialsFor(name: string): string {
   const first = parts[0]?.[0] ?? '?';
   const second = parts[1]?.[0] ?? '';
   return (first + second).toUpperCase();
+}
+
+/** Inspect the submission row to figure out where each scored
+ *  quantitative input came from. Mirrors the priority rule in
+ *  `buildScoringInput`: override → AIDA → proxy. */
+function deriveProvenance(s: SubmissionRowLike | null): ValueProvenance {
+  if (!s) {
+    return {
+      overrides_enabled: false,
+      ebitda_source: 'aida',
+      revenue_source: 'aida',
+      excluded_questions: [],
+    };
+  }
+  const enabled = Boolean(s.overrides_enabled);
+  const ebitdaOverridden = enabled && s.override_ebitda != null;
+  const revenueOverridden = enabled && s.override_revenue_y_3 != null;
+  return {
+    overrides_enabled: enabled,
+    ebitda_source: ebitdaOverridden ? 'override' : (s.aida_ebitda != null ? 'aida' : 'aida'),
+    revenue_source: revenueOverridden ? 'override' : 'aida',
+    excluded_questions: s.excluded_questions ?? [],
+  };
 }
 
 function readLever(key: string, s: SubmissionRowLike): number | null {

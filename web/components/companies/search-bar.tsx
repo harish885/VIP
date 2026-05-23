@@ -148,7 +148,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
             autoFocus
-            placeholder="Search company…"
+            placeholder="Search company, tax code, NACE or province…"
             className="w-full rounded-xl border border-line bg-bg-2/40 py-3.5 pl-11 pr-12 font-mono text-[13px] text-text placeholder:text-text-faint focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
             role="combobox"
             aria-autocomplete="list"
