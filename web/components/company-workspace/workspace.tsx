@@ -211,28 +211,24 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
               label: 'EBITDA',
               value: `€${kFmt(valuation.ebitda_norm_eur)}K`,
               source: provenance.ebitda_source,
-              hint: provenance.ebitda_source === 'override' ? 'Your number' : 'AIDA snapshot',
               info: <InfoButton explanation={explanations.ebitda} ariaLabel="EBITDA source" />,
             }}
             multiple={{
               label: 'Sector multiple',
               value: `${valuation.m_sector.toFixed(1)}×`,
               source: 'computed',
-              hint: 'Damodaran · illiquidity-adjusted',
               info: <InfoButton explanation={explanations.m_sector} ariaLabel="Sector multiple source" />,
             }}
             sqf={{
               label: 'SQF',
               value: valuation.sqf.toFixed(2),
               source: 'computed',
-              hint: 'Quality multiplier',
               info: <InfoButton explanation={explanations.sqf} ariaLabel="SQF derivation" />,
             }}
             gf={{
               label: 'GF',
               value: valuation.gf.toFixed(2),
               source: 'computed',
-              hint: 'Growth multiplier',
               info: <InfoButton explanation={explanations.gf} ariaLabel="GF derivation" />,
             }}
             result={{
@@ -244,41 +240,40 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
         </div>
       </Surface>
 
-      {/* Capital constellation + Strategy board */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
-        <Surface tone="raised" padding="md">
-          <SectionHeader
-            eyebrow="Capital constellation"
-            title="Four pillars, peer-relative"
-            description="Every Likert answer contributes to one capital. Excluded questions drop out and the remaining weights renormalize."
-          />
-          <div className="mt-5">
-            <CapitalConstellation
-              capitals={valuation.capitals.map((c) => ({
-                key: c.key,
-                name: c.name,
-                score: c.score,
-                weight: c.weight,
-              }))}
-              sqf={valuation.sqf}
-              sqfInfo={<InfoButton explanation={explanations.sqf} ariaLabel="SQF" />}
-              capitalInfo={(k) => {
-                const ex = explanations.capitals[k];
-                return ex ? <InfoButton explanation={ex} ariaLabel={`${k} capital`} /> : null;
-              }}
-            />
-          </div>
-        </Surface>
-
-        <StrategyBoard
-          actions={actions}
-          combinedUpliftPct={valuation.value_gap_pct}
-          actionInfo={(rank) => {
-            const ex = explanations.actions[rank];
-            return ex ? <InfoButton explanation={ex} align="left" ariaLabel={`Action ${rank}`} /> : null;
-          }}
+      {/* Capital constellation — full width so the radar + bars breathe. */}
+      <Surface tone="raised" padding="md">
+        <SectionHeader
+          eyebrow="Capital constellation"
+          title="Four pillars, peer-relative"
+          description="Every Likert answer contributes to one capital. Excluded questions drop out and the remaining weights renormalize."
         />
-      </div>
+        <div className="mt-5">
+          <CapitalConstellation
+            capitals={valuation.capitals.map((c) => ({
+              key: c.key,
+              name: c.name,
+              score: c.score,
+              weight: c.weight,
+            }))}
+            sqf={valuation.sqf}
+            sqfInfo={<InfoButton explanation={explanations.sqf} ariaLabel="SQF" />}
+            capitalInfo={(k) => {
+              const ex = explanations.capitals[k];
+              return ex ? <InfoButton explanation={ex} ariaLabel={`${k} capital`} /> : null;
+            }}
+          />
+        </div>
+      </Surface>
+
+      {/* Strategy board — full width, three roomy lanes. */}
+      <StrategyBoard
+        actions={actions}
+        combinedUpliftPct={valuation.value_gap_pct}
+        actionInfo={(rank) => {
+          const ex = explanations.actions[rank];
+          return ex ? <InfoButton explanation={ex} align="left" ariaLabel={`Action ${rank}`} /> : null;
+        }}
+      />
     </>
   );
 }
