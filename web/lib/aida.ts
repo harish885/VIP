@@ -68,6 +68,14 @@ export type SearchOutcome =
   | { ok: true; results: AidaSnapshot[] }
   | { ok: false; error: 'schema_not_exposed' | 'view_missing' | 'other'; message: string };
 
+/**
+ * Search AIDA companies by company name, tax code, NACE-rev-2 code or
+ * province. One typed term is matched (OR) across all four columns so
+ * a single search box covers every practical lookup.
+ *
+ * Examples: "huni" → name · "57294" → tax-code prefix · "31" → NACE
+ * prefix · "Bergamo" → province.
+ */
 export async function searchCompanies(
   service: ServiceClient,
   q: string,
@@ -83,9 +91,21 @@ export async function searchCompanies(
     )
     .limit(limit);
 
-  const filtered = trimmed.length === 0
+  // Strip characters that have special meaning inside PostgREST `or()`.
+  const escaped = trimmed.replace(/[,()*]/g, ' ').trim();
+
+  const filtered = escaped.length === 0
     ? builder.order('revenue_last_thk', { ascending: false, nullsFirst: false })
-    : builder.ilike('company_name', `%${trimmed}%`).order('company_name');
+    : builder
+        .or(
+          [
+            `company_name.ilike.%${escaped}%`,
+            `tax_code.ilike.${escaped}%`,
+            `nace_rev_2.ilike.${escaped}%`,
+            `province.ilike.%${escaped}%`,
+          ].join(','),
+        )
+        .order('company_name');
 
   const { data, error } = await filtered;
   if (error) {

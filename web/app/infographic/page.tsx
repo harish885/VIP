@@ -383,7 +383,7 @@ function Section2Journey() {
   const NODES = [
     { icon: Search,        label: 'Company search',     sub: '14,999 AIDA SMEs' },
     { icon: Building2,     label: 'Company dossier',    sub: 'Facts + peer group' },
-    { icon: MessageSquareQuote, label: 'Diagnostic',    sub: '20 questions · 1–5' },
+    { icon: MessageSquareQuote, label: 'Diagnostic',    sub: '19 questions · 1–5' },
     { icon: Cpu,           label: 'Signal engine',      sub: '11 signals derived' },
     { icon: Compass,       label: 'Peer benchmark',     sub: 'Percentile rank' },
     { icon: Layers,        label: '4 Capitals',         sub: 'Weighted aggregate' },
@@ -554,7 +554,7 @@ function Section3EvidenceStreams() {
             Revealed by diagnostic
           </h3>
           <p className="mb-5 text-[12.5px] text-white/40">
-            20 questions · 1–5 Likert · self-assessment
+            19 questions · 1–5 Likert · self-assessment
           </p>
           <div className="space-y-2">
             {DIAGNOSTIC.map((item, i) => (

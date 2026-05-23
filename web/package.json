@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "calibrate:acme": "tsx scripts/calibrate-acme.ts",
+    "calibrate:recommendations": "tsx scripts/calibrate-recommendations.ts",
+    "calibrate:exclusions": "tsx scripts/calibrate-exclusions.ts",
+    "check": "npm run type-check && npm run lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -35,6 +39,7 @@
     "eslint-config-next": "14.2.15",
     "postcss": "8.4.47",
     "tailwindcss": "3.4.14",
+    "tsx": "^4.22.3",
     "typescript": "5.6.3"
   }
 }

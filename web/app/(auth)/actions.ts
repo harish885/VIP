@@ -55,7 +55,7 @@ export async function signUpAction(formData: FormData): Promise<ActionResult> {
   // Session established immediately → confirmations are off.
   if (data.session) {
     revalidatePath('/', 'layout');
-    redirect('/onboarding');
+    redirect('/companies');
   }
 
   // Otherwise the user needs to click the email link first.
@@ -68,7 +68,8 @@ export async function signUpAction(formData: FormData): Promise<ActionResult> {
 export async function signInAction(formData: FormData): Promise<ActionResult> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
-  const next = String(formData.get('next') ?? '/dashboard');
+  // Pivot: every authenticated landing now lives under /companies.
+  const next = String(formData.get('next') ?? '/companies');
 
   if (!email || !password) {
     return { ok: false, error: 'Email and password are required.' };
@@ -80,7 +81,7 @@ export async function signInAction(formData: FormData): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath('/', 'layout');
-  redirect(next.startsWith('/') ? next : '/dashboard');
+  redirect(next.startsWith('/') ? next : '/companies');
 }
 
 /**

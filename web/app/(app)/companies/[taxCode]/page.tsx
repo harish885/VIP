@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/service';
+import { getUser } from '@/lib/auth';
 import { getCompanySnapshot, type AidaSnapshot } from '@/lib/aida';
 import { loadCompanyWorkspace, type CompanyWorkspaceData, type DiagnosisStatus } from '@/lib/company-loader';
 import { fromValuationRow, type DashboardData } from '@/lib/dashboard-data';
@@ -38,7 +39,11 @@ export default async function CompanyPage({
   const cookieSubmissionId = cookies().get(`${COOKIE_PREFIX}${taxCode}`)?.value ?? null;
   const preferSubmissionId = submittedId ?? cookieSubmissionId;
 
-  const workspace = await loadCompanyWorkspace(service, taxCode, preferSubmissionId);
+  const user = await getUser();
+  const workspace = await loadCompanyWorkspace(service, taxCode, {
+    userId: user?.id ?? null,
+    preferSubmissionId,
+  });
 
   if (!workspace) {
     return <CompanyEmptyState snapshot={snapshot} taxCode={taxCode} />;

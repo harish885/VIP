@@ -1,3 +1,7 @@
+# Python runtime for the AIDA splitter + Postgres ingest pipeline.
+# Pinned to lower bounds — bump as the Supabase Postgres engine evolves.
 pandas>=2.0
 openpyxl>=3.1
 xlrd>=2.0
+psycopg[binary]>=3.1
+python-dotenv>=1.0

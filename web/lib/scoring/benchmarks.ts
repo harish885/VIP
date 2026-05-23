@@ -104,12 +104,25 @@ export async function rankAgainstPeers(
     recurring_revenue,
     client_concentration_inv,
     tech_investment,
-    founder_independence: metrics.founder_independence_pct,
-    management:           metrics.management_score_pct,
-    digital_maturity:     metrics.digital_maturity_pct,
-    client_portfolio:     metrics.client_portfolio_quality_pct,
-    scalability:          metrics.business_scalability_pct,
-    network:              metrics.network_partnerships_pct,
+    // Qualitative metrics are already on a 0–100 scale → identity pass-through.
+    // NaN values (from unanswered / excluded questions) propagate and are
+    // dropped by Stage 3 `weightedMean` with weight renormalisation.
+    founder_independence:    metrics.founder_independence_pct,
+    management:              metrics.management_score_pct,
+    digital_maturity:        metrics.digital_maturity_pct,
+    client_portfolio:        metrics.client_portfolio_quality_pct,
+    scalability:             metrics.business_scalability_pct,
+    network:                 metrics.network_partnerships_pct,
+    automation:              metrics.automation_pct,
+    enabling_systems:        metrics.enabling_systems_pct,
+    distinctive_tech_assets: metrics.distinctive_tech_assets_pct,
+    process_maturity:        metrics.process_maturity_pct,
+    transferability:         metrics.transferability_pct,
+    strategic_partnerships:  metrics.strategic_partnerships_pct,
+    reputation:              metrics.reputation_pct,
+    quality_of_growth:       metrics.quality_of_growth_pct,
+    distinctive_assets_score: metrics.distinctive_assets_score_pct,
+    ma_history:              metrics.ma_history_pct,
   };
 }
 

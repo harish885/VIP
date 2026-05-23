@@ -70,8 +70,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isAuth) {
+    // Pivot: send signed-in users straight to the company search;
+    // the legacy /dashboard route just re-redirects there anyway.
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/companies';
     return NextResponse.redirect(url);
   }
 

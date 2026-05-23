@@ -2,7 +2,7 @@
 
 The production Next.js codebase for **VIP — Value Intelligence Platform**.
 
-> **Current state:** Phase 10 (the company-search pivot). Marketing site, per-company workspace, 20-question diagnostic, scoring pipeline, recommendation engine and simulation panel are all live. Demo mode is on (auth dormant).
+> **Current state:** Phase 10 (the company-search pivot). Marketing site, per-company workspace, 19-question diagnostic, scoring pipeline, recommendation engine and simulation panel are all live. Demo mode is on (auth dormant).
 
 ## Run it
 
@@ -45,7 +45,7 @@ web/
 │   ├── companies/search-bar.tsx
 │   ├── company-workspace/        ← per-company dashboard shell
 │   ├── dashboard/simulation-panel.tsx
-│   ├── diagnostic/               ← 20-question form + rating dots
+│   ├── diagnostic/               ← 19-question form + rating dots
 │   ├── auth/                     ← login + signup forms (dormant)
 │   ├── onboarding/onboarding-wizard.tsx
 │   └── explainer/explainer.tsx

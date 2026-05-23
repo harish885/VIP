@@ -22,26 +22,43 @@ import type {
 // =============================================================================
 export type Weight = { key: keyof PercentileRanks; weight: number };
 
+/**
+ * Per-capital weights. Every scored Likert in the questionnaire feeds
+ * exactly one capital so the user can see their answers reflected in
+ * the radar. Weights inside each capital sum to 1.0; if a metric is
+ * NaN (question excluded) `weightedMean` drops it and renormalises
+ * across the remaining weights.
+ */
 export const CAPITAL_WEIGHTS: Record<CapitalKey, Weight[]> = {
   financial: [
     { key: 'ebitda_margin',            weight: 0.30 },
     { key: 'revenue_cagr',             weight: 0.25 },
-    { key: 'recurring_revenue',        weight: 0.20 },
-    { key: 'client_concentration_inv', weight: 0.25 },
+    { key: 'recurring_revenue',        weight: 0.15 },
+    { key: 'client_concentration_inv', weight: 0.15 },
+    { key: 'quality_of_growth',        weight: 0.15 },  // Q13
   ],
   technological: [
-    { key: 'digital_maturity',         weight: 0.55 },
-    { key: 'tech_investment',          weight: 0.45 },
+    { key: 'digital_maturity',         weight: 0.30 },  // Q1
+    { key: 'tech_investment',          weight: 0.20 },
+    { key: 'automation',               weight: 0.15 },  // Q2
+    { key: 'enabling_systems',         weight: 0.15 },  // Q3
+    { key: 'distinctive_tech_assets',  weight: 0.20 },  // Q4
   ],
   human: [
-    { key: 'founder_independence',     weight: 0.40 },
-    { key: 'management',               weight: 0.35 },
-    { key: 'scalability',              weight: 0.25 },
+    { key: 'founder_independence',     weight: 0.25 },  // Q5
+    { key: 'management',               weight: 0.20 },  // Q6
+    { key: 'process_maturity',         weight: 0.15 },  // Q7
+    { key: 'transferability',          weight: 0.10 },  // Q8
+    { key: 'scalability',              weight: 0.15 },  // Q14
+    { key: 'distinctive_assets_score', weight: 0.15 },  // Q18
   ],
   relational: [
-    { key: 'client_portfolio',         weight: 0.40 },
-    { key: 'network',                  weight: 0.30 },
-    { key: 'recurring_revenue',        weight: 0.30 },
+    { key: 'client_portfolio',         weight: 0.25 },  // Q9
+    { key: 'strategic_partnerships',   weight: 0.20 },  // Q10
+    { key: 'reputation',               weight: 0.15 },  // Q11
+    { key: 'network',                  weight: 0.20 },  // Q12
+    { key: 'recurring_revenue',        weight: 0.10 },
+    { key: 'ma_history',               weight: 0.10 },  // Q19
   ],
 };
 

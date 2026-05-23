@@ -68,8 +68,21 @@ export async function submitCompanyDiagnosticAction(
   if (!companyId.ok) return { ok: false, error: companyId.error };
 
   // ---------------------------------------------------------------------------
-  // 2. Build the scoring input + persist the submission
+  // 2. Capture the raw AIDA snapshot quant separately from the effective
+  //    values the scoring engine consumed. Three sets live on every row:
+  //      · aida_*    — raw snapshot at submission time (audit baseline)
+  //      · override_* — user-entered values (when overrides_enabled)
+  //      · legacy `revenue_y_*`, `ebitda`, … — *effective* values used by
+  //        scoring (override → AIDA → proxy, in that priority).
+  //    With this split each valuation is fully reproducible.
   // ---------------------------------------------------------------------------
+  const aidaSnapshotQuant = aidaSnapshotInputs(snapshot);
+  const aidaOnlyScoring = buildScoringInput({
+    diagnostic: q,
+    snapshot,
+    overrides: null,
+  });
+
   const scoringInput = buildScoringInput({
     diagnostic: q,
     snapshot,
@@ -98,7 +111,8 @@ export async function submitCompanyDiagnosticAction(
     .insert({
       user_id: user?.id ?? null,
       company_id: companyId.id,
-      // AIDA snapshot frozen at submission time (unchanged regardless of overrides)
+      // EFFECTIVE quant — what the scoring engine actually consumed
+      // (override → AIDA → proxy resolved by buildScoringInput).
       revenue_y_1: scoringInput.revenue_y_1,
       revenue_y_2: scoringInput.revenue_y_2,
       revenue_y_3: scoringInput.revenue_y_3,
@@ -108,7 +122,20 @@ export async function submitCompanyDiagnosticAction(
       top3_client_concentration: scoringInput.top3_client_concentration,
       revenue_cagr_pct: revenueCagr,
       tech_investment_ratio_pct: scoringInput.tech_investment_ratio_pct,
-      // User-entered financial overrides (raw, before they were applied to scoringInput)
+      // RAW AIDA snapshot — never mutated by overrides. Audit baseline.
+      aida_revenue_y_1:               aidaSnapshotQuant.revenue_y_1,
+      aida_revenue_y_2:               aidaSnapshotQuant.revenue_y_2,
+      aida_revenue_y_3:               aidaSnapshotQuant.revenue_y_3,
+      aida_ebitda:                    aidaSnapshotQuant.ebitda,
+      aida_ebitda_margin_pct:         aidaSnapshotQuant.ebitda_margin_pct,
+      // AIDA does not carry these two directly today — store the bridge's
+      // Q-proxied value (computed without user overrides) so the audit
+      // trail still reflects "what AIDA + the questionnaire alone would
+      // have produced".
+      aida_recurring_revenue_pct:     aidaOnlyScoring.recurring_revenue_pct,
+      aida_top3_client_concentration: aidaOnlyScoring.top3_client_concentration,
+      aida_tech_investment_ratio_pct: aidaSnapshotQuant.tech_investment_ratio_pct,
+      // User-entered overrides — raw, before being applied to scoringInput.
       overrides_enabled: Boolean(overrides.enabled),
       override_revenue_y_1: overrideNum(overrides.revenue_y_1),
       override_revenue_y_2: overrideNum(overrides.revenue_y_2),
@@ -290,4 +317,56 @@ async function ensureCompanyRow(
     return { ok: false, error: error?.message ?? 'Could not create company row.' };
   }
   return { ok: true, id: created.id };
+}
+
+// =============================================================================
+// AIDA snapshot quant extraction — separate from buildScoringInput so the
+// raw baseline persists on the submission row even when overrides win.
+// =============================================================================
+import type { AidaSnapshot } from '@/lib/aida';
+
+interface AidaQuantSnapshot {
+  revenue_y_1: number | null;
+  revenue_y_2: number | null;
+  revenue_y_3: number | null;
+  ebitda: number | null;
+  ebitda_margin_pct: number | null;
+  /** R&D / revenue ratio derived from AIDA. NULL when AIDA does not report R&D. */
+  tech_investment_ratio_pct: number | null;
+}
+
+function aidaSnapshotInputs(s: AidaSnapshot): AidaQuantSnapshot {
+  const revLast = thkToEur(s.revenue_last_thk);
+  const rev2024 = thkToEur(s.revenue_2024_thk) || revLast;
+  const rev2023 = thkToEur(s.revenue_2023_thk) || rev2024;
+  const rev2022 = thkToEur(s.revenue_2022_thk) || rev2023;
+  const y3 = revLast || rev2024 || rev2023 || rev2022 || null;
+  const y2 = rev2023 || y3;
+  const y1 = rev2022 || y2;
+  const ebitda = thkToEur(s.ebitda_last_thk) || thkToEur(s.ebitda_2024_thk) || null;
+  const margin =
+    s.ebitda_margin_pct != null
+      ? s.ebitda_margin_pct
+      : ebitda != null && y3 != null && y3 > 0
+        ? (ebitda / y3) * 100
+        : null;
+  const rd =
+    s.rd_expense_thk != null && y3 != null && y3 > 0
+      ? (s.rd_expense_thk * 1000 / y3) * 100
+      : null;
+  return {
+    revenue_y_1: y1 != null ? Math.round(y1) : null,
+    revenue_y_2: y2 != null ? Math.round(y2) : null,
+    revenue_y_3: y3 != null ? Math.round(y3) : null,
+    ebitda: ebitda != null ? Math.round(ebitda) : null,
+    ebitda_margin_pct: margin != null ? round1(margin) : null,
+    tech_investment_ratio_pct: rd != null ? round1(rd) : null,
+  };
+}
+
+function thkToEur(n: number | null | undefined): number {
+  return n == null ? 0 : n * 1000;
+}
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
 }

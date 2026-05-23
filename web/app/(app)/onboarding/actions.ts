@@ -61,6 +61,10 @@ export async function createCompanyAction(formData: FormData): Promise<Onboardin
 
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath('/dashboard');
-  redirect(`/dashboard?company=${data.id}`);
+  // Pivot: dashboards now live under /companies/[taxCode]. Onboarding
+  // creates a non-AIDA "free-form" company row but the post-pivot UI
+  // doesn't surface those — bounce the user to the company search.
+  void data;
+  revalidatePath('/companies');
+  redirect('/companies');
 }

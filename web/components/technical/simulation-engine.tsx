@@ -63,7 +63,7 @@ export function SimulationEngineSection() {
             concentration → input.top3_client_concentration ·
             recurring → recurring_revenue_pct ·
             rd_intensity → tech_investment_ratio_pct. Everything else stays pinned
-            to the baseline so the user can&rsquo;t accidentally hand-tune all 17 inputs.
+            to the baseline so the user can&rsquo;t accidentally hand-tune all 19 inputs.
           </Note>
         </div>
       </div>

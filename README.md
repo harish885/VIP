@@ -1,6 +1,6 @@
 # VIP - Value Intelligence Platform
 
-> A company-centric decision assistant for SME entrepreneurs. VIP lets a user search an AIDA company, run a 20-question diagnostic, and receive an enterprise-value estimate, value gap, quality score, risk index, four capital scores, Top-3 value actions, and simulation levers.
+> A company-centric decision assistant for SME entrepreneurs. VIP lets a user search an AIDA company, run a 19-question diagnostic, and receive an enterprise-value estimate, value gap, quality score, risk index, four capital scores, Top-3 value actions, and simulation levers.
 
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -124,7 +124,7 @@ Useful routes:
 | `/` | Product story / marketing page |
 | `/companies` | Search the shared AIDA company snapshot |
 | `/companies/[taxCode]` | Company factsheet and dashboard |
-| `/companies/[taxCode]/diagnostic` | 20-question diagnostic |
+| `/companies/[taxCode]/diagnostic` | 19-question diagnostic |
 | `/how-it-works` | Interactive project explainer |
 | `/method` | Methodology page |
 
@@ -332,7 +332,7 @@ What happens:
 1. The user searches the AIDA snapshot.
 2. The app opens a per-company factsheet.
 3. If no diagnostic exists, the dashboard asks the user to run one.
-4. The 20-question diagnostic collects qualitative business signals.
+4. The 19-question diagnostic collects qualitative business signals.
 5. Quantitative company facts are pulled from AIDA at submission time.
 6. The scoring engine calculates valuation, risk, capitals, and recommendations.
 7. The company dashboard renders the result and simulation controls.

@@ -7,12 +7,17 @@
 --
 --   1. Financial overrides. The entrepreneur can opt-out of AIDA-derived
 --      quantitative inputs (revenue history, EBITDA, recurring revenue,
---      client concentration, R&D ratio) and enter their own numbers. Both
---      sets of numbers are kept: the AIDA snapshot columns (revenue_y_*,
---      ebitda, …) remain "what we pulled at submission time" and the new
---      override_* columns record "what the user actually wanted us to use".
---      `overrides_enabled` says which set the scoring run consumed, so the
---      valuation is reproducible from either side.
+--      client concentration, R&D ratio) and enter their own numbers.
+--      `override_*` columns record what the user typed.
+--      `overrides_enabled` says whether the scoring run consumed those
+--      overrides.
+--
+--      The raw AIDA snapshot used to live in `revenue_y_*`, `ebitda`,
+--      etc. — making the snapshot get clobbered when overrides won.
+--      Migration 20260513100000_aida_snapshot_columns.sql introduces
+--      dedicated `aida_*` columns and repurposes the legacy columns as
+--      the EFFECTIVE values the scoring engine actually consumed
+--      (override → AIDA → proxy in that priority).
 --
 --   2. "Not relevant" question exclusion. The entrepreneur can mark any
 --      qualitative question as not relevant. Excluded questions get NULL

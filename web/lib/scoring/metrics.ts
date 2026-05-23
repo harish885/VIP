@@ -1,23 +1,23 @@
 /**
  * Phase 06 · Stage 1 — Metric Engineering.
  *
- * Turn the raw diagnostic submission into the ~12 metrics the downstream
- * stages actually consume. Two flavours:
+ * Turn the raw diagnostic submission into the metrics the downstream
+ * stages consume. Two flavours:
  *
  *   · Quantitative metrics  — peer-comparable, ranked against AIDA peers
  *     in Stage 2 (revenue CAGR, EBITDA margin, recurring revenue,
  *     client concentration, tech investment ratio). Always defined —
- *     they come from AIDA snapshot or the entrepreneur's overrides.
+ *     they come from the AIDA snapshot or the entrepreneur's overrides.
  *
- *   · Qualitative metrics   — 1-5 self-assessments mapped to a 0-100
- *     score in this stage. The entrepreneur can mark a question "not
- *     relevant", in which case the value is null in the input and we
- *     emit NaN. Stage 3 `weightedMean` already skips NaN entries and
- *     renormalises the remaining weights, so excluded questions simply
- *     drop out of the within-capital aggregation.
+ *   · Qualitative metrics   — 1-5 self-assessments mapped to 0-100 here.
+ *     The entrepreneur can mark a question "not relevant" → the value
+ *     is null in the input and we emit NaN. Stage 3 `weightedMean`
+ *     drops NaN entries and renormalises the remaining weights, so
+ *     excluded questions disappear from the within-capital aggregation
+ *     without distorting the others.
  *
- * Bounds: every defined metric falls inside finite, well-defined ranges
- * so the downstream weighted mean is meaningful even on extreme inputs.
+ * Every Likert in `DiagnosticInput` flows into a metric here, so every
+ * answered question is reflected in the final scores.
  */
 import type { ScoringInput } from './company-input';
 import type { DerivedMetrics } from './types';
@@ -35,13 +35,23 @@ export function deriveMetrics(input: ScoringInput): DerivedMetrics {
     client_concentration_inv: round1(100 - input.top3_client_concentration),
     tech_investment_ratio_pct: round1(input.tech_investment_ratio_pct),
 
-    // Qualitative: NaN when null OR explicitly excluded.
-    founder_independence_pct:     qualPct(input.founder_dependency,        excluded.has('founder_dependency')),
-    management_score_pct:         qualPct(input.management_structure,      excluded.has('management_structure')),
-    digital_maturity_pct:         qualPct(input.digital_maturity,          excluded.has('digital_maturity')),
-    client_portfolio_quality_pct: qualPct(input.client_portfolio_quality,  excluded.has('client_portfolio_quality')),
-    business_scalability_pct:     qualPct(input.business_scalability,      excluded.has('business_scalability')),
-    network_partnerships_pct:     qualPct(input.network_partnerships,      excluded.has('network_partnerships')),
+    // Q1–Q14 + Q17–Q19 qualitative inputs. NaN when null or excluded.
+    digital_maturity_pct:           qualPct(input.digital_maturity,          excluded.has('digital_maturity')),
+    automation_pct:                 qualPct(input.q_automation,              excluded.has('q_automation')),
+    enabling_systems_pct:           qualPct(input.q_enabling_systems,        excluded.has('q_enabling_systems')),
+    distinctive_tech_assets_pct:    qualPct(input.q_distinctive_tech_assets, excluded.has('q_distinctive_tech_assets')),
+    founder_independence_pct:       qualPct(input.founder_dependency,        excluded.has('founder_dependency')),
+    management_score_pct:           qualPct(input.management_structure,      excluded.has('management_structure')),
+    process_maturity_pct:           qualPct(input.q_process_maturity,        excluded.has('q_process_maturity')),
+    transferability_pct:            qualPct(input.q_transferability,         excluded.has('q_transferability')),
+    client_portfolio_quality_pct:   qualPct(input.client_portfolio_quality,  excluded.has('client_portfolio_quality')),
+    strategic_partnerships_pct:     qualPct(input.q_strategic_partnerships,  excluded.has('q_strategic_partnerships')),
+    reputation_pct:                 qualPct(input.q_reputation,              excluded.has('q_reputation')),
+    network_partnerships_pct:       qualPct(input.network_partnerships,      excluded.has('network_partnerships')),
+    quality_of_growth_pct:          qualPct(input.q_quality_of_growth,       excluded.has('q_quality_of_growth')),
+    business_scalability_pct:       qualPct(input.business_scalability,      excluded.has('business_scalability')),
+    distinctive_assets_score_pct:   qualPct(input.q_distinctive_assets_score, excluded.has('q_distinctive_assets_score')),
+    ma_history_pct:                 qualPct(input.q_ma_history,              excluded.has('q_ma_history')),
   };
 }
 
@@ -62,11 +72,7 @@ function computeEbitdaMargin(ebitda: number, rev_y3: number): number {
  * Map a 1–5 Likert response to a 0–100 score. Returns NaN if the
  * question was unanswered or explicitly excluded.
  *
- *   raw 1 → 15
- *   raw 2 → 60
- *   raw 3 → 65
- *   raw 4 → 82
- *   raw 5 → 95
+ *   raw 1 → 15   raw 2 → 60   raw 3 → 65   raw 4 → 82   raw 5 → 95
  */
 const LIKERT_TO_PCT: Record<1 | 2 | 3 | 4 | 5, number> = {
   1: 15,

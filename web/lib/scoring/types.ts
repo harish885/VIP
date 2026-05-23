@@ -18,9 +18,15 @@ export type FragilityFlag =
   | 'low_digital'
   | 'over_leveraged';
 
-/** Stage 1 — engineered metrics derived from raw inputs. */
+/** Stage 1 — engineered metrics derived from raw inputs.
+ *
+ * Qualitative metrics are mapped from 1–5 Likert via metrics.ts and may be
+ * NaN when the question was unanswered or excluded ("not relevant"). The
+ * Stage 3 weighted mean drops NaN entries and renormalises remaining
+ * weights, so excluded questions naturally disappear from the score.
+ */
 export interface DerivedMetrics {
-  // Quantitative (peer-comparable)
+  // Quantitative (peer-comparable, always defined)
   revenue_cagr_2y_pct: number;
   ebitda_margin_pct: number;
   recurring_revenue_pct: number;
@@ -28,16 +34,28 @@ export interface DerivedMetrics {
   client_concentration_inv: number;          // 100 − top3
   tech_investment_ratio_pct: number;
 
-  // Qualitative 1–5 mapped to 0–100 (absolute, not peer)
+  // Qualitative 1–5 mapped to 0–100. NaN = unanswered or excluded.
   founder_independence_pct: number;
   management_score_pct: number;
   digital_maturity_pct: number;
   client_portfolio_quality_pct: number;
   business_scalability_pct: number;
   network_partnerships_pct: number;
+  // P3 expansion — every scored questionnaire input now contributes.
+  automation_pct: number;
+  enabling_systems_pct: number;
+  distinctive_tech_assets_pct: number;
+  process_maturity_pct: number;
+  transferability_pct: number;
+  strategic_partnerships_pct: number;
+  reputation_pct: number;
+  quality_of_growth_pct: number;
+  distinctive_assets_score_pct: number;
+  ma_history_pct: number;
 }
 
-/** Stage 2 — per-metric peer percentile rank (0–100). */
+/** Stage 2 — per-metric peer percentile rank (0–100). NaN propagates from
+ * Stage 1 for unanswered/excluded qualitative metrics. */
 export interface PercentileRanks {
   revenue_cagr: number;
   ebitda_margin: number;
@@ -52,6 +70,16 @@ export interface PercentileRanks {
   client_portfolio: number;
   scalability: number;
   network: number;
+  automation: number;
+  enabling_systems: number;
+  distinctive_tech_assets: number;
+  process_maturity: number;
+  transferability: number;
+  strategic_partnerships: number;
+  reputation: number;
+  quality_of_growth: number;
+  distinctive_assets_score: number;
+  ma_history: number;
 }
 
 /** Stage 3 — within-capital weighted means of the percentile ranks. */

@@ -32,6 +32,16 @@ const SIGNAL_LABELS: Record<keyof PercentileRanks, string> = {
   client_portfolio: 'Client portfolio quality',
   scalability: 'Scalability',
   network: 'Network position',
+  automation: 'Automation',
+  enabling_systems: 'Enabling systems',
+  distinctive_tech_assets: 'Distinctive tech assets',
+  process_maturity: 'Process maturity',
+  transferability: 'Transferability',
+  strategic_partnerships: 'Strategic partnerships',
+  reputation: 'Reputation',
+  quality_of_growth: 'Quality of growth',
+  distinctive_assets_score: 'Distinctive assets',
+  ma_history: 'M&A experience',
 };
 
 export default async function HowItWorksPage() {

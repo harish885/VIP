@@ -24,7 +24,7 @@ export function TechClosing() {
         </h2>
 
         <p className="mx-auto mb-8 max-w-[640px] text-[14px] leading-relaxed text-text-dim">
-          14,999 calibration rows in a Postgres view. 17 inputs through 6 pure-TS
+          14,999 calibration rows in a Postgres view. 19 inputs through 6 pure-TS
           stages. One server action ships it. The same module re-runs in the
           browser when the user moves a slider — no second engine to keep in sync.
         </p>

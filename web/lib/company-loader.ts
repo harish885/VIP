@@ -105,32 +105,52 @@ const SUBMISSION_COLUMNS =
 const RECOMMENDATION_COLUMNS =
   'rank, title, description, capital_impact, v_uplift_pct, time_horizon_months';
 
+export interface LoadCompanyWorkspaceOptions {
+  /** Auth user id when signed in. NULL → anonymous demo session. */
+  userId: string | null;
+  /** ?submitted=<id> or per-tax-code cookie. Trusted exact match. */
+  preferSubmissionId: string | null;
+}
+
 /**
  * Find the valuation we should render for this company right now.
  *
- * Always trusts an explicit submission_id when one is supplied — that's
- * the row we just wrote. Otherwise picks the most recent valuation
- * across every vip.companies row that points at this tax_code.
+ * Scoping rules:
+ *
+ *   · Authenticated users only see their own diagnostics — every
+ *     read filters `companies.user_id = userId`. This prevents one
+ *     signed-in user from seeing another's valuation by guessing the
+ *     tax code, even though we go through the service-role client.
+ *
+ *   · Anonymous demo users (userId === null) only see anonymous rows
+ *     (`companies.user_id IS NULL`). When `preferSubmissionId` is set,
+ *     the load is pinned to that exact submission and we verify both
+ *     tax_code and ownership match before returning it.
+ *
+ *   · `preferSubmissionId` always wins when supplied — that's the row
+ *     we just wrote — but it still has to belong to the caller.
  */
 export async function loadCompanyWorkspace(
   service: ServiceClient,
   taxCode: string,
-  preferSubmissionId: string | null,
+  opts: LoadCompanyWorkspaceOptions,
 ): Promise<CompanyWorkspaceData | null> {
+  const { userId, preferSubmissionId } = opts;
   let valuation: ValuationRecord | null = null;
 
   if (preferSubmissionId) {
     valuation = await loadValuationBySubmission(service, preferSubmissionId);
-    // Belt-and-braces: confirm the linked company actually has this tax_code,
-    // so a stale cookie from another company can't poison the workspace.
     if (valuation) {
-      const owner = await loadCompanyById(service, valuation.company_id);
-      if (!owner || owner.tax_code !== taxCode) valuation = null;
+      const owner = await loadCompanyOwnership(service, valuation.company_id);
+      // Reject if tax code mismatches OR the row belongs to someone else.
+      const taxOk = owner?.tax_code === taxCode;
+      const ownerOk = owner != null && ownsCompanyRow(owner.user_id, userId);
+      if (!taxOk || !ownerOk) valuation = null;
     }
   }
 
   if (!valuation) {
-    valuation = await loadLatestValuationForTaxCode(service, taxCode);
+    valuation = await loadLatestValuationForTaxCode(service, taxCode, userId);
   }
 
   if (!valuation) return null;
@@ -152,6 +172,25 @@ export async function loadCompanyWorkspace(
   };
 }
 
+/** True when the row belongs to the given caller (auth or anonymous). */
+function ownsCompanyRow(rowUserId: string | null, callerUserId: string | null): boolean {
+  if (callerUserId == null) return rowUserId == null;
+  return rowUserId === callerUserId;
+}
+
+async function loadCompanyOwnership(
+  service: ServiceClient,
+  companyId: string,
+): Promise<{ tax_code: string | null; user_id: string | null } | null> {
+  const { data } = await service
+    .from('companies')
+    .select('tax_code, user_id')
+    .eq('id', companyId)
+    .maybeSingle();
+  if (!data) return null;
+  return { tax_code: data.tax_code ?? null, user_id: data.user_id ?? null };
+}
+
 /** Diagnosis status — used by the company workspace header and the
  *  /companies search list to badge "Not diagnosed" vs "Updated recently". */
 export function diagnosisStatusFor(computed_at: string | null): DiagnosisStatus {
@@ -161,16 +200,18 @@ export function diagnosisStatusFor(computed_at: string | null): DiagnosisStatus 
   return 'diagnosed';
 }
 
-/** Map: tax_code → latest computed_at. Used by /companies for status badges. */
+/** Map: tax_code → latest computed_at. Used by /companies for status badges.
+ *  Scoped to the calling user (auth) or anonymous demo rows (no auth). */
 export async function loadLatestComputedAtByTaxCode(
   service: ServiceClient,
   taxCodes: string[],
+  userId: string | null = null,
 ): Promise<Map<string, string>> {
   if (taxCodes.length === 0) return new Map();
-  const { data: companies, error: e1 } = await service
-    .from('companies')
-    .select('id, tax_code')
-    .in('tax_code', taxCodes);
+  let q = service.from('companies').select('id, tax_code').in('tax_code', taxCodes);
+  if (userId) q = q.eq('user_id', userId);
+  else q = q.is('user_id', null);
+  const { data: companies, error: e1 } = await q;
   if (e1 || !companies) return new Map();
   const idToTax = new Map<string, string>();
   for (const c of companies) if (c.tax_code) idToTax.set(c.id, c.tax_code);
@@ -216,12 +257,14 @@ async function loadValuationBySubmission(
 async function loadLatestValuationForTaxCode(
   service: ServiceClient,
   taxCode: string,
+  userId: string | null,
 ): Promise<ValuationRecord | null> {
-  // Step 1: find every vip.companies row linked to this tax_code.
-  const { data: companyIds } = await service
-    .from('companies')
-    .select('id')
-    .eq('tax_code', taxCode);
+  // Step 1: find vip.companies rows for this tax_code owned by the caller.
+  let companiesQuery = service.from('companies').select('id').eq('tax_code', taxCode);
+  if (userId) companiesQuery = companiesQuery.eq('user_id', userId);
+  else companiesQuery = companiesQuery.is('user_id', null);
+
+  const { data: companyIds } = await companiesQuery;
   if (!companyIds || companyIds.length === 0) return null;
 
   // Step 2: pick the freshest valuation across those rows.

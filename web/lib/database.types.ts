@@ -323,6 +323,14 @@ export type Database = {
           business_scalability: number | null
           client_portfolio_quality: number | null
           company_id: string
+          aida_ebitda: number | null
+          aida_ebitda_margin_pct: number | null
+          aida_recurring_revenue_pct: number | null
+          aida_revenue_y_1: number | null
+          aida_revenue_y_2: number | null
+          aida_revenue_y_3: number | null
+          aida_tech_investment_ratio_pct: number | null
+          aida_top3_client_concentration: number | null
           digital_maturity: number | null
           ebitda: number | null
           ebitda_margin_pct: number | null
@@ -364,6 +372,14 @@ export type Database = {
           business_scalability?: number | null
           client_portfolio_quality?: number | null
           company_id: string
+          aida_ebitda?: number | null
+          aida_ebitda_margin_pct?: number | null
+          aida_recurring_revenue_pct?: number | null
+          aida_revenue_y_1?: number | null
+          aida_revenue_y_2?: number | null
+          aida_revenue_y_3?: number | null
+          aida_tech_investment_ratio_pct?: number | null
+          aida_top3_client_concentration?: number | null
           digital_maturity?: number | null
           ebitda?: number | null
           ebitda_margin_pct?: number | null
@@ -405,6 +421,14 @@ export type Database = {
           business_scalability?: number | null
           client_portfolio_quality?: number | null
           company_id?: string
+          aida_ebitda?: number | null
+          aida_ebitda_margin_pct?: number | null
+          aida_recurring_revenue_pct?: number | null
+          aida_revenue_y_1?: number | null
+          aida_revenue_y_2?: number | null
+          aida_revenue_y_3?: number | null
+          aida_tech_investment_ratio_pct?: number | null
+          aida_top3_client_concentration?: number | null
           digital_maturity?: number | null
           ebitda?: number | null
           ebitda_margin_pct?: number | null
