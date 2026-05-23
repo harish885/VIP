@@ -76,6 +76,14 @@ export function CompanyPassport({
               <Dot />
               <span className="font-mono text-[11px] text-text-faint">Tax · {taxCode}</span>
             </div>
+            {(snapshot.nace_rev_2_description || snapshot.primary_business_line) && (
+              <p className="mt-2 max-w-[640px] text-[12.5px] leading-snug text-text-faint">
+                {snapshot.nace_rev_2_description ?? snapshot.primary_business_line}
+                {snapshot.peer_group_name && (
+                  <> · peer group <span className="text-text-dim">{snapshot.peer_group_name}</span></>
+                )}
+              </p>
+            )}
           </div>
           {actions && <div className="flex shrink-0 flex-wrap items-start gap-2">{actions}</div>}
         </div>
@@ -83,67 +91,67 @@ export function CompanyPassport({
 
       <div
         className={cn(
-          'grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6',
           variant === 'full' ? 'mt-7 border-t border-line-faint pt-6' : '',
         )}
       >
-        <PassportFact
-          icon={<BarChart3 size={14} />}
-          label="Revenue (last)"
-          value={fmtMoney(thk(snapshot.revenue_last_thk))}
-          sub="Bureau van Dijk"
-        />
-        <PassportFact
-          icon={<Coins size={14} />}
-          label="EBITDA"
-          value={fmtMoney(thk(snapshot.ebitda_last_thk))}
-          sub={
-            snapshot.ebitda_margin_pct != null
-              ? `Margin ${snapshot.ebitda_margin_pct.toFixed(1)}%`
-              : '—'
-          }
-        />
-        <PassportFact
-          icon={<Users size={14} />}
-          label="Employees"
-          value={snapshot.employees != null ? Math.round(snapshot.employees).toString() : '—'}
-          sub={
-            snapshot.turnover_per_employee_eur != null
-              ? `€${Math.round(snapshot.turnover_per_employee_eur).toLocaleString()} / head`
-              : '—'
-          }
-        />
-        <PassportFact
-          icon={<Wallet size={14} />}
-          label="Net financial position"
-          value={fmtMoney(thk(snapshot.net_financial_position_thk))}
-          sub={
-            snapshot.debt_ebitda_ratio != null
-              ? `Debt / EBITDA ${snapshot.debt_ebitda_ratio.toFixed(1)}×`
-              : '—'
-          }
-        />
-        <PassportFact
-          icon={<FlaskConical size={14} />}
-          label="R&D / revenue"
-          value={
-            aidaRdRatio == null || aidaRdRatio === 0
-              ? '—'
-              : `${aidaRdRatio.toFixed(1)}%`
-          }
-          sub={
-            snapshot.rd_expense_thk != null && snapshot.rd_expense_thk > 0
-              ? `${fmtMoney(thk(snapshot.rd_expense_thk))} reported`
-              : 'Not reported by AIDA'
-          }
-        />
-        <PassportFact
-          icon={<Factory size={14} />}
-          label="Sector"
-          value={snapshot.nace_rev_2_description ?? snapshot.primary_business_line ?? '—'}
-          sub={snapshot.peer_group_name ? `Peer · ${snapshot.peer_group_name}` : 'Peer group N/A'}
-          wide
-        />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
+            Public factsheet
+          </div>
+          <SourceBadge source="aida" label="AIDA · Bureau van Dijk" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <PassportFact
+            icon={<BarChart3 size={14} />}
+            label="Revenue"
+            value={fmtMoney(thk(snapshot.revenue_last_thk))}
+            sub="Last reported year"
+          />
+          <PassportFact
+            icon={<Coins size={14} />}
+            label="EBITDA"
+            value={fmtMoney(thk(snapshot.ebitda_last_thk))}
+            sub={
+              snapshot.ebitda_margin_pct != null
+                ? `Margin ${snapshot.ebitda_margin_pct.toFixed(1)}%`
+                : '—'
+            }
+          />
+          <PassportFact
+            icon={<Users size={14} />}
+            label="Employees"
+            value={snapshot.employees != null ? Math.round(snapshot.employees).toString() : '—'}
+            sub={
+              snapshot.turnover_per_employee_eur != null
+                ? `€${Math.round(snapshot.turnover_per_employee_eur).toLocaleString()} / head`
+                : '—'
+            }
+          />
+          <PassportFact
+            icon={<Wallet size={14} />}
+            label="Net fin. position"
+            value={fmtMoney(thk(snapshot.net_financial_position_thk))}
+            sub={
+              snapshot.debt_ebitda_ratio != null
+                ? `Debt / EBITDA ${snapshot.debt_ebitda_ratio.toFixed(1)}×`
+                : '—'
+            }
+          />
+          <PassportFact
+            icon={<FlaskConical size={14} />}
+            label="R&D ratio"
+            value={
+              aidaRdRatio == null || aidaRdRatio === 0
+                ? '—'
+                : `${aidaRdRatio.toFixed(1)}%`
+            }
+            sub={
+              snapshot.rd_expense_thk != null && snapshot.rd_expense_thk > 0
+                ? `${fmtMoney(thk(snapshot.rd_expense_thk))} reported`
+                : 'Not reported'
+            }
+          />
+        </div>
       </div>
     </Surface>
   );
@@ -164,27 +172,19 @@ function PassportFact({
   label,
   value,
   sub,
-  wide,
 }: {
   icon?: ReactNode;
   label: string;
   value: string;
   sub: string;
-  wide?: boolean;
 }) {
   return (
-    <div
-      className={cn(
-        'min-w-0 rounded-xl border border-line bg-bg-1/80 px-4 py-3',
-        wide && 'col-span-2 sm:col-span-3 lg:col-span-2',
-      )}
-    >
+    <div className="min-w-0 rounded-xl border border-line bg-bg-1/80 px-4 py-3">
       <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         <span className="text-text-faint">{icon}</span>
         <span className="truncate">{label}</span>
-        <SourceBadge source="aida" className="ml-auto shrink-0" />
       </div>
-      <div className="mt-1.5 font-serif text-[19px] font-medium leading-tight tracking-tight text-text">
+      <div className="mt-2 font-serif text-[20px] font-medium leading-tight tracking-tight text-text">
         {value}
       </div>
       <div className="mt-1 truncate text-[11.5px] text-text-faint">{sub}</div>

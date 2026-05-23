@@ -34,8 +34,9 @@ interface Props {
  */
 export function ValueBridge({ ebitda, multiple, sqf, gf, result }: Props) {
   return (
-    <div className="overflow-x-auto">
-      <div className="flex min-w-[640px] items-stretch gap-3 lg:min-w-0">
+    <div className="space-y-3">
+      {/* Desktop: single row with multiply glyphs between stones. */}
+      <div className="hidden items-stretch gap-3 lg:flex">
         <Stone {...ebitda} />
         <Glyph><Multiply /></Glyph>
         <Stone {...multiple} />
@@ -45,6 +46,16 @@ export function ValueBridge({ ebitda, multiple, sqf, gf, result }: Props) {
         <Stone {...gf} />
         <Glyph><span className="font-serif text-[20px] font-medium text-text-faint">=</span></Glyph>
         <ResultStone {...result} />
+      </div>
+      {/* Mobile + tablet: 2-column grid of stones, result spans full width. */}
+      <div className="grid grid-cols-2 gap-3 lg:hidden">
+        <Stone {...ebitda} />
+        <Stone {...multiple} />
+        <Stone {...sqf} />
+        <Stone {...gf} />
+        <div className="col-span-2">
+          <ResultStone {...result} />
+        </div>
       </div>
     </div>
   );

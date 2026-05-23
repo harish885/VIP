@@ -131,7 +131,7 @@ export function CompanyWorkspace({
         )}
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 space-y-5">
         {tab === 'cockpit'  && <CockpitTab data={data} explanations={explanations} />}
         {tab === 'scenario' && <ScenarioTab data={data} />}
         {tab === 'method'   && <MethodTab data={data} explanations={explanations} />}
