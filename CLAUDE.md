@@ -196,3 +196,15 @@ These are internally consistent: `750_000 × 5.0 × 1.05 × 1.07 ≈ 4.21M ✓`.
 | Calibration set ingest | `src/ingest_aida.py` |
 | Demo data for dashboard | `web/lib/demo-data.ts` |
 | Questionnaire schema | `web/lib/diagnostic-schema.ts` |
+
+## Design Context
+
+`PRODUCT.md` at repo root carries the design strategy for this project —
+register (`product`), users, brand personality (`Analytical · dense ·
+transparent`), anti-references (no SaaS-dashboard / AI-crypto / beige
+defaults), 5 design principles, and the WCAG 2.2 AA accessibility
+target. Every `impeccable` skill command reads it before doing work.
+
+`/impeccable document` will generate `DESIGN.md` from the existing
+tokens (`web/app/globals.css`) + the vip-ui + cockpit components when
+you want a visual-system audit trail.

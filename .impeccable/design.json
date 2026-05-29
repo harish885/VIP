@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-24T00:00:00Z",
+  "title": "Design System: VIP — Value Intelligence Platform",
+  "extensions": {
+    "colorMeta": {
+      "gold": {
+        "role": "primary",
+        "displayName": "Cockpit Gold",
+        "canonical": "oklch(57% 0.118 75)",
+        "tonalRamp": [
+          "oklch(20% 0.07 75)",
+          "oklch(30% 0.10 75)",
+          "oklch(40% 0.12 75)",
+          "oklch(50% 0.13 75)",
+          "oklch(58% 0.12 75)",
+          "oklch(70% 0.10 75)",
+          "oklch(82% 0.07 75)",
+          "oklch(94% 0.03 75)"
+        ]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Evidence Cyan",
+        "canonical": "oklch(50% 0.072 200)",
+        "tonalRamp": [
+          "oklch(18% 0.04 200)",
+          "oklch(28% 0.06 200)",
+          "oklch(38% 0.07 200)",
+          "oklch(46% 0.08 200)",
+          "oklch(54% 0.08 200)",
+          "oklch(66% 0.07 200)",
+          "oklch(80% 0.05 200)",
+          "oklch(94% 0.02 200)"
+        ]
+      },
+      "purple": {
+        "role": "tertiary",
+        "displayName": "Method Purple",
+        "canonical": "oklch(50% 0.18 285)",
+        "tonalRamp": [
+          "oklch(18% 0.10 285)",
+          "oklch(28% 0.14 285)",
+          "oklch(38% 0.17 285)",
+          "oklch(50% 0.18 285)",
+          "oklch(60% 0.17 285)",
+          "oklch(72% 0.13 285)",
+          "oklch(84% 0.08 285)",
+          "oklch(94% 0.03 285)"
+        ]
+      },
+      "green": {
+        "role": "tertiary",
+        "displayName": "Upside Green",
+        "canonical": "oklch(50% 0.108 160)",
+        "tonalRamp": [
+          "oklch(18% 0.06 160)",
+          "oklch(28% 0.09 160)",
+          "oklch(38% 0.11 160)",
+          "oklch(48% 0.11 160)",
+          "oklch(58% 0.10 160)",
+          "oklch(70% 0.08 160)",
+          "oklch(84% 0.05 160)",
+          "oklch(94% 0.02 160)"
+        ]
+      },
+      "red": {
+        "role": "tertiary",
+        "displayName": "Risk Red",
+        "canonical": "oklch(56% 0.158 30)",
+        "tonalRamp": [
+          "oklch(20% 0.09 30)",
+          "oklch(30% 0.12 30)",
+          "oklch(40% 0.15 30)",
+          "oklch(48% 0.17 30)",
+          "oklch(56% 0.16 30)",
+          "oklch(68% 0.13 30)",
+          "oklch(82% 0.08 30)",
+          "oklch(94% 0.03 30)"
+        ]
+      },
+      "page-bg": {
+        "role": "neutral",
+        "displayName": "Cool Off-White",
+        "canonical": "oklch(97.5% 0.005 230)",
+        "tonalRamp": [
+          "oklch(20% 0.005 230)",
+          "oklch(34% 0.005 230)",
+          "oklch(48% 0.005 230)",
+          "oklch(62% 0.005 230)",
+          "oklch(76% 0.005 230)",
+          "oklch(86% 0.005 230)",
+          "oklch(92% 0.005 230)",
+          "oklch(98% 0.005 230)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(20% 0.01 270)",
+        "tonalRamp": [
+          "oklch(12% 0.01 270)",
+          "oklch(20% 0.01 270)",
+          "oklch(30% 0.01 270)",
+          "oklch(42% 0.01 270)",
+          "oklch(56% 0.01 270)",
+          "oklch(70% 0.01 270)",
+          "oklch(84% 0.01 270)",
+          "oklch(94% 0.01 270)"
+        ]
+      },
+      "cap-fin": {
+        "role": "secondary",
+        "displayName": "Capital · Financial (Prussian Blue)",
+        "canonical": "oklch(48% 0.12 250)"
+      },
+      "cap-tech": {
+        "role": "secondary",
+        "displayName": "Capital · Technological (Indigo)",
+        "canonical": "oklch(54% 0.20 280)"
+      },
+      "cap-human": {
+        "role": "secondary",
+        "displayName": "Capital · Human & Org (Sienna)",
+        "canonical": "oklch(58% 0.12 50)"
+      },
+      "cap-rel": {
+        "role": "secondary",
+        "displayName": "Capital · Relational (Emerald)",
+        "canonical": "oklch(52% 0.12 155)"
+      }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display (Fraunces)",      "purpose": "Marketing-scene headlines and the empty-state hero." },
+      "headline": { "displayName": "Headline (Fraunces)",     "purpose": "Page H1 inside the workspace and the diagnostic interview header." },
+      "title":    { "displayName": "Title (Fraunces)",        "purpose": "SectionHeader titles and large KPI values." },
+      "body":     { "displayName": "Body (Inter)",            "purpose": "All running prose; capped at 65–75ch." },
+      "metric":   { "displayName": "Metric (JetBrains Mono)", "purpose": "Every figure that was measured — money, %, codes, ratios." },
+      "label":    { "displayName": "Label (JetBrains Mono)",  "purpose": "Eyebrow labels and source-badge text; 10px tracked 0.22em uppercase." }
+    },
+    "shadows": [
+      { "name": "surface-ambient", "value": "0 1px 2px rgba(0,0,0,0.03)",   "purpose": "Subtle separation under raised surfaces sitting on the tinted page bg." },
+      { "name": "popover-lift",    "value": "0 10px 28px rgba(0,0,0,0.18)", "purpose": "Reserved for InfoButton portal and search autocomplete dropdown." }
+    ],
+    "motion": [
+      { "name": "ease-out-expo",   "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default ease for reveals, count-ups, and panel transitions." },
+      { "name": "ease-soft",       "value": "cubic-bezier(0.4, 0, 0.2, 1)",   "purpose": "Secondary state transitions (hover colour, button focus)." },
+      { "name": "reveal-fade-up",  "value": "opacity 0.75s ease-out-expo, transform 0.75s ease-out-expo", "purpose": "useReveal hook: opacity 0→1 + translateY 24px→0." },
+      { "name": "count-up",        "value": "1.6s power3.out (GSAP)",         "purpose": "animateCount for KPI numbers (V, value gap, quality score)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Canonical CTA for the page (Run diagnostic, Continue, Submit). One per surface.",
+      "html": "<button class=\"ds-btn-primary\">Run diagnostic</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; font: 600 12.5px/1 'Inter', system-ui, sans-serif; color: #a66f18; background: rgba(166, 111, 24, 0.14); border: 1px solid rgba(166, 111, 24, 0.55); border-radius: 6px; cursor: pointer; transition: background 0.15s, border-color 0.15s; } .ds-btn-primary:hover { background: rgba(166, 111, 24, 0.22); border-color: rgba(166, 111, 24, 0.75); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(166, 111, 24, 0.4); }"
+    },
+    {
+      "name": "Subtle Button",
+      "kind": "button",
+      "refersTo": "button-subtle",
+      "description": "Secondary action (Back, Pre-fill from AIDA, Edit step 1).",
+      "html": "<button class=\"ds-btn-subtle\">Back</button>",
+      "css": ".ds-btn-subtle { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; font: 600 12.5px/1 'Inter', system-ui, sans-serif; color: #565a66; background: #ffffff; border: 1px solid #dde2e8; border-radius: 6px; cursor: pointer; transition: color 0.15s, border-color 0.15s; } .ds-btn-subtle:hover { color: #181a1f; border-color: #c7d1db; }"
+    },
+    {
+      "name": "Source Badge · AIDA",
+      "kind": "chip",
+      "refersTo": "source-badge-aida",
+      "description": "Inline chip pinned to any AIDA-sourced figure. Mono 9.5px 600 with a 9px Database icon.",
+      "html": "<span class=\"ds-source-aida\"><svg viewBox=\"0 0 24 24\" width=\"9\" height=\"9\" stroke=\"currentColor\" fill=\"none\" stroke-width=\"2.5\"><ellipse cx=\"12\" cy=\"5\" rx=\"9\" ry=\"3\"/><path d=\"M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5\"/><path d=\"M3 12c0 1.7 4 3 9 3s9-1.3 9-3\"/></svg>AIDA</span>",
+      "css": ".ds-source-aida { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font: 600 9.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #0c707c; background: rgba(12, 112, 124, 0.08); border: 1px solid rgba(12, 112, 124, 0.3); border-radius: 4px; }"
+    },
+    {
+      "name": "Raised Surface",
+      "kind": "card",
+      "refersTo": "surface-raised",
+      "description": "The cockpit panel primitive. Use one per logical section. Never nested inside another raised surface.",
+      "html": "<section class=\"ds-surface-raised\"><header class=\"ds-surface-header\"><div class=\"ds-eyebrow\">Public factsheet</div><h2 class=\"ds-title\">A. Gandola &amp; C. S.p.A.</h2></header><p class=\"ds-body\">Brescia · NACE 1082 · 55 employees · €37.92M revenue.</p></section>",
+      "css": ".ds-surface-raised { padding: 24px; background: #ffffff; border: 1px solid #dde2e8; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); } .ds-surface-header { margin-bottom: 16px; } .ds-eyebrow { font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: 0.22em; text-transform: uppercase; color: #8c8e98; } .ds-title { margin: 4px 0 0; font: 500 22px/1.15 'Fraunces', serif; letter-spacing: -0.01em; color: #181a1f; } .ds-body { margin: 0; font: 400 13px/1.55 'Inter', sans-serif; color: #565a66; }"
+    },
+    {
+      "name": "Stat Cell",
+      "kind": "custom",
+      "refersTo": "stat-cell",
+      "description": "Single labelled metric. Atom of every KPI strip.",
+      "html": "<div class=\"ds-stat\"><div class=\"ds-stat-label\">Enterprise value</div><div class=\"ds-stat-value\">€31.97M</div><div class=\"ds-stat-sub\">Range €28.8–€35.8M</div></div>",
+      "css": ".ds-stat { min-width: 0; } .ds-stat-label { display: flex; align-items: center; gap: 6px; font: 600 10.5px/1 'JetBrains Mono', monospace; letter-spacing: 0.22em; text-transform: uppercase; color: #8c8e98; } .ds-stat-value { margin-top: 6px; font: 500 28px/1 'Fraunces', serif; letter-spacing: -0.01em; color: #181a1f; } .ds-stat-sub { margin-top: 6px; font: 400 12.5px/1.4 'Inter', sans-serif; color: #565a66; }"
+    },
+    {
+      "name": "Rating Dots",
+      "kind": "input",
+      "refersTo": "rating-dots",
+      "description": "1–5 Likert selector. Five circular buttons, purple selected glow. Used on every diagnostic question.",
+      "html": "<div class=\"ds-rating\" role=\"radiogroup\" aria-label=\"Rate 1 to 5\"><button class=\"ds-rating-dot\">1</button><button class=\"ds-rating-dot\">2</button><button class=\"ds-rating-dot is-selected\">3</button><button class=\"ds-rating-dot\">4</button><button class=\"ds-rating-dot\">5</button></div>",
+      "css": ".ds-rating { display: inline-flex; gap: 10px; } .ds-rating-dot { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid #dde2e8; background: rgba(255,255,255,0.04); color: #8c8e98; font: 700 11px/1 'JetBrains Mono', monospace; cursor: pointer; transition: transform 0.2s, background 0.2s, border-color 0.2s; } .ds-rating-dot:hover { border-color: #c7d1db; background: rgba(255,255,255,0.08); } .ds-rating-dot.is-selected { background: #5e58c4; border-color: #5e58c4; color: #ffffff; transform: scale(1.1); box-shadow: 0 0 14px rgba(168, 85, 247, 0.55); } .ds-rating-dot:focus-visible { outline: 2px solid #5e58c4; outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Badge · Updated Recently",
+      "kind": "chip",
+      "refersTo": "status-badge-info",
+      "description": "Pill chip showing diagnostic freshness ('Updated recently · 6 min ago').",
+      "html": "<span class=\"ds-status-info\">Updated recently</span>",
+      "css": ".ds-status-info { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; font: 600 10px/1 'JetBrains Mono', monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #187949; background: rgba(24, 121, 73, 0.07); border: 1px solid rgba(24, 121, 73, 0.3); border-radius: 9999px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Strategist's Cockpit",
+    "overview": "VIP is a single-session valuation tool for SME founders. The interface behaves like a senior strategist's notebook: every figure is sourced, every formula is auditable, no decoration goes unjustified. Density is welcomed because the audience reads EBITDA for breakfast; visual restraint is welcomed because the data itself carries the drama.\n\nThe palette is a cool off-white workstation, not a warm magazine. Gold carries valuation, cyan carries evidence, purple carries computed quantities, green carries upside, red carries risk. The four capital pillars get their own hue assignments (`cap-fin` prussian blue, `cap-tech` indigo, `cap-human` sienna, `cap-rel` emerald) so the radar reads as four distinct signals rather than one gold polygon.",
+    "keyCharacteristics": [
+      "Cool off-white body background tinted toward the brand's own gold.",
+      "Three type families on a contrast axis: Fraunces serif for value statements, Inter sans for body, JetBrains Mono for sourced metrics.",
+      "One Surface per panel, three tones (raised, tinted, plain). Never nest two raised surfaces.",
+      "Every figure carries a SourceBadge; every figure is one click away from a popover that shows the literal calculation.",
+      "Motion is informative only: useReveal fade-up, animateCount KPIs, radar polygon morph. prefers-reduced-motion collapses all of it to instant."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule",        "section": "colors",     "body": "Cockpit Gold appears on ≤10% of any given screen. Its rarity is what makes the headline V tile read as the answer. The moment two surfaces fight for 'primary', neither wins." },
+      { "name": "The Source Trio Rule",      "section": "colors",     "body": "Gold (You), Cyan (AIDA), Purple (Computed) are the only colours allowed inside a SourceBadge. Never use them on a fourth meaning. The chip is a contract with the reader." },
+      { "name": "The Cool-Off-White Rule",   "section": "colors",     "body": "The page body is #f7f9fb. Forbidden: any warm-neutral background in the OKLCH L 0.84-0.97, C < 0.06, hue 40-100 band (cream / sand / paper / parchment / ivory). That's the 2026 AI default and it is not us." },
+      { "name": "The Mono-Carries-Truth Rule","section": "typography", "body": "If a string is a measurement (€, %, ratio, code, ID), set it in JetBrains Mono. Body Inter is for prose; Fraunces is for headlines and value statements. Mixing turns the audit trail noisy." },
+      { "name": "The Eyebrow-Earns-Its-Place Rule","section":"typography","body":"Tiny uppercase tracked labels exist for the cockpit's named pillars (Public factsheet, Value bridge, Capital constellation, Strategy board) and for source badges. They are forbidden as an eyebrow on every section across the marketing site; that's the saturated 2023 AI scaffold." },
+      { "name": "The Founder-Readable Rule", "section": "typography", "body": "Body text capped at 65–75ch. No all-caps body copy. Display ceiling 4rem. Body Inter colour is --text (#181a1f), never lighter; supporting copy is --text-dim (#565a66). Anything paler fails the WCAG 4.5:1 line." },
+      { "name": "The Flat-By-Default Rule",  "section": "elevation",  "body": "Surfaces are flat at rest. A raised surface gets a 1px-radius ambient shadow only because it sits on a tinted page background and needs a hairline of separation. A tinted surface gets no shadow." },
+      { "name": "The No-Glow Rule",          "section": "elevation",  "body": "No box-shadows tinted with brand colour, no glow halos, no neon outlines. The surface either is flat or it is a popover that needed to lift; nothing in between." }
+    ],
+    "dos": [
+      "Do use one Surface per panel and the tinted tone for any inner contrast layer.",
+      "Do put every figure in JetBrains Mono and pair it with a SourceBadge (AIDA / You / Computed / Proxy) plus an InfoButton.",
+      "Do keep Cockpit Gold under 10% of any screen so the enterprise-value tile reads as the answer.",
+      "Do use serif Fraunces on value statements and section titles; use sans Inter for body; use mono JetBrains for any measurement.",
+      "Do test contrast: body text against --bg-1 (#ffffff) must hit ≥4.5:1, large text ≥3:1; --text-dim (#565a66) is the floor for body copy.",
+      "Do ship every animation with a prefers-reduced-motion fallback (useReveal already respects this; new motion must too)."
+    ],
+    "donts": [
+      "Don't nest two raised surfaces. If you need a sub-panel, switch the inner one to tinted or to no container at all.",
+      "Don't use cream / sand / paper / parchment / linen / ivory for the body background. That's the 2026 AI default; VIP uses cool off-white tinted toward gold.",
+      "Don't add purple-and-blue gradient hero strips, glow halos, bokeh blobs, particle backgrounds, or 'AI-powered' copy. PRODUCT.md's anti-references list them by name; the visual spec enforces them.",
+      "Don't use Lenis smooth scroll, GSAP scroll-triggered timelines, side-nav dots, or any other cinematic-mode pattern inside the product surfaces. Motion in the cockpit is informative only.",
+      "Don't put a tiny uppercase tracked eyebrow above every section. The cockpit has four named pillars; that's the entire eyebrow budget per page.",
+      "Don't use border-left / border-right greater than 1px as a coloured stripe accent. Use a full border, background tint, or leading number / icon.",
+      "Don't use background-clip: text with a gradient for decoration. Single solid colour, emphasis via weight.",
+      "Don't use colour as the only carrier of meaning. The risk badge pairs colour with text; the capital bars pair colour with bar length; the SourceBadge pairs colour with an icon.",
+      "Don't use marketing buzzwords (streamline, empower, supercharge, seamless, enterprise-grade, AI-powered). Pick a specific noun and a specific verb."
+    ]
+  }
+}
