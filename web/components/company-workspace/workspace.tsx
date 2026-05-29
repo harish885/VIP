@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -9,13 +9,11 @@ import {
   FlaskConical,
   LayoutGrid,
   BookOpen,
-  RotateCcw,
 } from 'lucide-react';
 import type { DashboardData } from '@/lib/dashboard-data';
 import type { AidaSnapshot } from '@/lib/aida';
 import type { DiagnosisStatus } from '@/lib/company-loader';
 import { SimulationPanel } from '@/components/dashboard/simulation-panel';
-import { resetCompanyAction } from '@/app/(app)/companies/[taxCode]/reset/action';
 import { InfoButton, type Explanation } from '@/components/company-workspace/info-popover';
 import { buildExplanations, type ExplanationMap } from '@/lib/dashboard-explanations';
 
@@ -31,7 +29,6 @@ import { CompanyPassport } from '@/components/cockpit/company-passport';
 import { ValueBridge } from '@/components/cockpit/value-bridge';
 import { CapitalConstellation } from '@/components/cockpit/capital-constellation';
 import { StrategyBoard } from '@/components/cockpit/strategy-board';
-import { cn } from '@/lib/cn';
 
 type Tab = 'cockpit' | 'scenario' | 'method';
 
@@ -102,7 +99,6 @@ export function CompanyWorkspace({
           )}
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              {data.source === 'submission' && <ResetButton taxCode={taxCode} />}
               <Button
                 href={`/companies/${encodeURIComponent(taxCode)}/diagnostic`}
                 tone="primary"
@@ -393,49 +389,11 @@ function NeedsDiagnosticPanel() {
   );
 }
 
-function ResetButton({ taxCode }: { taxCode: string }) {
-  const [pending, startTransition] = useTransition();
-  const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function handleClick() {
-    if (!confirming) {
-      setConfirming(true);
-      setTimeout(() => setConfirming(false), 4000);
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      try {
-        await resetCompanyAction(taxCode);
-      } catch (e) {
-        const msg = (e as Error).message ?? '';
-        if (msg.includes('NEXT_REDIRECT')) throw e;
-        setError(msg || 'Reset failed.');
-      }
-    });
-  }
-
-  return (
-    <div className="flex flex-col items-end gap-1">
-      <Button
-        tone={confirming ? 'danger' : 'subtle'}
-        size="md"
-        icon={<RotateCcw size={13} />}
-        onClick={handleClick}
-        disabled={pending}
-        title={
-          confirming
-            ? 'Click again to confirm reset'
-            : 'Clear this diagnostic and return to the AIDA snapshot'
-        }
-        className={cn(confirming && 'shadow-[0_0_0_3px_rgba(184,69,62,0.12)]')}
-      >
-        {pending ? 'Resetting…' : confirming ? 'Click to confirm' : 'Reset'}
-      </Button>
-      {error && <span className="text-[11px] text-red">{error}</span>}
-    </div>
-  );
+// ResetButton + resetCompanyAction removed: re-running the diagnostic
+// writes a fresh vip.submissions row + cookie pins the dashboard to it,
+// so founders never need to nuke their history to start a new pass.
+function _ResetButtonStub() {
+  return null;
 }
 
 // =============================================================================

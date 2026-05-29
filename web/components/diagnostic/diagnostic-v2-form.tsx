@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   useForm,
@@ -84,17 +84,77 @@ export interface DiagnosticV2FormProps {
  *   Step 7 (Review)      — answered, excluded, override summary +
  *                          submit CTA.
  */
+/**
+ * localStorage key for the draft. Keyed per tax_code so two companies
+ * open in different tabs don't clobber each other.
+ */
+const DRAFT_KEY_PREFIX = 'vip:diagnostic-draft:';
+const DRAFT_DEBOUNCE_MS = 500;
+
 export function DiagnosticV2Form({ taxCode, companyName, snapshot }: DiagnosticV2FormProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [restored, setRestored] = useState<{ when: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const skipNextSaveRef = useRef(true);
 
   const form = useForm<DiagnosticInput>({
     resolver: zodResolver(DiagnosticSchema),
     mode: 'onTouched',
     defaultValues: EMPTY_DIAGNOSTIC as DiagnosticInput,
   });
+
+  const draftKey = `${DRAFT_KEY_PREFIX}${taxCode}`;
+
+  // Restore previous draft on mount (if any).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { values: Partial<DiagnosticInput>; savedAt: string };
+      if (parsed.values) {
+        form.reset({ ...EMPTY_DIAGNOSTIC, ...parsed.values } as DiagnosticInput);
+        setRestored({ when: parsed.savedAt });
+      }
+    } catch {
+      // Corrupt blob — wipe it.
+      window.localStorage.removeItem(draftKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
+
+  // Save draft on every form change (debounced).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const subscription = form.watch((values) => {
+      if (skipNextSaveRef.current) {
+        skipNextSaveRef.current = false;
+        return;
+      }
+      const id = setTimeout(() => {
+        try {
+          window.localStorage.setItem(
+            draftKey,
+            JSON.stringify({ values, savedAt: new Date().toISOString() }),
+          );
+        } catch {
+          /* quota errors → silently drop, draft is best-effort */
+        }
+      }, DRAFT_DEBOUNCE_MS);
+      return () => clearTimeout(id);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, draftKey]);
+
+  function discardDraft() {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(draftKey);
+    skipNextSaveRef.current = true;
+    form.reset(EMPTY_DIAGNOSTIC as DiagnosticInput);
+    setRestored(null);
+  }
 
   const totalSteps = STEPS.length;
   const isLast = stepIndex === totalSteps - 1;
@@ -139,10 +199,20 @@ export function DiagnosticV2Form({ taxCode, companyName, snapshot }: DiagnosticV
     startTransition(async () => {
       try {
         const result = await submitCompanyDiagnosticAction(taxCode, values);
+        // Successful submit redirects via NEXT_REDIRECT; wipe the draft so
+        // the next visit lands on a clean form.
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(draftKey);
+        }
         if (result && !result.ok) setServerError(result.error);
       } catch (e) {
         const msg = (e as Error).message ?? 'Unknown error';
-        if (msg.includes('NEXT_REDIRECT')) throw e;
+        if (msg.includes('NEXT_REDIRECT')) {
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(draftKey);
+          }
+          throw e;
+        }
         setServerError(msg);
       }
     });
@@ -192,7 +262,7 @@ export function DiagnosticV2Form({ taxCode, companyName, snapshot }: DiagnosticV
           </h1>
           <p className="mt-2 max-w-[640px] text-[13.5px] leading-relaxed text-text-dim">
             Step 1 lets you keep AIDA&rsquo;s financials or replace them with your
-            own current numbers. Steps 2–6 are 19 short qualitative ratings —
+            own current numbers. Steps 2–6 are 17 scored ratings plus 2 context choices —
             mark any of them as <em className="not-italic font-medium text-text">not relevant</em>
             {' '}and they drop out of the score. Step 7 reviews what we&rsquo;re about
             to submit.
@@ -206,10 +276,41 @@ export function DiagnosticV2Form({ taxCode, companyName, snapshot }: DiagnosticV
           </button>
         </header>
 
-        <ProgressRail stepIndex={stepIndex} />
+        <ProgressRail
+          stepIndex={stepIndex}
+          onJump={(i) => { setStepIndex(i); scrollTop(); }}
+        />
+
+        {restored && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-cyan/30 bg-cyan/[0.06] px-4 py-3 text-[12.5px] text-cyan">
+            <span>
+              Restored your previous answers
+              {restored.when && ` from ${formatRestoredTime(restored.when)}`}.
+              Continue where you left off, or start fresh.
+            </span>
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="rounded-md border border-cyan/40 bg-cyan/[0.08] px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-eyebrow text-cyan transition-colors hover:bg-cyan/[0.18]"
+            >
+              Discard draft
+            </button>
+          </div>
+        )}
 
         <form
           onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+          onKeyDown={(e) => {
+            // Cmd / Ctrl + Enter advances or submits depending on step.
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              if (isLast) {
+                form.handleSubmit(onSubmit, onInvalid)();
+              } else {
+                handleContinue();
+              }
+            }
+          }}
           className="mt-6"
         >
           <Surface tone="raised" padding="lg" className="space-y-6">
@@ -294,22 +395,53 @@ export function DiagnosticV2Form({ taxCode, companyName, snapshot }: DiagnosticV
 // =============================================================================
 // Progress rail — slim, dot-per-step, label on active only.
 // =============================================================================
-function ProgressRail({ stepIndex }: { stepIndex: number }) {
+function ProgressRail({
+  stepIndex,
+  onJump,
+}: {
+  stepIndex: number;
+  onJump: (i: number) => void;
+}) {
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto rounded-full border border-line bg-bg-2/50 p-1.5">
+    <div
+      role="tablist"
+      aria-label="Diagnostic steps"
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          onJump(Math.min(stepIndex + 1, STEPS.length - 1));
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          onJump(Math.max(stepIndex - 1, 0));
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          onJump(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          onJump(STEPS.length - 1);
+        }
+      }}
+      className="flex items-center gap-1.5 overflow-x-auto rounded-full border border-line bg-bg-2/50 p-1.5"
+    >
       {STEPS.map((s, i) => {
         const done = i < stepIndex;
         const active = i === stepIndex;
         return (
-          <div
+          <button
             key={s.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            aria-current={active ? 'step' : undefined}
+            tabIndex={active ? 0 : -1}
+            onClick={() => onJump(i)}
             className={cn(
-              'flex shrink-0 items-center gap-2 rounded-full px-2.5 py-1 text-[11.5px] transition-colors',
+              'flex shrink-0 cursor-pointer items-center gap-2 rounded-full px-2.5 py-1 text-[11.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40',
               active
                 ? 'bg-bg-1 text-text shadow-[0_1px_2px_rgba(0,0,0,0.05)]'
                 : done
-                  ? 'text-gold'
-                  : 'text-text-faint',
+                  ? 'text-gold hover:text-gold-soft'
+                  : 'text-text-faint hover:text-text-dim',
             )}
           >
             <span
@@ -325,7 +457,7 @@ function ProgressRail({ stepIndex }: { stepIndex: number }) {
             <span className={cn(active ? 'inline font-semibold' : 'hidden sm:inline')}>
               {s.label}
             </span>
-          </div>
+          </button>
         );
       })}
     </div>
@@ -528,7 +660,7 @@ function SideBySideField({
   )?.[fieldKey];
   const willUseOverride = typeof value === 'number' && !Number.isNaN(value);
   return (
-    <label className="block rounded-xl border border-line bg-bg-1 p-3">
+    <label className="block rounded-lg border border-line bg-bg-1 p-3">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[12px] font-semibold text-text">{label}</span>
         <SourceBadge source={willUseOverride ? 'override' : 'aida'} />
@@ -624,7 +756,7 @@ function QuestionFocus({ qKey }: { qKey: QuestionKey }) {
     <div
       data-field={qKey}
       className={cn(
-        'rounded-xl border p-4 transition-colors sm:p-5',
+        'rounded-lg border p-4 transition-colors sm:p-5',
         isExcluded
           ? 'border-line bg-bg-2/30 opacity-80'
           : error
@@ -715,7 +847,7 @@ function ClassificatoryRow() {
   return (
     <div
       data-field="stated_objective"
-      className="rounded-xl border border-line bg-bg-1 p-4 sm:p-5"
+      className="rounded-lg border border-line bg-bg-1 p-4 sm:p-5"
     >
       <div className="flex items-baseline gap-2">
         <span className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-cyan">
@@ -941,7 +1073,7 @@ function ReviewStep({
 
 function ReviewStat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
-    <div className="rounded-xl border border-line bg-bg-1 px-4 py-3">
+    <div className="rounded-lg border border-line bg-bg-1 px-4 py-3">
       <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         {label}
       </div>
@@ -969,4 +1101,16 @@ function fmtMoney(eur: number): string {
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+function formatRestoredTime(iso: string): string {
+  const dt = new Date(iso);
+  const minutes = (Date.now() - dt.getTime()) / 60_000;
+  if (minutes < 1) return 'a moment ago';
+  if (minutes < 60) return `${Math.round(minutes)} min ago`;
+  const hours = minutes / 60;
+  if (hours < 24) return `${Math.round(hours)} h ago`;
+  const days = hours / 24;
+  if (days < 30) return `${Math.round(days)} d ago`;
+  return dt.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }

@@ -303,7 +303,7 @@ export function Explainer({ story }: { story: ExplainerStory }) {
             icon={<Users className="h-5 w-5" />}
             step="Step 2"
             title="Add what filings cannot see."
-            intro={`The entrepreneur then adds the missing strategic picture through ${story.questionnaire.totalQuestions} qualitative questions.`}
+            intro={`The entrepreneur then adds the missing strategic picture through ${story.questionnaire.totalQuestions} diagnostic inputs.`}
           >
             <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
               <Panel tone="soft">
@@ -614,7 +614,7 @@ export function Explainer({ story }: { story: ExplainerStory }) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/how-scores-are-calculated"
+                href="/method"
                 className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
               >
                 Method detail

@@ -158,7 +158,7 @@ export function InfoButton({
                 width: POPOVER_WIDTH,
                 opacity: position ? 1 : 0,
               }}
-              className="z-[1000] rounded-xl border border-line bg-bg-1 p-4 text-left shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
+              className="z-[1000] rounded-lg border border-line bg-bg-1 p-4 text-left shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
             >
               <div className="mb-1 font-serif text-[14px] font-medium leading-tight text-text">
                 {explanation.title}

@@ -35,7 +35,7 @@ export function Segmented<T extends string>({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        '-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-xl border border-line bg-bg-2/50 p-1',
+        '-mx-1 flex shrink-0 items-center gap-1 overflow-x-auto rounded-lg border border-line bg-bg-2/50 p-1',
         '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         className,
       )}

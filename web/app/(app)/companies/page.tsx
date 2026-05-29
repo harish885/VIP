@@ -64,4 +64,4 @@ export default async function CompaniesPage({
   );
 }
 
-const EXAMPLES = ['Huni', '31', 'Bergamo', 'Manufacturing'];
+const EXAMPLES = ['Huni', '3101', 'Bergamo', 'Milano'];

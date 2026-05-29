@@ -40,6 +40,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Click-outside closes the dropdown.
   useEffect(() => {
@@ -51,9 +52,29 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
     return () => document.removeEventListener('mousedown', onDown);
   }, []);
 
+  // "/" focuses search, unless the user is already typing somewhere.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const typing =
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        target?.isContentEditable;
+      if (typing) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      setOpen(true);
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   // Fetch suggestions whenever the query changes (debounced). One character is
-  // enough: the API matches company_name only, so this behaves like autocomplete
-  // rather than a submitted search-results page.
+  // enough: the API matches name, tax code, NACE and province, so this behaves
+  // like a fast command palette for the AIDA snapshot.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     abortRef.current?.abort();
@@ -137,6 +158,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
             className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-faint"
           />
           <input
+            ref={inputRef}
             type="search"
             name="q"
             value={q}
@@ -148,8 +170,8 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
             autoFocus
-            placeholder="Search company, tax code, NACE or province…"
-            className="w-full rounded-xl border border-line bg-bg-2/40 py-3.5 pl-11 pr-12 font-mono text-[13px] text-text placeholder:text-text-faint focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
+            placeholder="Search AIDA companies..."
+            className="w-full rounded-lg border border-line bg-bg-2/40 py-3.5 pl-11 pr-12 font-mono text-[13px] text-text placeholder:text-text-faint focus:border-cyan/40 focus:outline-none focus:ring-1 focus:ring-cyan/30"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={open}
@@ -182,7 +204,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
         <div
           id="search-suggestions"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[480px] overflow-y-auto rounded-xl border border-line bg-bg-1/95 shadow-2xl backdrop-blur-glass"
+          className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[480px] overflow-y-auto rounded-lg border border-line bg-bg-1/95 shadow-2xl backdrop-blur-glass"
         >
           {error && (
             <div className="px-4 py-3 font-mono text-[11.5px] text-amber">{error}</div>

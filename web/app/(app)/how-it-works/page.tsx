@@ -1,5 +1,10 @@
 import { Explainer, type ExplainerStory } from '@/components/explainer/explainer';
-import { EXAMPLE_DIAGNOSTIC, QUESTIONS_BY_SECTION, QUESTION_SECTIONS } from '@/lib/diagnostic-schema';
+import {
+  EXAMPLE_DIAGNOSTIC,
+  QUESTIONS_BY_SECTION,
+  QUESTION_SECTIONS,
+  SCORED_QUESTION_KEYS,
+} from '@/lib/diagnostic-schema';
 import { getCompanySnapshot } from '@/lib/aida';
 import { createServiceClient } from '@/lib/supabase/service';
 import {
@@ -148,7 +153,7 @@ async function loadExplainerStory(): Promise<ExplainerStory> {
         },
       ],
       questionnaire: {
-        totalQuestions: Object.keys(EXAMPLE_DIAGNOSTIC).length - 2,
+        totalQuestions: SCORED_QUESTION_KEYS.length + 2,
         categories: QUESTION_SECTIONS.map((section) => ({
           name: section,
           count: QUESTIONS_BY_SECTION[section].length,

@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/companies/search?q=foo
  *
- * Powers the typeahead dropdown on /companies. Returns lightweight company-name
- * matches sorted alphabetically. Empty query returns no suggestions.
+ * Powers the typeahead dropdown on /companies. Returns lightweight matches
+ * across company name, tax code, NACE and province. Empty query returns no
+ * suggestions.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);

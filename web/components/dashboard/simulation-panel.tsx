@@ -91,7 +91,7 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
   const deltaIsPositive = deltaPct >= 0;
 
   return (
-    <div className="rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-6">
+    <div className="rounded-lg border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
           Live levers

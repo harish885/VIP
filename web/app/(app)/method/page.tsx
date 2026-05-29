@@ -85,8 +85,8 @@ export default function MethodPage() {
           </Block>
           <Block title="Your questionnaire">
             <p>
-              The entrepreneur answers 19 short statements on a 1–5 scale plus
-              two classificatory choices. Roughly five minutes.
+              The entrepreneur answers 17 short statements on a 1–5 scale plus
+              two context choices. Roughly five minutes.
             </p>
             <ul className="mt-2 list-disc pl-5">
               <li>4 questions for technological capital</li>
@@ -263,7 +263,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-10 rounded-2xl border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-7">
+    <section className="mb-10 rounded-lg border border-line bg-bg-1 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] sm:p-7">
       <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-text-faint sm:tracking-eyebrow">
         {eyebrow}
       </div>
@@ -290,7 +290,7 @@ function Pillar({ label, text }: { label: string; text: string }) {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-line bg-bg-2/40 p-5">
+    <div className="rounded-lg border border-line bg-bg-2/40 p-5">
       <h3 className="font-serif text-[15px] font-medium text-text">{title}</h3>
       <div className="mt-2 text-[13px] leading-relaxed text-text-dim">
         {children}
@@ -323,7 +323,7 @@ function Stage({
 
 function Formula({ label, body }: { label: string; body: string }) {
   return (
-    <div className="mt-4 rounded-xl border border-line bg-bg-2/40 p-4">
+    <div className="mt-4 rounded-lg border border-line bg-bg-2/40 p-4">
       <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-text-faint sm:tracking-eyebrow">
         {label}
       </div>

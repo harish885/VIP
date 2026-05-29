@@ -63,7 +63,7 @@ export function ValueBridge({ ebitda, multiple, sqf, gf, result }: Props) {
 
 function Stone({ label, value, source, hint, info }: Step) {
   return (
-    <div className="flex flex-1 flex-col gap-1.5 rounded-xl border border-line bg-bg-1 px-4 py-3">
+    <div className="flex flex-1 flex-col gap-1.5 rounded-lg border border-line bg-bg-1 px-4 py-3">
       <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         <span>{label}</span>
         {info}
@@ -82,7 +82,7 @@ function Stone({ label, value, source, hint, info }: Step) {
 function ResultStone({ value, sub, info }: Props['result']) {
   return (
     <div className={cn(
-      'flex flex-[1.3] flex-col justify-between gap-1.5 rounded-xl border border-gold/40 bg-gold/[0.08] px-5 py-3',
+      'flex flex-[1.3] flex-col justify-between gap-1.5 rounded-lg border border-gold/40 bg-gold/[0.08] px-5 py-3',
     )}>
       <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-eyebrow text-gold">
         <span>Enterprise value</span>

@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Diagnostic schema — Pivot edition (v2 + overrides + exclusions).
  *
  * Aligned with the Value_Intelligence_Questionnaire+contextdata.docx PoC
- * (19 scored Likert + 2 enums). Two product extensions over the v2 PoC:
+ * (17 scored Likert + 2 context enums). Two product extensions over the v2 PoC:
  *
  *   · Any qualitative question can be marked "not relevant for this
  *     company" — its Likert column on vip.submissions stores NULL and the
@@ -21,7 +21,7 @@ import { z } from 'zod';
  */
 
 // =============================================================================
-// Enums (classificatory questions Q15, Q16, Q20)
+// Enums (context questions Q15, Q16)
 // =============================================================================
 
 export const TIME_HORIZONS = ['12m', '24m', '36m', '60m'] as const;
@@ -71,7 +71,7 @@ export const OBJECTIVES = [
 ] as const;
 
 // =============================================================================
-// SCHEMA — 19 Likert + 2 enums + optional text
+// SCHEMA — 17 scored Likert + 2 context enums + optional text
 // =============================================================================
 
 /** Likert value that may be omitted when the question is marked "not relevant". */

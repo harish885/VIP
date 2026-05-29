@@ -1,5 +1,3 @@
-import { BgGrid } from '@/components/background/bg-grid';
-import { BgGlow } from '@/components/background/bg-glow';
 import { HomeLink } from '@/components/chrome/home-link';
 import { AuthCta } from '@/components/chrome/auth-cta';
 
@@ -13,9 +11,6 @@ import { AuthCta } from '@/components/chrome/auth-cta';
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <BgGrid />
-      <BgGlow />
-
       <HomeLink variant="fixed" />
       <AuthCta />
 

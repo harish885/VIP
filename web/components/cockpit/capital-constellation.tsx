@@ -83,7 +83,7 @@ export function CapitalConstellation({ capitals, sqf, sqfInfo, capitalInfo }: Pr
       </svg>
 
       <div className="flex min-w-0 flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-3 rounded-xl border border-line bg-bg-2/30 px-4 py-2.5">
+        <div className="flex items-baseline justify-between gap-3 rounded-lg border border-line bg-bg-2/30 px-4 py-2.5">
           <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
             <span>Strategic Quality Factor</span>
             {sqfInfo}

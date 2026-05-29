@@ -4,7 +4,7 @@ import { SceneHeader } from '@/components/marketing/scene-header';
 import { useReveal } from '@/lib/use-reveal';
 
 const ENGINES = [
-  { n: '01 · INPUT',     title: 'Input Engine',         body: 'Quantitative data + a short, information-dense questionnaire. ~20 inputs total.' },
+  { n: '01 · INPUT',     title: 'Input Engine',         body: 'Quantitative data + a short, information-dense questionnaire. 17 scores + 2 context inputs.' },
   { n: '02 · SCORE',     title: 'Scoring Model',        body: 'Per-capital scores, overall quality, risk index, scalability index. Peer-relative percentiles.' },
   {
     n: '03 · VALUE',

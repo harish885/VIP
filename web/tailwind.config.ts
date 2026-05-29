@@ -57,7 +57,7 @@ const config: Config = {
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       letterSpacing: {
-        'eyebrow': '0.22em',
+        'eyebrow': '0.16em',
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',

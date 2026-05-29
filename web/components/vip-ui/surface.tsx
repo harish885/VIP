@@ -24,13 +24,13 @@ const PADDING = {
 
 /**
  * Surface — single-panel container. Replaces the various ad-hoc
- * "rounded-2xl border border-line bg-bg-1 p-…" recipes scattered across
+ * "rounded-lg border border-line bg-bg-1 p-…" recipes scattered across
  * the workspace + diagnostic. Prefer a tinted surface over a nested
  * Card-in-Card.
  */
 export function Surface({ tone = 'raised', padding = 'md', className, children, ...rest }: Props) {
   return (
-    <div className={cn('rounded-2xl', TONE[tone], PADDING[padding], className)} {...rest}>
+    <div className={cn('rounded-lg', TONE[tone], PADDING[padding], className)} {...rest}>
       {children}
     </div>
   );
