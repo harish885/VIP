@@ -77,10 +77,10 @@ export function CompanyPassport({
               <span className="font-mono text-[11px] text-text-faint">Tax · {taxCode}</span>
             </div>
             {(snapshot.nace_rev_2_description || snapshot.primary_business_line) && (
-              <p className="mt-2 max-w-[640px] text-[12.5px] leading-snug text-text-faint">
+              <p className="mt-2 max-w-[64ch] text-[12.5px] leading-snug text-text-dim">
                 {snapshot.nace_rev_2_description ?? snapshot.primary_business_line}
                 {snapshot.peer_group_name && (
-                  <> · peer group <span className="text-text-dim">{snapshot.peer_group_name}</span></>
+                  <span className="text-text-faint"> · peer group {snapshot.peer_group_name}</span>
                 )}
               </p>
             )}
@@ -179,7 +179,7 @@ function PassportFact({
   sub: string;
 }) {
   return (
-    <div className="min-w-0 rounded-xl border border-line bg-bg-1/80 px-4 py-3">
+    <div className="min-w-0 rounded-lg border border-line bg-bg-1/80 px-4 py-3">
       <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
         <span className="text-text-faint">{icon}</span>
         <span className="truncate">{label}</span>

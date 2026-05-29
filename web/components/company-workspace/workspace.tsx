@@ -96,7 +96,9 @@ export function CompanyWorkspace({
           taxCode={taxCode}
           status={status}
           meta={lastRunISO && (
-            <StatusBadge tone="info">Latest run · {formatLastRun(lastRunISO)}</StatusBadge>
+            <span className="font-mono text-[11px] text-text-dim">
+              Latest run · {formatLastRun(lastRunISO)}
+            </span>
           )}
           actions={
             <div className="flex flex-wrap items-center gap-2">
@@ -162,7 +164,7 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
   return (
     <>
       {/* Headline KPI strip — single panel, four cells, no inner borders. */}
-      <Surface tone="raised" padding="md" className="grid grid-cols-2 gap-5 sm:gap-8 lg:grid-cols-4">
+      <Surface tone="raised" padding="md" className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
         <StatCell
           label="Enterprise value"
           value={formatMoney(valuation.v_current_eur)}
@@ -311,7 +313,7 @@ function MethodTab({ data, explanations }: { data: DashboardData; explanations: 
         <SectionHeader
           eyebrow="How V is built"
           title="V = EBITDA × Multiple × SQF × GF"
-          description="Quantitative inputs come from AIDA (or your overrides). Qualitative inputs come from the 19-question diagnostic. The engine compares each metric against an Italian-SME peer prior, weights the four capitals into a Composite Quality Score, clamps the result to the SQF / GF ranges, then multiplies."
+          description="Quantitative inputs come from AIDA (or your overrides). Qualitative inputs come from 17 scored ratings plus 2 context choices. The engine compares each metric against an Italian-SME peer prior, weights the four capitals into a Composite Quality Score, clamps the result to the SQF / GF ranges, then multiplies."
         />
         {source === 'submission' && (
           <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
@@ -363,7 +365,7 @@ function MethodTab({ data, explanations }: { data: DashboardData; explanations: 
 // =============================================================================
 function SavedStrip({ onClose }: { onClose: () => void }) {
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-xl border border-green/30 bg-green/[0.06] px-4 py-3 text-[13px] text-green">
+    <div className="mb-4 flex items-start gap-3 rounded-lg border border-green/30 bg-green/[0.06] px-4 py-3 text-[13px] text-green">
       <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
       <div className="flex-1">
         <div className="font-semibold">Diagnostic saved.</div>

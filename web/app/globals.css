@@ -3,42 +3,41 @@
 @tailwind utilities;
 
 /* =================================================================
-   DESIGN TOKENS — light, sober fintech palette.
-   Inspired by Linear / Carta / Stripe Dashboards. Warm off-white
-   surfaces, charcoal text, muted accents. Exposed as RGB triples
+   DESIGN TOKENS — light, analytical workstation palette.
+   Cool off-white surfaces, charcoal text, restrained accents. RGB triples
    so Tailwind's <alpha-value> modifier still works everywhere.
 ================================================================= */
 @layer base {
   :root {
-    /* Surfaces (warm light) */
-    --bg:           250 249 246;      /* #fafaf6  page bg */
+    /* Surfaces */
+    --bg:           247 249 251;      /* #f7f9fb  page bg */
     --bg-1:         255 255 255;      /* #ffffff  raised surface */
-    --bg-2:         244 242 235;      /* #f4f2eb  card */
-    --bg-3:         234 230 220;      /* #eae6dc  pressed card */
+    --bg-2:         241 245 249;      /* #f1f5f9  card */
+    --bg-3:         226 232 240;      /* #e2e8f0  pressed card */
 
     /* Borders */
-    --line:         227 223 213;      /* #e3dfd5 */
-    --line-2:       211 206 193;      /* #d3cec1 */
-    --line-faint:   240 237 228;      /* #f0ede4 */
+    --line:         221 226 232;      /* #dde2e8 */
+    --line-2:       199 209 219;      /* #c7d1db */
+    --line-faint:   235 239 243;      /* #ebeff3 */
 
     /* Text */
     --ink:           24  26  31;
     --ink-soft:      58  62  72;
     --text:          24  26  31;      /* #181a1f  near-black */
     --text-dim:      86  90 102;      /* #565a66 */
-    --text-faint:   140 142 152;      /* #8c8e98 */
+    --text-faint:   108 112 128;      /* #6c7080  bumped from #8c8e98 for WCAG AA on small text */
 
-    /* Accents — desaturated, magazine-tone */
-    --gold:         176 122  26;      /* #b07a1a  warm amber */
-    --gold-2:       216 163  80;      /* #d8a350 */
-    --cyan:          21 127 137;      /* #157f89  muted teal */
-    --cyan-2:        75 169 179;      /* #4ba9b3 */
-    --purple:        91  95 214;      /* #5b5fd6  indigo */
-    --purple-2:     134 138 232;      /* #868ae8 */
-    --green:         30 122  68;      /* #1e7a44  emerald */
+    /* Accents — role based, not decorative */
+    --gold:         166 111  24;      /* valuation / money */
+    --gold-2:       202 151  67;
+    --cyan:          12 112 124;      /* source / data */
+    --cyan-2:        55 154 166;
+    --purple:        94  88 196;      /* computed / method */
+    --purple-2:     124 120 218;
+    --green:         24 121  73;      /* upside */
     --green-2:       79 168 115;      /* #4fa873 */
     --red:          184  69  62;      /* #b8453e  warm red */
-    --amber:        176 122  26;
+    --amber:        166 111  24;
     --orange:       184 107  58;      /* #b86b3a  sienna */
     --blue:          42  95 160;      /* #2a5fa0  prussian */
 
@@ -76,20 +75,20 @@
    COMPONENT UTILITIES
 ================================================================= */
 @layer components {
-  /* Glass surface — translucent panel with backdrop blur (light theme) */
+  /* Glass surface — translucent panel with restrained blur */
   .glass {
     background-color: rgba(255, 255, 255, 0.7);
     border: 1px solid rgb(var(--line) / 1);
-    border-radius: 1.125rem;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    border-radius: 0.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .glass-strong {
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: rgba(255, 255, 255, 0.88);
     border: 1px solid rgb(var(--line-2) / 1);
-    border-radius: 1.25rem;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border-radius: 0.5rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   /* Eyebrow label */

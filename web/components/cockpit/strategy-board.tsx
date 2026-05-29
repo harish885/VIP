@@ -59,13 +59,14 @@ export function StrategyBoard({ actions, combinedUpliftPct, actionInfo, emptyMes
         {actions.slice(0, 3).map((a) => (
           <li
             key={a.rank}
-            className="flex h-full flex-col gap-4 rounded-xl border border-line bg-bg-2/40 p-5"
+            className="flex h-full flex-col gap-4 rounded-lg border border-line bg-bg-2/40 p-5"
           >
-            <div className="flex items-start justify-between gap-3">
-              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/40 bg-gold/[0.12] font-serif text-[16px] font-semibold text-gold">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-gold/40 bg-gold/[0.12] font-serif text-[15px] font-semibold text-gold">
                 {a.rank}
               </span>
-              <span className="shrink-0 rounded-md bg-green/[0.10] px-2 py-1 font-mono text-[12px] font-semibold text-green">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-green/[0.10] px-2 py-1 font-mono text-[12px] font-semibold text-green">
+                <TrendingUp size={11} />
                 +{a.v_uplift_pct.toFixed(1)}%
               </span>
             </div>
@@ -80,10 +81,8 @@ export function StrategyBoard({ actions, combinedUpliftPct, actionInfo, emptyMes
                 {a.detail}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line-faint pt-3 font-mono text-[11px] text-text-faint">
-              {a.capital_impact && (
-                <span className="text-text-dim">{a.capital_impact}</span>
-              )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line-faint pt-3 font-mono text-[11px] text-text-dim">
+              {a.capital_impact && <span>{a.capital_impact}</span>}
               <span className="inline-flex items-center gap-1">
                 <Clock size={11} /> ~{a.time_horizon_months} months
               </span>
