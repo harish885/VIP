@@ -130,9 +130,14 @@ export default function MarketingHome() {
 
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[11px] uppercase tracking-[0.18em] text-text-faint">
         <span>VIP · Value Intelligence Platform</span>
-        <Link href="/method" className="inline-flex items-center gap-1.5 hover:text-text-dim">
-          Method detail <ArrowRight size={11} />
-        </Link>
+        <span className="flex items-center gap-5">
+          <Link href="/pricing" className="inline-flex items-center gap-1.5 hover:text-text-dim">
+            Pricing <ArrowRight size={11} />
+          </Link>
+          <Link href="/method" className="inline-flex items-center gap-1.5 hover:text-text-dim">
+            Method detail <ArrowRight size={11} />
+          </Link>
+        </span>
       </footer>
     </div>
   );
