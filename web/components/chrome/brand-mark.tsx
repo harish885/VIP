@@ -24,14 +24,13 @@ export function BrandMark({ size = 20 }: { size?: number }) {
       </defs>
       <rect width="64" height="64" rx="14" fill="#181a1f" />
       <path
-        d="M16 22 L28.5 46 L46 14"
+        d="M16 22 L28.5 46 L47.5 11.5"
         fill="none"
         stroke="url(#vip-mark-g)"
         strokeWidth="7"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="48.5" cy="11.5" r="3.6" fill="#e0b566" />
     </svg>
   );
 }
