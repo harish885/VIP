@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Sliders } from 'lucide-react';
 import { runScoring, type ScoringResult, type ScoringInput } from '@/lib/scoring';
+import { formatEurCompact } from '@/lib/format';
 
 const LEVERS = [
   { key: 'concentration', label: 'Top-3 client concentration', min: 0, max: 80,  step: 1,   unit: '%', input: 'top3_client_concentration' },
@@ -180,7 +181,7 @@ function SimStat({
 }) {
   const value =
     valueLabel ??
-    (typeof eur === 'number' ? `€${(eur / 1_000_000).toFixed(1)}M` : '—');
+    (typeof eur === 'number' ? formatEurCompact(eur, { decimals: 1 }) : '—');
   const color =
     tone === 'green'
       ? 'text-green'

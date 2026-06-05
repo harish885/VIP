@@ -18,6 +18,7 @@ import {
 import { CAPITAL_WEIGHTS, COMPOSITE_WEIGHTS } from '@/lib/scoring/aggregate';
 import type { PercentileRanks } from '@/lib/scoring/types';
 import { DEMO_ACTIONS, DEMO_COMPANY, DEMO_VALUATION } from '@/lib/demo-data';
+import { formatThkMillions, round1 } from '@/lib/format';
 import { DEMO_SCORING_INPUT } from '@/lib/scoring/company-input';
 
 export const metadata = { title: 'How it works · VIP' };
@@ -381,10 +382,4 @@ function compositeWeightFor(capital: keyof typeof CAPITAL_WEIGHTS): number {
   return Math.round(COMPOSITE_WEIGHTS.relational * 100);
 }
 
-function fmtMn(thousandEur: number): string {
-  return `€${(thousandEur / 1000).toFixed(1)}M`;
-}
-
-function round1(value: number): number {
-  return Math.round(value * 10) / 10;
-}
+const fmtMn = formatThkMillions;

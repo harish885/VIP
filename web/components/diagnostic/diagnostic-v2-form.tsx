@@ -46,6 +46,7 @@ import { Button } from '@/components/vip-ui/button';
 import { StatusBadge } from '@/components/vip-ui/status-badge';
 import { SourceBadge } from '@/components/vip-ui/source-badge';
 import { cn } from '@/lib/cn';
+import { formatEurCompact, round1, thkToEur } from '@/lib/format';
 
 // =============================================================================
 // Steps — Financials + 5 question sections + Review
@@ -560,28 +561,28 @@ function FinancialsStep({ snapshot }: { snapshot: AidaSnapshot }) {
           <SideBySideField
             label="Revenue · last year"
             name="overrides.revenue_y_3"
-            aidaValue={fmtMoney(aidaRevLast)}
+            aidaValue={formatEurCompact(aidaRevLast)}
             unit="€"
             placeholder={aidaRevLast ? String(aidaRevLast) : ''}
           />
           <SideBySideField
             label="Revenue · year before"
             name="overrides.revenue_y_2"
-            aidaValue={fmtMoney(aidaRev2023 || aidaRev2024)}
+            aidaValue={formatEurCompact(aidaRev2023 || aidaRev2024)}
             unit="€"
             placeholder={(aidaRev2023 || aidaRev2024) ? String(aidaRev2023 || aidaRev2024) : ''}
           />
           <SideBySideField
             label="Revenue · 2 years before"
             name="overrides.revenue_y_1"
-            aidaValue={fmtMoney(aidaRev2022 || aidaRev2023)}
+            aidaValue={formatEurCompact(aidaRev2022 || aidaRev2023)}
             unit="€"
             placeholder={(aidaRev2022 || aidaRev2023) ? String(aidaRev2022 || aidaRev2023) : ''}
           />
           <SideBySideField
             label="EBITDA · last year"
             name="overrides.ebitda"
-            aidaValue={fmtMoney(aidaEbitda)}
+            aidaValue={formatEurCompact(aidaEbitda)}
             unit="€"
             placeholder={aidaEbitda ? String(aidaEbitda) : ''}
             allowNegative
@@ -1034,7 +1035,7 @@ function ReviewStep({
               <li key={key} className="flex items-baseline justify-between gap-2 rounded-md border border-line bg-bg-2/40 px-3 py-2 text-[12.5px]">
                 <span className="text-text-dim">{label}</span>
                 <span className="font-mono font-semibold text-text">
-                  {unit === '€' ? fmtMoney(Number((overrides as Record<string, unknown>)[key])) : `${(overrides as Record<string, unknown>)[key]}${unit}`}
+                  {unit === '€' ? formatEurCompact(Number((overrides as Record<string, unknown>)[key])) : `${(overrides as Record<string, unknown>)[key]}${unit}`}
                 </span>
               </li>
             ))}
@@ -1087,22 +1088,6 @@ function ReviewStat({ label, value, tone }: { label: string; value: string; tone
 // =============================================================================
 // Helpers
 // =============================================================================
-function thkToEur(n: number | null | undefined): number {
-  if (n == null) return 0;
-  return Math.round(n * 1000);
-}
-
-function fmtMoney(eur: number): string {
-  if (!eur) return '—';
-  if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(2)}M`;
-  if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}K`;
-  return `€${eur}`;
-}
-
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
-}
-
 function formatRestoredTime(iso: string): string {
   const dt = new Date(iso);
   const minutes = (Date.now() - dt.getTime()) / 60_000;

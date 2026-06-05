@@ -9,6 +9,7 @@
 import type { DashboardData, DashboardAction, DashboardCapital } from '@/lib/dashboard-data';
 import type { AidaSnapshot } from '@/lib/aida';
 import type { Explanation, ExplanationStep } from '@/components/company-workspace/info-popover';
+import { formatCurrency, formatEurCompact, formatThk } from '@/lib/format';
 
 const ILLIQUIDITY_DISCOUNT = 0.75;
 
@@ -349,17 +350,9 @@ function prettyFlag(f: string): string {
   return f.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase());
 }
 
-function fmtMoney(eur: number): string {
-  if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(2)}M`;
-  if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}K`;
-  return `€${eur}`;
-}
-function fmtEur(eur: number): string {
-  return `€${Math.round(eur).toLocaleString()}`;
-}
-function fmtThousands(thousands: number): string {
-  return Math.round(thousands).toLocaleString();
-}
+const fmtMoney = (eur: number): string => formatEurCompact(eur, { zero: '€0' });
+const fmtEur = formatCurrency;
+const fmtThousands = formatThk;
 function thk(v: number | null | undefined): string {
   return v == null ? '—' : `${Math.round(v).toLocaleString()}K`;
 }

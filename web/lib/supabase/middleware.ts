@@ -3,10 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/lib/database.types';
 
 /**
- * Flip to `true` to re-enable the /dashboard + /onboarding auth guards.
- * Set to `false` for the academic-demo mode where everything is open.
+ * Auth guards are ON: /companies (the whole app surface), /dashboard,
+ * /diagnostic and /onboarding require a session. Flip to `false` to go
+ * back to the open academic-demo mode.
  */
-const ENFORCE_AUTH_GUARDS = false;
+const ENFORCE_AUTH_GUARDS = true;
 
 /**
  * updateSession
@@ -56,7 +57,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
-  const PROTECTED_PREFIXES = ['/dashboard', '/onboarding'];
+  const PROTECTED_PREFIXES = ['/companies', '/dashboard', '/diagnostic', '/onboarding'];
   const AUTH_PREFIXES = ['/login', '/signup'];
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));

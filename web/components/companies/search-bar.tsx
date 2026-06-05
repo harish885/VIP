@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Building2, MapPin, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { formatThkMillions } from '@/lib/format';
 
 interface Suggestion {
   tax_code: string;
@@ -252,7 +253,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
                     </span>
                     {s.revenue_last_thk !== null && (
                       <span className="shrink-0 font-mono text-[11px] font-semibold text-text-dim">
-                        €{(s.revenue_last_thk / 1000).toFixed(1)}M
+                        {formatThkMillions(s.revenue_last_thk)}
                       </span>
                     )}
                   </button>

@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { formatEurCompact, round1 } from '@/lib/format';
 
 type Fact = {
   label: string;
@@ -831,17 +832,11 @@ function MiniBadge({ label, value }: { label: string; value: string }) {
 }
 
 function formatMoney(value: number): string {
-  if (value >= 1_000_000) return `€${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `€${Math.round(value / 1_000)}k`;
-  return `€${Math.round(value)}`;
+  return formatEurCompact(value, { decimals: 1, zero: '€0' });
 }
 
 function humanizeObjective(value: string): string {
   return value.replace(/_/g, ' ');
-}
-
-function round1(value: number): number {
-  return Math.round(value * 10) / 10;
 }
 
 function clamp(value: number, min: number, max: number): number {

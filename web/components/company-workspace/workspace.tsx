@@ -16,6 +16,7 @@ import type { DiagnosisStatus } from '@/lib/company-loader';
 import { SimulationPanel } from '@/components/dashboard/simulation-panel';
 import { InfoButton, type Explanation } from '@/components/company-workspace/info-popover';
 import { buildExplanations, type ExplanationMap } from '@/lib/dashboard-explanations';
+import { formatEurCompact, formatEurMillions, formatThk } from '@/lib/format';
 
 import { Button } from '@/components/vip-ui/button';
 import { StatCell } from '@/components/vip-ui/stat-cell';
@@ -163,15 +164,15 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
       <Surface tone="raised" padding="md" className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
         <StatCell
           label="Enterprise value"
-          value={formatMoney(valuation.v_current_eur)}
-          sub={`Range €${m(valuation.v_low_eur)}–€${m(valuation.v_high_eur)}M`}
+          value={formatEurCompact(valuation.v_current_eur)}
+          sub={`Range €${formatEurMillions(valuation.v_low_eur)}–€${formatEurMillions(valuation.v_high_eur)}M`}
           size="lg"
           trailing={<InfoButton explanation={explanations.v_current} ariaLabel="How V is calculated" />}
         />
         <StatCell
           label="Value gap"
           value={`+${Math.max(0, Math.round(valuation.value_gap_pct))}%`}
-          sub={`Potential ≈ ${formatMoney(valuation.v_potential_eur)}`}
+          sub={`Potential ≈ ${formatEurCompact(valuation.v_potential_eur)}`}
           tone="positive"
           size="lg"
           trailing={<InfoButton explanation={explanations.value_gap} ariaLabel="How value gap is calculated" />}
@@ -207,7 +208,7 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
           <ValueBridge
             ebitda={{
               label: 'EBITDA',
-              value: `€${kFmt(valuation.ebitda_norm_eur)}K`,
+              value: `€${formatThk(valuation.ebitda_norm_eur / 1000)}K`,
               source: provenance.ebitda_source,
               info: <InfoButton explanation={explanations.ebitda} ariaLabel="EBITDA source" />,
             }}
@@ -230,8 +231,8 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
               info: <InfoButton explanation={explanations.gf} ariaLabel="GF derivation" />,
             }}
             result={{
-              value: formatMoney(valuation.v_current_eur),
-              sub: `Range €${m(valuation.v_low_eur)}–€${m(valuation.v_high_eur)}M`,
+              value: formatEurCompact(valuation.v_current_eur),
+              sub: `Range €${formatEurMillions(valuation.v_low_eur)}–€${formatEurMillions(valuation.v_high_eur)}M`,
               info: <InfoButton explanation={explanations.v_current} ariaLabel="Final V" />,
             }}
           />
@@ -313,7 +314,7 @@ function MethodTab({ data, explanations }: { data: DashboardData; explanations: 
         />
         {source === 'submission' && (
           <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-            <StatCell label="EBITDA (norm)" value={`€${kFmt(valuation.ebitda_norm_eur)}K`}
+            <StatCell label="EBITDA (norm)" value={`€${formatThk(valuation.ebitda_norm_eur / 1000)}K`}
               trailing={<InfoButton explanation={explanations.ebitda} ariaLabel="EBITDA" />} />
             <StatCell label="M sector" value={`${valuation.m_sector.toFixed(1)}×`}
               sub={company.nace_code ? `NACE ${company.nace_code}` : undefined}
@@ -389,27 +390,6 @@ function NeedsDiagnosticPanel() {
   );
 }
 
-// ResetButton + resetCompanyAction removed: re-running the diagnostic
-// writes a fresh vip.submissions row + cookie pins the dashboard to it,
-// so founders never need to nuke their history to start a new pass.
-function _ResetButtonStub() {
-  return null;
-}
-
-// =============================================================================
-// Formatters
-// =============================================================================
-function m(eur: number): string {
-  return (eur / 1_000_000).toFixed(1);
-}
-function kFmt(eur: number): string {
-  return Math.round(eur / 1000).toLocaleString();
-}
-function formatMoney(eur: number): string {
-  if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(2)}M`;
-  if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}K`;
-  return `€${eur}`;
-}
 function qualityLabel(score: number): string {
   if (score >= 80) return 'Top quartile structure';
   if (score >= 65) return 'Above-average structure';

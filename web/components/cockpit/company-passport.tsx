@@ -7,6 +7,7 @@ import { Surface } from '@/components/vip-ui/surface';
 import { StatusBadge } from '@/components/vip-ui/status-badge';
 import { SourceBadge } from '@/components/vip-ui/source-badge';
 import { cn } from '@/lib/cn';
+import { formatEurCompact, thkToEur } from '@/lib/format';
 
 interface Props {
   snapshot: AidaSnapshot;
@@ -104,13 +105,13 @@ export function CompanyPassport({
           <PassportFact
             icon={<BarChart3 size={14} />}
             label="Revenue"
-            value={fmtMoney(thk(snapshot.revenue_last_thk))}
+            value={fmtEur(thkToEur(snapshot.revenue_last_thk))}
             sub="Last reported year"
           />
           <PassportFact
             icon={<Coins size={14} />}
             label="EBITDA"
-            value={fmtMoney(thk(snapshot.ebitda_last_thk))}
+            value={fmtEur(thkToEur(snapshot.ebitda_last_thk))}
             sub={
               snapshot.ebitda_margin_pct != null
                 ? `Margin ${snapshot.ebitda_margin_pct.toFixed(1)}%`
@@ -130,7 +131,7 @@ export function CompanyPassport({
           <PassportFact
             icon={<Wallet size={14} />}
             label="Net fin. position"
-            value={fmtMoney(thk(snapshot.net_financial_position_thk))}
+            value={fmtEur(thkToEur(snapshot.net_financial_position_thk))}
             sub={
               snapshot.debt_ebitda_ratio != null
                 ? `Debt / EBITDA ${snapshot.debt_ebitda_ratio.toFixed(1)}×`
@@ -147,7 +148,7 @@ export function CompanyPassport({
             }
             sub={
               snapshot.rd_expense_thk != null && snapshot.rd_expense_thk > 0
-                ? `${fmtMoney(thk(snapshot.rd_expense_thk))} reported`
+                ? `${fmtEur(thkToEur(snapshot.rd_expense_thk))} reported`
                 : 'Not reported'
             }
           />
@@ -196,15 +197,7 @@ function Dot() {
   return <span className="text-text-faint">·</span>;
 }
 
-function thk(v: number | null | undefined): number {
-  return v == null ? 0 : v * 1000;
-}
-
-function fmtMoney(eur: number): string {
-  if (!eur) return '—';
-  const sign = eur < 0 ? '−' : '';
-  const abs = Math.abs(eur);
-  if (abs >= 1_000_000) return `${sign}€${(abs / 1_000_000).toFixed(2)}M`;
-  if (abs >= 1_000) return `${sign}€${(abs / 1_000).toFixed(0)}K`;
-  return `${sign}€${abs}`;
+/** Signed compact € — net financial position can legitimately be negative. */
+function fmtEur(eur: number): string {
+  return formatEurCompact(eur, { signed: true });
 }
