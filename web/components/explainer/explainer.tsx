@@ -1,20 +1,14 @@
 import Link from 'next/link';
-import {
-  ArrowRight,
-  BadgeHelp,
-  BarChart3,
-  Building2,
-  CircleDollarSign,
-  Factory,
-  Layers3,
-  Radar,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Users,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { CapitalGlyph } from '@/components/cockpit/capital-glyph';
+import { SourceBadge } from '@/components/vip-ui/source-badge';
 import { formatEurCompact, round1 } from '@/lib/format';
+import { cn } from '@/lib/cn';
 
+// =============================================================================
+// Story contract — built server-side by app/(app)/how-it-works/page.tsx.
+// Do not change shapes here without updating the page.
+// =============================================================================
 type Fact = {
   label: string;
   value: string;
@@ -110,729 +104,386 @@ export type ExplainerStory = {
   baseline: BaselineInput;
 };
 
-const STEP_TITLES = [
-  'Start from the company',
-  'Add what filings cannot see',
-  'Turn raw inputs into signals',
-  'Build the four capital scores',
-  'Convert quality into value',
-  'Rank the next best moves',
+const GLYPH_KEY: Record<CapitalAssembly['key'], 'fin' | 'tech' | 'human' | 'rel'> = {
+  financial: 'fin',
+  technological: 'tech',
+  human: 'human',
+  relational: 'rel',
+};
+
+const CAPITAL_DOT: Record<CapitalAssembly['key'], string> = {
+  financial: 'bg-cap-fin',
+  technological: 'bg-cap-tech',
+  human: 'bg-cap-human',
+  relational: 'bg-cap-rel',
+};
+
+const CHAPTERS = [
+  'The public record',
+  'What filings cannot see',
+  'Good compared with whom?',
+  'Four capitals, one quality factor',
+  'From quality to value',
+  'The three moves that matter',
 ] as const;
 
-const CAPITAL_ACCENTS: Record<CapitalAssembly['key'], string> = {
-  financial: 'bg-green',
-  technological: 'bg-cyan',
-  human: 'bg-gold',
-  relational: 'bg-purple',
-};
-
-const CAPITAL_TINTS: Record<CapitalAssembly['key'], string> = {
-  financial: 'bg-green/[0.07] text-green ring-green/30',
-  technological: 'bg-cyan/[0.07] text-cyan ring-cyan/30',
-  human: 'bg-gold/[0.07] text-gold ring-gold/30',
-  relational: 'bg-purple/[0.07] text-purple ring-purple/30',
-};
-
+/**
+ * Explainer — /how-it-works.
+ *
+ * One real company walked through the six stages of the engine, written
+ * as a quiet editorial document: numbered chapters, hairline rules, one
+ * visual per chapter, no card-inside-card. Reuses the cockpit's own
+ * primitives (fingerprint glyph, formula stones) so the explainer looks
+ * like the product it explains.
+ */
 export function Explainer({ story }: { story: ExplainerStory }) {
-  const marginFact = story.facts.find((fact) => fact.label === 'EBITDA');
-  const revenueFact = story.facts.find((fact) => fact.label === 'Revenue');
-  const employeesFact = story.facts.find((fact) => fact.label === 'Employees');
-  const rdFact = story.facts.find((fact) => fact.label === 'R&D intensity');
-  const topAction = story.recommendations[0];
-  const secondAction = story.recommendations[1];
-  const thirdAction = story.recommendations[2];
+  const vm = story.valueModel;
 
   return (
-    <div className="bg-bg-2">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <header className="rounded-[24px] border border-line bg-bg-1/90 p-5 shadow-[0_24px_80px_rgba(24,24,27,0.06)] backdrop-blur sm:rounded-[28px] sm:p-10">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-2 px-3 py-1 text-[11px] uppercase leading-relaxed tracking-[0.16em] text-text-dim sm:text-xs sm:tracking-[0.28em]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {story.mode === 'real' ? 'Real AIDA company example' : 'Illustrative walkthrough'}
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green/[0.07] px-3 py-1 text-[11px] uppercase leading-relaxed tracking-[0.16em] text-green sm:text-xs sm:tracking-[0.28em]">
-                  <Factory className="h-3.5 w-3.5" />
-                  Manufacturing SME
-                </span>
-              </div>
-              <h1 className="max-w-3xl text-2xl font-semibold leading-tight text-text min-[390px]:text-3xl sm:text-5xl">
-                How VIP reads one company, scores its quality, and turns that into practical next moves.
-              </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-text-dim sm:text-lg sm:leading-8">
-                This page follows one real company through the same logic the product uses in the diagnostic flow:
-                public company facts first, entrepreneur input next, then peer comparison, capital scoring, valuation,
-                and action ranking.
-              </p>
-            </div>
+    <div className="mx-auto max-w-[880px] px-4 pb-24 pt-10 sm:px-6">
+      {/* ── Masthead ─────────────────────────────────────────────── */}
+      <header>
+        <div className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-gold">
+          How it works · {story.mode === 'real' ? 'a real AIDA company' : 'illustrative profile'}
+        </div>
+        <h1 className="mt-4 font-serif text-[34px] font-medium leading-[1.06] tracking-tight text-text sm:text-[44px]">
+          One company, read the way the engine reads it.
+        </h1>
+        <p className="mt-4 max-w-[58ch] text-[15px] leading-7 text-text-dim">
+          Six stages take {story.company.name} from public filings to a defensible
+          value and three ranked moves. Every number below is the engine&rsquo;s real
+          output for this company — nothing is staged.
+        </p>
+      </header>
 
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:w-[420px] lg:grid-cols-1 lg:self-stretch">
-              <KeyMetric
-                label="Company value today"
-                value={formatMoney(story.valueModel.valueCurrent)}
-                detail={`Range ${formatMoney(story.valueModel.valueLow)} - ${formatMoney(story.valueModel.valueHigh)}`}
-              />
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                <KeyMetric label="Quality" value={`${story.valueModel.qualityScore}/100`} detail="Composite score" />
-                <KeyMetric label="Risk" value={story.valueModel.riskIndex} detail="Fragility signal" />
-                <KeyMetric
-                  label="Potential"
-                  value={formatMoney(story.valueModel.valuePotential)}
-                  detail={`Gap +${story.valueModel.valueGapPct}%`}
-                />
-              </div>
-            </div>
+      {/* ── The company, in one strip ────────────────────────────── */}
+      <div className="mt-8 rounded-lg border border-line bg-bg-1 p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="min-w-0">
+            <span className="font-serif text-[20px] font-medium text-text">{story.company.name}</span>
+            <span className="ml-3 font-mono text-[11px] text-text-faint">
+              {story.company.province} · NACE {story.company.naceCode}
+            </span>
           </div>
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-            <section className="rounded-[22px] border border-line bg-bg-2 p-5 sm:rounded-[24px] sm:p-7">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-gold sm:text-xs sm:tracking-[0.35em]">The company we follow</p>
-                  <h2 className="mt-3 text-2xl font-semibold text-text sm:text-3xl">{story.company.name}</h2>
-                  <p className="mt-2 text-base text-text-dim">
-                    {story.company.province} · {story.company.naceCode} · {story.company.description}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-line bg-bg-1 p-3 text-text-faint">
-                  <Building2 className="h-7 w-7" />
-                </div>
+          <SourceBadge source="aida" label="AIDA · Bureau van Dijk" />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line-faint pt-4 sm:grid-cols-4">
+          {story.facts.slice(0, 4).map((fact) => (
+            <div key={fact.label} className="min-w-0">
+              <div className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-text-faint">
+                {fact.label}
               </div>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {story.facts.map((fact) => (
-                  <div key={fact.label} className="rounded-[22px] border border-line bg-bg-1 p-5">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-text-faint sm:tracking-[0.32em]">{fact.label}</p>
-                    <p className="mt-3 text-2xl font-semibold text-text sm:text-3xl">{fact.value}</p>
-                    <p className="mt-2 text-sm leading-6 text-text-faint">{fact.detail}</p>
-                  </div>
-                ))}
+              <div className="mt-1 truncate font-serif text-[20px] font-medium leading-none text-text">
+                {fact.value}
               </div>
-            </section>
-
-            <section className="rounded-[22px] border border-line bg-bg-1 p-5 sm:rounded-[24px] sm:p-7">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-cyan sm:text-xs sm:tracking-[0.35em]">What this example is showing</p>
-              <div className="mt-4 space-y-4 text-text-dim">
-                <p className="text-lg leading-8">
-                  VIP does not start from a blank form. It starts from a known operating footprint, then asks the
-                  entrepreneur for the strategic truth that financial filings cannot capture.
-                </p>
-                <div className="rounded-[22px] border border-cyan/25 bg-cyan/[0.06] p-4">
-                  <p className="font-medium text-text">What was already known from AIDA</p>
-                  <p className="mt-1 text-sm leading-6 text-text-dim">
-                    Revenue, EBITDA, headcount, sector context, and peer-group positioning are already available before
-                    the questionnaire begins.
-                  </p>
-                </div>
-                <div className="rounded-[22px] border border-gold/25 bg-gold/[0.07]/70 p-4">
-                  <p className="font-medium text-text">What the entrepreneur adds</p>
-                  <p className="mt-1 text-sm leading-6 text-text-dim">
-                    Questions about digital maturity, founder dependence, client concentration, partnerships,
-                    scalability, and strategic objective complete the picture.
-                  </p>
-                </div>
-              </div>
-            </section>
-          </div>
-        </header>
-
-        <nav className="mt-6 grid gap-3 rounded-[24px] border border-line bg-bg-1 p-4 sm:grid-cols-2 xl:grid-cols-6">
-          {STEP_TITLES.map((title, index) => (
-            <a
-              key={title}
-              href={`#step-${index + 1}`}
-              className="rounded-2xl border border-line bg-bg-2 px-4 py-3 text-sm text-text-dim transition hover:border-line-2 hover:bg-bg-1"
-            >
-              <span className="block text-[11px] uppercase tracking-[0.28em] text-text-faint">Step {index + 1}</span>
-              <span className="mt-1 block font-medium text-text">{title}</span>
-            </a>
+              <div className="mt-1 truncate text-[11px] text-text-faint">{fact.detail}</div>
+            </div>
           ))}
-        </nav>
-
-        <main className="mt-8 space-y-8">
-          <StorySection
-            id="step-1"
-            icon={<Building2 className="h-5 w-5" />}
-            step="Step 1"
-            title="Start from the company, not from guesswork."
-            intro={`For ${story.company.name}, VIP begins with the public company footprint already available in AIDA.`}
-          >
-            <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-              <Panel>
-                <p className="text-base leading-8 text-text-dim">
-                  That gives the model an initial operating picture straight away: turnover, earnings, people, sector,
-                  and comparable-company context. In this example, the company enters the process already carrying a
-                  revenue base of <strong className="text-text">{revenueFact?.value ?? '—'}</strong>, EBITDA of{' '}
-                  <strong className="text-text">{marginFact?.value ?? '—'}</strong>, and{' '}
-                  <strong className="text-text">{employeesFact?.value ?? '—'}</strong> employees.
-                </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <EvidencePill label="Revenue history" value={revenueFact?.detail ?? 'Latest filing'} />
-                  <EvidencePill label="Earnings quality" value={marginFact?.detail ?? 'EBITDA context'} />
-                  <EvidencePill label="People base" value={employeesFact?.detail ?? 'Workforce scale'} />
-                  <EvidencePill label="Innovation signal" value={rdFact?.value ?? 'Not available'} />
-                </div>
-              </Panel>
-
-              <Panel tone="soft">
-                <div className="flex items-start gap-3">
-                  <BadgeHelp className="mt-1 h-5 w-5 text-cyan" />
-                  <div>
-                    <p className="font-medium text-text">Why this matters</p>
-                    <p className="mt-2 text-base leading-8 text-text-dim">
-                      Two manufacturing companies can have similar revenue and still deserve very different valuations.
-                      So the AIDA facts do not finish the diagnosis. They establish the measurable base that everything
-                      else will be judged against.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-5 rounded-[20px] border border-line bg-bg-1 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Peer lens available immediately</p>
-                  <p className="mt-2 text-lg font-medium text-text">{story.company.peerGroupLabel}</p>
-                  <p className="mt-1 text-sm text-text-faint">
-                    {story.company.peerFallbackLabel}. This is how the model avoids judging the company in isolation.
-                  </p>
-                </div>
-              </Panel>
-            </div>
-          </StorySection>
-
-          <StorySection
-            id="step-2"
-            icon={<Users className="h-5 w-5" />}
-            step="Step 2"
-            title="Add what filings cannot see."
-            intro={`The entrepreneur then adds the missing strategic picture through ${story.questionnaire.totalQuestions} diagnostic inputs.`}
-          >
-            <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-              <Panel tone="soft">
-                <p className="text-base leading-8 text-text-dim">
-                  These answers do not try to replace the financials. They complement them. The model is asking about
-                  the business characteristics that usually matter in due diligence but rarely appear in accounts.
-                </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {story.questionnaire.categories.map((category) => (
-                    <div key={category.name} className="rounded-[20px] border border-line bg-bg-1 p-4">
-                      <p className="text-sm font-medium text-text">{category.name}</p>
-                      <p className="mt-2 text-sm text-text-faint">{category.count} questions</p>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-
-              <Panel>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Examples of what gets asked</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {story.questionnaire.examples.map((example) => (
-                    <span
-                      key={example}
-                      className="inline-flex rounded-full border border-line bg-bg-2 px-4 py-2 text-sm text-text-dim"
-                    >
-                      {example}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  <SmallStat
-                    label="Recurring revenue proxy"
-                    value={`${round1(story.baseline.recurring_revenue_pct)}%`}
-                    detail="Derived partly from client quality and growth quality answers"
-                  />
-                  <SmallStat
-                    label="Top-3 client concentration proxy"
-                    value={`${round1(story.baseline.top3_client_concentration)}%`}
-                    detail="A proxy for fragility when customer mix is not directly available"
-                  />
-                  <SmallStat
-                    label="Lifecycle stage used for GF"
-                    value={story.baseline.lifecycle_stage}
-                    detail={`${story.baseline.time_horizon} horizon · ${humanizeObjective(story.baseline.stated_objective)}`}
-                  />
-                </div>
-              </Panel>
-            </div>
-          </StorySection>
-
-          <StorySection
-            id="step-3"
-            icon={<BarChart3 className="h-5 w-5" />}
-            step="Step 3"
-            title="Turn raw facts and answers into comparable signals."
-            intro="The model cannot compare a 1–5 questionnaire answer with an EBITDA margin directly, so it converts everything into a common scoring language."
-          >
-            <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
-              <Panel tone="soft">
-                <p className="font-medium text-text">How comparison works in this build</p>
-                <ol className="mt-4 space-y-3 text-sm leading-7 text-text-dim">
-                  <li>1. Quantitative signals are ranked relative to comparable companies.</li>
-                  <li>2. The model tries the closest peer group first.</li>
-                  <li>3. If that pool is too thin, it widens to the broader NACE prefix.</li>
-                  <li>4. Some signals have no direct AIDA field, so calibrated priors are used instead.</li>
-                </ol>
-
-                <div className="mt-5 rounded-[20px] border border-line bg-bg-1 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Peer comparison lens</p>
-                  <p className="mt-2 text-lg font-medium text-text">{story.comparison.peerGroupLabel}</p>
-                  <p className="mt-1 text-sm text-text-faint">Group size: {String(story.comparison.peerGroupSize)}</p>
-                  <p className="mt-3 text-sm leading-6 text-text-dim">{story.comparison.fallbackLabel}</p>
-                </div>
-              </Panel>
-
-              <Panel>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Signals after benchmarking</p>
-                <div className="mt-5 space-y-4">
-                  {story.comparison.metrics.map((metric) => (
-                    <MetricRow key={metric.label} metric={metric} />
-                  ))}
-                </div>
-                <div className="mt-6 rounded-[20px] border border-cyan/25 bg-cyan/[0.06] p-4 text-sm leading-7 text-text-dim">
-                  In other words: a number only becomes meaningful once the company is placed in context. An 8% margin
-                  can be excellent in one manufacturing niche and weak in another. VIP is always asking, “good compared
-                  with whom?”
-                </div>
-              </Panel>
-            </div>
-          </StorySection>
-
-          <StorySection
-            id="step-4"
-            icon={<Layers3 className="h-5 w-5" />}
-            step="Step 4"
-            title="Assemble the four capitals and turn them into SQF."
-            intro="This is where VIP moves from individual signals to a strategic quality profile."
-          >
-            <Panel>
-              <div className="grid gap-5 xl:grid-cols-2">
-                {story.capitalAssemblies.map((capital) => (
-                  <div key={capital.key} className="rounded-[24px] border border-line bg-bg-2 p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1 ${CAPITAL_TINTS[capital.key]}`}>
-                          {capital.name}
-                        </div>
-                        <p className="mt-3 text-sm leading-7 text-text-dim">{capital.story}</p>
-                      </div>
-                      <div className="min-w-[96px] rounded-[20px] border border-line bg-bg-1 px-4 py-3 text-right">
-                        <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Capital score</p>
-                        <p className="mt-2 text-3xl font-semibold tracking-tight text-text">{capital.score}</p>
-                        <p className="mt-1 text-xs text-text-faint">{capital.pillarWeight}% of composite</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 space-y-3">
-                      {capital.signals.map((signal) => (
-                        <SignalRow key={`${capital.key}-${signal.label}`} signal={signal} accentClass={CAPITAL_ACCENTS[capital.key]} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-center">
-                <FormulaChip label="Composite quality score" value={`${story.valueModel.qualityScore}/100`} />
-                <ArrowCell />
-                <FormulaChip label="SQF" value={story.valueModel.sqf.toFixed(2)} detail="0.6 + (CQS/100) × 0.8" />
-                <ArrowCell />
-                <div className="rounded-[22px] border border-line bg-gold/[0.07]/70 p-5">
-                  <p className="text-sm leading-7 text-text-dim">
-                    SQF is the quality multiplier. It rewards businesses that are not just profitable, but also more
-                    transferable, less fragile, and better positioned to scale.
-                  </p>
-                </div>
-              </div>
-            </Panel>
-          </StorySection>
-
-          <StorySection
-            id="step-5"
-            icon={<CircleDollarSign className="h-5 w-5" />}
-            step="Step 5"
-            title="Combine earnings, market context, quality, and growth."
-            intro="The final valuation does not come from one score. It comes from four pieces working together."
-          >
-            <div className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
-              <Panel>
-                <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-                  <ValueInputCard
-                    label="EBITDA"
-                    value={formatMoney(story.valueModel.ebitda)}
-                    detail="Current earnings base"
-                    icon={<CircleDollarSign className="h-5 w-5" />}
-                  />
-                  <ValueInputCard
-                    label="Sector multiple"
-                    value={`${story.valueModel.multiple.toFixed(2)}x`}
-                    detail="Exact NACE if available, then prefix or sector bucket, with a 25% illiquidity discount"
-                    icon={<Factory className="h-5 w-5" />}
-                  />
-                  <ValueInputCard
-                    label="SQF"
-                    value={story.valueModel.sqf.toFixed(2)}
-                    detail="Strategic quality multiplier from the four capitals"
-                    icon={<Radar className="h-5 w-5" />}
-                  />
-                  <ValueInputCard
-                    label="GF"
-                    value={story.valueModel.gf.toFixed(2)}
-                    detail="Growth factor from CAGR, lifecycle stage, and scalability"
-                    icon={<TrendingUp className="h-5 w-5" />}
-                  />
-                </div>
-
-                <div className="mt-6 rounded-[24px] border border-line bg-bg-2 p-6">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Value formula in this product</p>
-                  <div className="mt-4 flex flex-wrap items-center gap-3 text-lg text-text-dim">
-                    <FormulaToken>{formatMoney(story.valueModel.ebitda)}</FormulaToken>
-                    <span>×</span>
-                    <FormulaToken>{story.valueModel.multiple.toFixed(2)}x</FormulaToken>
-                    <span>×</span>
-                    <FormulaToken>{story.valueModel.sqf.toFixed(2)}</FormulaToken>
-                    <span>×</span>
-                    <FormulaToken>{story.valueModel.gf.toFixed(2)}</FormulaToken>
-                    <span>=</span>
-                    <FormulaToken strong>{formatMoney(story.valueModel.valueCurrent)}</FormulaToken>
-                  </div>
-                  <p className="mt-4 text-sm leading-7 text-text-dim">
-                    The range stays visible because no serious valuation should pretend to be a single precise point.
-                    Here that lands at {formatMoney(story.valueModel.valueLow)} to {formatMoney(story.valueModel.valueHigh)}.
-                  </p>
-                </div>
-              </Panel>
-
-              <Panel tone="soft">
-                <p className="font-medium text-text">What each multiplier is doing</p>
-                <div className="mt-4 space-y-4 text-sm leading-7 text-text-dim">
-                  <p>
-                    <strong className="text-text">Sector multiple</strong> gives the market backdrop: what similar
-                    businesses are broadly worth per euro of EBITDA.
-                  </p>
-                  <p>
-                    <strong className="text-text">SQF</strong> adjusts for how investable and transferable the
-                    company feels once the four capitals have been scored.
-                  </p>
-                  <p>
-                    <strong className="text-text">GF</strong> rewards or discounts the growth profile based on real
-                    CAGR plus business scalability and lifecycle stage.
-                  </p>
-                </div>
-
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
-                  <KeyMetric label="Value today" value={formatMoney(story.valueModel.valueCurrent)} detail="Current estimate" />
-                  <KeyMetric
-                    label="Potential value"
-                    value={formatMoney(story.valueModel.valuePotential)}
-                    detail={`If the Top-3 actions land, +${story.valueModel.valueGapPct}%`}
-                  />
-                </div>
-              </Panel>
-            </div>
-          </StorySection>
-
-          <StorySection
-            id="step-6"
-            icon={<Target className="h-5 w-5" />}
-            step="Step 6"
-            title="Rank the few actions most likely to move value."
-            intro={`The product does not stop at diagnosis. It looks across ${story.actionCatalogueCount} possible actions, estimates which ones increase value the most, and surfaces the strongest few.`}
-          >
-            <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-              <Panel>
-                <div className="space-y-4">
-                  {story.recommendations.map((action) => (
-                    <div key={action.id} className="rounded-[24px] border border-line bg-bg-2 p-5">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <div className="inline-flex rounded-full border border-line bg-bg-1 px-3 py-1 text-xs uppercase tracking-[0.28em] text-text-faint">
-                            Top {action.rank}
-                          </div>
-                          <h3 className="mt-3 text-xl font-semibold tracking-tight text-text">{action.title}</h3>
-                          <p className="mt-2 max-w-2xl text-sm leading-7 text-text-dim">{action.description}</p>
-                        </div>
-                        <div className="grid min-w-[210px] gap-3 sm:w-[230px]">
-                          <MiniBadge label="Expected value lift" value={`+${action.upliftPct}%`} />
-                          <MiniBadge label="Primary impact" value={action.impactLabel} />
-                          <MiniBadge label="Time to impact" value={`${action.horizonMonths} months`} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-
-              <Panel tone="soft">
-                <p className="font-medium text-text">What the ranking is doing behind the scenes</p>
-                <div className="mt-4 space-y-3 text-sm leading-7 text-text-dim">
-                  <p>1. Start from the current valuation baseline.</p>
-                  <p>2. Simulate the expected SQF and GF improvement for each action candidate.</p>
-                  <p>3. Recompute value using the same valuation logic.</p>
-                  <p>4. Rank by expected return on value relative to effort and time.</p>
-                </div>
-
-                {topAction ? (
-                  <div className="mt-5 rounded-[22px] border border-green/30 bg-green/[0.07]/70 p-5">
-                    <p className="text-[11px] uppercase tracking-[0.28em] text-green">What this example says next</p>
-                    <p className="mt-3 text-base leading-8 text-text">
-                      For {story.company.name}, the model’s strongest first move is{' '}
-                      <strong className="text-text">{topAction.title.toLowerCase()}</strong>. That is the action
-                      with the clearest expected path to lifting value from {formatMoney(story.valueModel.valueCurrent)}{' '}
-                      toward {formatMoney(story.valueModel.valuePotential)}.
-                    </p>
-                    {(secondAction || thirdAction) ? (
-                      <p className="mt-3 text-sm leading-7 text-text-dim">
-                        The next layer after that is {secondAction?.title ?? 'the second-ranked action'}
-                        {thirdAction ? `, followed by ${thirdAction.title}` : ''}.
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-              </Panel>
-            </div>
-          </StorySection>
-        </main>
-
-        <footer className="mt-8 rounded-[28px] border border-line bg-bg-1 p-8 shadow-[0_24px_80px_rgba(24,24,27,0.05)] sm:p-10">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-text-faint">The product promise</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-text">
-                Understand value today. See what drives it. Know what to improve next.
-              </h2>
-              <p className="mt-4 max-w-3xl text-base leading-8 text-text-dim">
-                That is the whole logic of VIP in one line: start from a real company, enrich it with the entrepreneur’s
-                strategic truth, compare it properly, score the four capitals, and translate the result into value and
-                priorities.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/companies"
-                className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-text px-5 py-3 text-sm font-medium text-bg transition hover:bg-text"
-              >
-                Explore companies
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </footer>
+        </div>
       </div>
+
+      {/* ── Chapter index ────────────────────────────────────────── */}
+      <nav aria-label="Chapters" className="mt-10 border-y border-line py-4">
+        <ol className="grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
+          {CHAPTERS.map((title, i) => (
+            <li key={title}>
+              <a
+                href={`#ch-${i + 1}`}
+                className="group flex items-baseline gap-3 py-0.5 text-[13px] text-text-dim transition-colors hover:text-text"
+              >
+                <span className="font-mono text-[10.5px] font-bold text-gold">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="group-hover:underline group-hover:underline-offset-4">{title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      {/* ── 01 · The public record ───────────────────────────────── */}
+      <Chapter n={1} title={CHAPTERS[0]} lede="The engine never starts from a blank form. AIDA already knows the operating footprint — the diagnostic begins from there.">
+        <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+          {story.facts.map((fact) => (
+            <div key={fact.label} className="flex items-baseline justify-between gap-4 border-b border-line-faint pb-2.5">
+              <span className="text-[13px] text-text-dim">{fact.label}</span>
+              <span className="text-right">
+                <span className="font-mono text-[13px] font-semibold text-text">{fact.value}</span>
+                <span className="mt-0.5 block text-[10.5px] text-text-faint">{fact.detail}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <Aside>
+          Peer lens available immediately: <strong className="font-medium text-text">{story.company.peerGroupLabel}</strong>.
+          Two manufacturers with the same revenue can deserve very different valuations — the filings only set the
+          measurable base everything else is judged against.
+        </Aside>
+      </Chapter>
+
+      {/* ── 02 · What filings cannot see ─────────────────────────── */}
+      <Chapter
+        n={2}
+        title={CHAPTERS[1]}
+        lede={`${story.questionnaire.totalQuestions} diagnostic inputs add what due diligence asks and accounts never show — transferability, client mix, systems, scalability.`}
+      >
+        <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+          {story.questionnaire.categories.map((category) => (
+            <div key={category.name} className="flex items-baseline justify-between border-b border-line-faint pb-2">
+              <span className="text-[13px] text-text-dim">{category.name}</span>
+              <span className="font-mono text-[12px] font-semibold text-text">{category.count} q</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 space-y-1.5">
+          {story.questionnaire.examples.slice(0, 3).map((example) => (
+            <p key={example} className="border-l-2 border-gold/40 pl-3 text-[13px] italic leading-6 text-text-dim">
+              &ldquo;{example}&rdquo;
+            </p>
+          ))}
+        </div>
+        <Aside>
+          Where the record is silent, the engine builds proxies instead of pretending: recurring revenue
+          ≈ {round1(story.baseline.recurring_revenue_pct)}%, top-3 client concentration
+          ≈ {round1(story.baseline.top3_client_concentration)}%, lifecycle&nbsp;
+          {story.baseline.lifecycle_stage.toLowerCase()} on a {story.baseline.time_horizon.toLowerCase()} horizon.
+        </Aside>
+      </Chapter>
+
+      {/* ── 03 · Benchmarking ────────────────────────────────────── */}
+      <Chapter
+        n={3}
+        title={CHAPTERS[2]}
+        lede={`An 8% margin is excellent in one niche and weak in another. Every signal is ranked inside ${story.comparison.peerGroupLabel} (${String(story.comparison.peerGroupSize)} companies) before it is allowed to mean anything.`}
+      >
+        <div className="space-y-4">
+          {story.comparison.metrics.map((metric) => (
+            <div key={metric.label}>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[13px] text-text-dim">{metric.label}</span>
+                <span className="font-mono text-[12px] text-text-faint">
+                  raw <span className="font-semibold text-text">{metric.raw}</span>
+                </span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-3">
+                <div className="relative h-[5px] flex-1 overflow-hidden rounded-full bg-bg-3">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full bg-cyan"
+                    style={{ width: `${Math.max(2, Math.min(100, metric.percentile))}%` }}
+                  />
+                </div>
+                <span className="w-[64px] shrink-0 text-right font-mono text-[11px] font-semibold text-cyan">
+                  p{Math.round(metric.percentile)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Aside>{story.comparison.fallbackLabel}</Aside>
+      </Chapter>
+
+      {/* ── 04 · Four capitals → SQF ─────────────────────────────── */}
+      <Chapter
+        n={4}
+        title={CHAPTERS[3]}
+        lede="The benchmarked signals roll up into four capital scores — the company's strategic fingerprint — and the weighted blend becomes one quality multiplier."
+      >
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          <div className="flex shrink-0 flex-col items-center gap-2 self-center sm:self-start">
+            <CapitalGlyph
+              size={104}
+              capitals={story.capitalAssemblies.map((c) => ({ key: GLYPH_KEY[c.key], score: c.score }))}
+            />
+            <span className="font-mono text-[9.5px] uppercase tracking-eyebrow text-text-faint">
+              Value fingerprint
+            </span>
+          </div>
+          <div className="min-w-0 flex-1 space-y-3.5">
+            {story.capitalAssemblies.map((capital) => (
+              <div key={capital.key}>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="inline-flex items-center gap-2 text-[13px] font-medium text-text">
+                    <span aria-hidden className={cn('h-2 w-2 rounded-full', CAPITAL_DOT[capital.key])} />
+                    {capital.name}
+                  </span>
+                  <span className="font-mono text-[12px] text-text-faint">
+                    <span className="font-semibold text-text">{capital.score}</span>/100 · {capital.pillarWeight}%
+                  </span>
+                </div>
+                <div className="mt-1.5 h-[5px] overflow-hidden rounded-full bg-bg-3">
+                  <div
+                    className={cn('h-full rounded-full', CAPITAL_DOT[capital.key])}
+                    style={{ width: `${Math.max(2, capital.score)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-6 rounded-md bg-bg-2/70 px-4 py-3 font-mono text-[12.5px] leading-relaxed text-text">
+          CQS {vm.qualityScore}/100 → SQF = 0.6 + ({vm.qualityScore}/100) × 0.8 ={' '}
+          <span className="font-semibold text-gold">{vm.sqf.toFixed(2)}</span>
+        </div>
+      </Chapter>
+
+      {/* ── 05 · From quality to value ───────────────────────────── */}
+      <Chapter
+        n={5}
+        title={CHAPTERS[4]}
+        lede="Earnings give the base, the sector multiple gives the market backdrop, SQF prices the quality, GF prices the trajectory. Multiplied — never averaged."
+      >
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
+          <FormulaStone label="EBITDA" value={fmtMoney(vm.ebitda)} />
+          <FormulaStone label="M sector" value={`${vm.multiple.toFixed(2)}×`} op="×" />
+          <FormulaStone label="SQF" value={vm.sqf.toFixed(2)} op="×" />
+          <FormulaStone label="GF" value={vm.gf.toFixed(2)} op="×" />
+          <FormulaStone label="Enterprise value" value={fmtMoney(vm.valueCurrent)} op="=" result className="col-span-2 lg:col-span-1" />
+        </div>
+        <Aside>
+          No serious valuation pretends to be a point. The band here runs{' '}
+          <strong className="font-medium text-text">{fmtMoney(vm.valueLow)} – {fmtMoney(vm.valueHigh)}</strong>;
+          quality {vm.qualityScore}/100, risk {vm.riskIndex}.
+        </Aside>
+      </Chapter>
+
+      {/* ── 06 · The three moves ─────────────────────────────────── */}
+      <Chapter
+        n={6}
+        title={CHAPTERS[5]}
+        lede={`The engine simulates all ${story.actionCatalogueCount} catalogue actions through the same valuation math and keeps the three with the highest return on value.`}
+      >
+        <ol className="divide-y divide-line-faint">
+          {story.recommendations.map((action) => (
+            <li key={action.id} className="flex items-start gap-4 py-3.5 first:pt-0 last:pb-0">
+              <span className="mt-0.5 font-mono text-[13px] font-bold text-gold">
+                {String(action.rank).padStart(2, '0')}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <h3 className="text-[14.5px] font-semibold text-text">{action.title}</h3>
+                  <span className="rounded-md bg-green/[0.10] px-2 py-0.5 font-mono text-[11px] font-bold text-green">
+                    +{action.upliftPct}% V
+                  </span>
+                </div>
+                <p className="mt-1 max-w-[60ch] text-[13px] leading-6 text-text-dim">{action.description}</p>
+                <p className="mt-1 font-mono text-[10.5px] text-text-faint">
+                  {action.impactLabel} · ~{action.horizonMonths} months
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <Aside>
+          Executed together, the engine&rsquo;s estimate moves from{' '}
+          <strong className="font-medium text-text">{fmtMoney(vm.valueCurrent)}</strong> toward{' '}
+          <strong className="font-medium text-text">{fmtMoney(vm.valuePotential)}</strong> (+{vm.valueGapPct}%).
+        </Aside>
+      </Chapter>
+
+      {/* ── Close ────────────────────────────────────────────────── */}
+      <footer className="mt-14 border-t border-line pt-8">
+        <p className="max-w-[52ch] font-serif text-[22px] font-medium leading-snug text-text">
+          Worth today, what drives it, what to do next —{' '}
+          <span className="text-gradient-gold italic">that&rsquo;s the whole product.</span>
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/companies"
+            className="inline-flex items-center gap-2 rounded-md border border-gold/55 bg-gold/[0.14] px-4 py-2.5 text-[13px] font-semibold text-gold transition-colors hover:bg-gold/[0.22]"
+          >
+            Run it on a real company <ArrowRight size={13} />
+          </Link>
+          <Link
+            href="/technical"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-bg-1 px-4 py-2.5 text-[13px] font-semibold text-text-dim transition-colors hover:border-line-2 hover:text-text"
+          >
+            Technical deep-dive
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function StorySection({
-  id,
-  icon,
-  step,
+// =============================================================================
+// Local primitives
+// =============================================================================
+
+function Chapter({
+  n,
   title,
-  intro,
+  lede,
   children,
 }: {
-  id: string;
-  icon: React.ReactNode;
-  step: string;
+  n: number;
   title: string;
-  intro: string;
+  lede: string;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-[28px] border border-line bg-bg-1 p-6 shadow-[0_18px_60px_rgba(24,24,27,0.04)] sm:p-8">
-      <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
-        <div className="xl:pr-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-2 px-3 py-1 text-xs uppercase tracking-[0.28em] text-text-dim">
-            {icon}
-            {step}
-          </div>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-text">{title}</h2>
-          <p className="mt-4 text-base leading-8 text-text-dim">{intro}</p>
-        </div>
-        <div>{children}</div>
+    <section id={`ch-${n}`} className="mt-14 scroll-mt-24">
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-[12px] font-bold text-gold">{String(n).padStart(2, '0')}</span>
+        <h2 className="font-serif text-[24px] font-medium leading-tight tracking-tight text-text">{title}</h2>
       </div>
+      <p className="mt-2.5 max-w-[60ch] text-[14px] leading-7 text-text-dim">{lede}</p>
+      <div className="mt-6">{children}</div>
     </section>
   );
 }
 
-function Panel({
-  children,
-  tone = 'plain',
-}: {
-  children: React.ReactNode;
-  tone?: 'plain' | 'soft';
-}) {
+/** Quiet margin note — one per chapter, never a card-in-card. */
+function Aside({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={
-        tone === 'soft'
-          ? 'rounded-[24px] border border-line bg-bg-2 p-6'
-          : 'rounded-[24px] border border-line bg-bg-1 p-6'
-      }
-    >
+    <p className="mt-5 border-l-2 border-line pl-3.5 text-[12.5px] leading-6 text-text-faint">
       {children}
-    </div>
+    </p>
   );
 }
 
-function KeyMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div className="min-w-0 overflow-hidden rounded-[20px] border border-line bg-bg-1 p-4">
-      <p className="text-[11px] uppercase tracking-[0.24em] text-text-faint">{label}</p>
-      <p className="mt-3 text-[clamp(2.1rem,4vw,3rem)] font-semibold leading-none tracking-tight text-text break-words">
-        {value}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-text-faint break-words">{detail}</p>
-    </div>
-  );
-}
-
-function SmallStat({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div className="min-w-0 overflow-hidden rounded-[20px] border border-line bg-bg-2 p-4">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-text-faint">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-tight text-text break-words">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-text-faint break-words">{detail}</p>
-    </div>
-  );
-}
-
-function EvidencePill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 rounded-[18px] border border-line bg-bg-1 px-4 py-3 text-sm leading-6 text-text-dim">
-      <span className="font-medium text-text">{label}:</span> {value}
-    </div>
-  );
-}
-
-function MetricRow({ metric }: { metric: ComparisonMetric }) {
-  return (
-    <div className="rounded-[20px] border border-line bg-bg-2 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-medium text-text">{metric.label}</p>
-          <p className="mt-1 text-sm text-text-faint">Observed value: {metric.raw}</p>
-        </div>
-        <div className="sm:text-right">
-          <p className="text-sm text-text-faint">Peer-relative percentile</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight text-text">{round1(metric.percentile)}</p>
-        </div>
-      </div>
-      <div className="mt-4 h-2.5 rounded-full bg-bg-3">
-        <div
-          className="h-2.5 rounded-full bg-cyan"
-          style={{ width: `${clamp(metric.percentile, 0, 100)}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SignalRow({
-  signal,
-  accentClass,
-}: {
-  signal: CapitalSignal;
-  accentClass: string;
-}) {
-  return (
-    <div className="rounded-[18px] border border-line bg-bg-1 p-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-medium text-text">{signal.label}</p>
-        <p className="text-sm text-text-faint">
-          Weight {signal.weight}% · Score {round1(signal.score)}
-        </p>
-      </div>
-      <div className="mt-3 h-2.5 rounded-full bg-bg-3">
-        <div className={`h-2.5 rounded-full ${accentClass}`} style={{ width: `${clamp(signal.score, 0, 100)}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function FormulaChip({ label, value, detail }: { label: string; value: string; detail?: string }) {
-  return (
-    <div className="min-w-0 overflow-hidden rounded-[22px] border border-line bg-bg-1 px-5 py-4">
-      <p className="text-[11px] uppercase tracking-[0.24em] text-text-faint">{label}</p>
-      <p className="mt-2 text-[clamp(1.9rem,3vw,3rem)] font-semibold leading-none tracking-tight text-text break-words">
-        {value}
-      </p>
-      {detail ? <p className="mt-2 text-sm text-text-faint break-words">{detail}</p> : null}
-    </div>
-  );
-}
-
-function ArrowCell() {
-  return (
-    <div className="hidden justify-center lg:flex">
-      <div className="rounded-full border border-line bg-bg-2 p-3 text-text-faint">
-        <ArrowRight className="h-5 w-5" />
-      </div>
-    </div>
-  );
-}
-
-function ValueInputCard({
+function FormulaStone({
   label,
   value,
-  detail,
-  icon,
+  op,
+  result,
+  className,
 }: {
   label: string;
   value: string;
-  detail: string;
-  icon: React.ReactNode;
+  op?: string;
+  result?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-[22px] border border-line bg-bg-1 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 text-[11px] uppercase tracking-[0.24em] text-text-faint">{label}</p>
-        <div className="shrink-0 text-text-faint">{icon}</div>
+    <div className={cn('relative', className)}>
+      {op && (
+        <span
+          aria-hidden
+          className="absolute -left-[13px] top-1/2 hidden -translate-y-1/2 font-serif text-[15px] text-text-faint lg:block"
+        >
+          {op}
+        </span>
+      )}
+      <div
+        className={cn(
+          'rounded-lg border px-3.5 py-3',
+          result ? 'border-gold/40 bg-gold/[0.08]' : 'border-line bg-bg-1',
+        )}
+      >
+        <div className={cn(
+          'font-mono text-[9.5px] font-bold uppercase tracking-eyebrow',
+          result ? 'text-gold' : 'text-text-faint',
+        )}>
+          {label}
+        </div>
+        <div className="mt-1.5 truncate font-serif text-[18px] font-medium leading-none tracking-tight text-text">
+          {value}
+        </div>
       </div>
-      <p className="mt-3 text-[clamp(2.3rem,4vw,3rem)] font-semibold leading-none tracking-tight text-text break-words">
-        {value}
-      </p>
-      <p className="mt-2 text-sm leading-6 text-text-faint break-words">{detail}</p>
     </div>
   );
 }
 
-function FormulaToken({
-  children,
-  strong = false,
-}: {
-  children: React.ReactNode;
-  strong?: boolean;
-}) {
-  return (
-    <span
-      className={
-        strong
-          ? 'rounded-full border border-gold/30 bg-gold/[0.07] px-4 py-2 font-semibold text-text'
-          : 'rounded-full border border-line bg-bg-1 px-4 py-2'
-      }
-    >
-      {children}
-    </span>
-  );
-}
-
-function MiniBadge({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 overflow-hidden rounded-[18px] border border-line bg-bg-1 px-4 py-3">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-text-faint">{label}</p>
-      <p className="mt-2 text-sm font-medium text-text break-words">{value}</p>
-    </div>
-  );
-}
-
-function formatMoney(value: number): string {
+function fmtMoney(value: number): string {
   return formatEurCompact(value, { decimals: 1, zero: '€0' });
-}
-
-function humanizeObjective(value: string): string {
-  return value.replace(/_/g, ' ');
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
 }
