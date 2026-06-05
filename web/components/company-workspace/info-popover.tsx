@@ -5,9 +5,13 @@ import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-const POPOVER_WIDTH = 300;
+const POPOVER_WIDTH = 348;
 const VIEWPORT_PADDING = 12;
 const GAP = 8;
+
+/** Values longer than this read as formulas — they get their own line
+ *  instead of being squeezed against the label. */
+const INLINE_VALUE_MAX = 12;
 
 export interface ExplanationStep {
   label?: string;
@@ -158,52 +162,70 @@ export function InfoButton({
                 width: POPOVER_WIDTH,
                 opacity: position ? 1 : 0,
               }}
-              className="z-[1000] rounded-lg border border-line bg-bg-1 p-4 text-left shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
+              className="z-[1000] rounded-lg border border-line bg-bg-1 p-5 text-left shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
             >
-              <div className="mb-1 font-serif text-[14px] font-medium leading-tight text-text">
+              {/* Header — serif title, quiet sentence-case source line.
+                  (The old SHOUTING eyebrow wrapped badly on long sources.) */}
+              <div className="font-serif text-[15px] font-medium leading-tight text-text">
                 {explanation.title}
               </div>
-              <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
+              <div className="mt-1 text-[11px] leading-snug text-text-faint">
                 {explanation.source}
               </div>
 
               {explanation.steps.length > 0 && (
-                <ol className="space-y-2.5">
-                  {explanation.steps.map((step, i) => (
-                    <li key={i} className="flex gap-2 text-[12px] leading-snug">
-                      <span className="mt-[1px] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-bg-2 font-mono text-[10px] font-semibold text-text-dim">
-                        {i + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        {(step.label || step.value) && (
-                          <div className="flex items-baseline justify-between gap-2">
-                            {step.label && (
+                <ol className="mt-4 space-y-3">
+                  {explanation.steps.map((step, i) => {
+                    // Long values are formulas — give them a full-width
+                    // line in a quiet block instead of cramming them
+                    // against the label.
+                    const asBlock =
+                      !!step.value &&
+                      (!step.label || step.value.length > INLINE_VALUE_MAX);
+                    return (
+                      <li key={i} className="flex gap-2.5 text-[12px] leading-snug">
+                        <span className="mt-[1px] inline-flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-full border border-line font-mono text-[9.5px] font-semibold text-text-faint">
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          {step.label && (
+                            <div className="flex items-baseline justify-between gap-3">
                               <span className="text-text-dim">{step.label}</span>
-                            )}
-                            {step.value && (
-                              <span className="break-all text-right font-mono text-[11.5px] font-semibold text-text">
-                                {step.value}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {step.note && (
-                          <div className="mt-0.5 text-[11.5px] leading-snug text-text-faint">
-                            {step.note}
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  ))}
+                              {step.value && !asBlock && (
+                                <span className="whitespace-nowrap font-mono text-[12px] font-semibold text-text">
+                                  {step.value}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {step.value && asBlock && (
+                            <div
+                              className={cn(
+                                'break-words rounded-md bg-bg-2/70 px-2.5 py-1.5 font-mono text-[11.5px] font-medium leading-relaxed text-text',
+                                step.label && 'mt-1.5',
+                              )}
+                            >
+                              {step.value}
+                            </div>
+                          )}
+                          {step.note && (
+                            <div className="mt-1 max-w-[36ch] text-[11px] leading-[1.6] text-text-faint">
+                              {step.note}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ol>
               )}
 
               {explanation.result && (
-                <div className="mt-3 border-t border-line-faint pt-3">
+                <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-line pt-3.5">
                   <div className="font-mono text-[10px] font-semibold uppercase tracking-eyebrow text-text-faint">
                     Result
                   </div>
-                  <div className="mt-1 font-serif text-[16px] font-medium tracking-tight text-text">
+                  <div className="font-serif text-[20px] font-medium leading-none tracking-tight text-gold">
                     {explanation.result}
                   </div>
                 </div>
