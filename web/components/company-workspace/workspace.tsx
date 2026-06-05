@@ -27,6 +27,7 @@ import { Segmented } from '@/components/vip-ui/segmented';
 import { SectionHeader } from '@/components/vip-ui/section-header';
 
 import { CompanyPassport } from '@/components/cockpit/company-passport';
+import { CapitalGlyph } from '@/components/cockpit/capital-glyph';
 import { ValueBridge } from '@/components/cockpit/value-bridge';
 import { CapitalConstellation } from '@/components/cockpit/capital-constellation';
 import { StrategyBoard } from '@/components/cockpit/strategy-board';
@@ -93,6 +94,14 @@ export function CompanyWorkspace({
           snapshot={snapshot}
           taxCode={taxCode}
           status={status}
+          glyph={
+            data.source === 'submission' ? (
+              <CapitalGlyph
+                size={44}
+                capitals={data.valuation.capitals.map((c) => ({ key: c.key, score: c.score }))}
+              />
+            ) : undefined
+          }
           meta={lastRunISO && (
             <span className="font-mono text-[11px] text-text-dim">
               Latest run · {formatLastRun(lastRunISO)}
@@ -131,7 +140,7 @@ export function CompanyWorkspace({
       </div>
 
       <div className="mt-5 space-y-5">
-        {tab === 'cockpit'  && <CockpitTab data={data} explanations={explanations} />}
+        {tab === 'cockpit'  && <CockpitTab data={data} explanations={explanations} lastRunISO={lastRunISO} />}
         {tab === 'scenario' && <ScenarioTab data={data} />}
         {tab === 'method'   && <MethodTab data={data} explanations={explanations} />}
       </div>
@@ -142,7 +151,15 @@ export function CompanyWorkspace({
 // =============================================================================
 // COCKPIT TAB — KPI strip + ValueBridge + Capital constellation + Strategy
 // =============================================================================
-function CockpitTab({ data, explanations }: { data: DashboardData; explanations: ExplanationMap }) {
+function CockpitTab({
+  data,
+  explanations,
+  lastRunISO,
+}: {
+  data: DashboardData;
+  explanations: ExplanationMap;
+  lastRunISO?: string | null;
+}) {
   const { valuation, source, actions } = data;
   if (source !== 'submission') {
     return (
@@ -160,8 +177,11 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
   const provenance = valuation.provenance;
   return (
     <>
-      {/* Headline KPI strip — single panel, four cells, no inner borders. */}
-      <Surface tone="raised" padding="md" className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
+      {/* Headline KPI strip — single panel, four cells, no inner borders.
+          Footer rule carries the audit line: sources on the left, the run
+          stamp on the right — the cockpit reads like a signed estimate. */}
+      <Surface tone="raised" padding="md">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
         <StatCell
           label="Enterprise value"
           value={formatEurCompact(valuation.v_current_eur)}
@@ -192,6 +212,20 @@ function CockpitTab({ data, explanations }: { data: DashboardData; explanations:
           size="lg"
           trailing={<InfoButton explanation={explanations.risk_index} ariaLabel="How risk signal is derived" />}
         />
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line-faint pt-3">
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-text-faint">
+            Sources · AIDA snapshot{provenance.overrides_enabled ? ' + your financials' : ''} ·
+            engine-computed factors · calibrated on 14,999 Italian SMEs
+          </span>
+          <span
+            aria-label={`Valuation run ${lastRunISO ? formatRunStamp(lastRunISO) : ''}`}
+            className="inline-flex -rotate-1 items-center rounded-[3px] border border-gold/45 px-2 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-gold"
+          >
+            Valuation run{lastRunISO ? ` · ${formatRunStamp(lastRunISO)}` : ''}
+          </span>
+        </div>
       </Surface>
 
       {/* Value bridge — the formula made visual. */}
@@ -410,6 +444,13 @@ function riskCopy(flags: string[]): string {
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join(' · ');
 }
+/** Stamp form: always the absolute date — a stamp doesn't say "2h ago". */
+function formatRunStamp(iso: string): string {
+  return new Date(iso)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    .toUpperCase();
+}
+
 function formatLastRun(iso: string): string {
   const dt = new Date(iso);
   const minutes = (Date.now() - dt.getTime()) / 60_000;

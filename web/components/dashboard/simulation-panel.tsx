@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Sliders } from 'lucide-react';
 import { runScoring, type ScoringResult, type ScoringInput } from '@/lib/scoring';
 import { formatEurCompact } from '@/lib/format';
+import { cn } from '@/lib/cn';
 
 const LEVERS = [
   { key: 'concentration', label: 'Top-3 client concentration', min: 0, max: 80,  step: 1,   unit: '%', input: 'top3_client_concentration' },
@@ -108,32 +109,52 @@ export function SimulationPanel({ baseline, vCurrentEur, vPotentialEur }: Simula
           const v = values[l.key];
           const display = l.step < 1 ? v.toFixed(1) : String(Math.round(v));
           const ratio = (v - l.min) / (l.max - l.min);
+          const baseVal = initial[l.key];
+          const baseRatio = (baseVal - l.min) / (l.max - l.min);
+          const atBaseline = v === baseVal;
+          // Detent: snap back to the company's actual value when the thumb
+          // passes within ~1.5% of range — the instrument "clicks" at the
+          // company's real position so you always know where home is.
+          const detentWidth = (l.max - l.min) * 0.015;
           return (
             <div key={l.key} className="py-3.5 first:pt-0 last:pb-0">
               <div className="mb-1.5 flex items-baseline justify-between font-mono text-[12px]">
                 <span className="text-text">{l.label}</span>
-                <span className="font-mono text-[14px] font-semibold text-amber">
+                <span className={cn('font-mono text-[14px] font-semibold', atBaseline ? 'text-text-dim' : 'text-amber')}>
                   {display}{l.unit}
                 </span>
               </div>
-              <input
-                type="range"
-                className="vip-range w-full"
-                min={l.min}
-                max={l.max}
-                step={l.step}
-                value={v}
-                onChange={(e) =>
-                  setValues((prev) => ({ ...prev, [l.key]: Number(e.target.value) }))
-                }
-                style={
-                  {
-                    '--ratio': `${Math.round(ratio * 100)}%`,
-                  } as React.CSSProperties
-                }
-              />
+              <div className="relative">
+                {/* Ghost tick — where the company actually sits today */}
+                <span
+                  aria-hidden
+                  title="Current value"
+                  className="pointer-events-none absolute top-1/2 z-10 h-[14px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-text-faint/70"
+                  style={{ left: `${(baseRatio * 100).toFixed(1)}%` }}
+                />
+                <input
+                  type="range"
+                  className="vip-range w-full"
+                  min={l.min}
+                  max={l.max}
+                  step={l.step}
+                  value={v}
+                  aria-label={`${l.label} — company today: ${baseVal}${l.unit}`}
+                  onChange={(e) => {
+                    let next = Number(e.target.value);
+                    if (Math.abs(next - baseVal) <= detentWidth) next = baseVal;
+                    setValues((prev) => ({ ...prev, [l.key]: next }));
+                  }}
+                  style={
+                    {
+                      '--ratio': `${Math.round(ratio * 100)}%`,
+                    } as React.CSSProperties
+                  }
+                />
+              </div>
               <div className="mt-1 flex justify-between font-mono text-[10px] text-text-faint">
                 <span>{l.min}{l.unit}</span>
+                <span className="text-text-faint/80">today {baseVal}{l.unit}</span>
                 <span>{l.max}{l.unit}</span>
               </div>
             </div>

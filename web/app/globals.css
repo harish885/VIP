@@ -116,11 +116,43 @@
     background-color: rgb(var(--bg));
     overflow-x: hidden;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+    /* Numbers hold their width when they update — no wobble in KPI
+       cells, no ragged columns in tables. */
+    font-variant-numeric: tabular-nums lining-nums;
   }
 
   ::selection {
     background-color: rgb(var(--gold) / 0.35);
     color: rgb(var(--ink));
+  }
+  :root[data-theme='dark'] ::selection {
+    background-color: rgb(var(--gold) / 0.30);
+    color: rgb(255 255 255);
+  }
+
+  /* Themed scrollbars — quiet, line-coloured, no chrome-default grey */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--line-2)) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--line-2));
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Dark elevation: shadows read as mud on ink — let borders carry
+     depth instead, and soften the heaviest shadow utilities. */
+  :root[data-theme='dark'] .shadow-2xl {
+    box-shadow: 0 0 0 1px rgb(var(--line)) inset, 0 18px 50px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -208,6 +240,19 @@
   .reveal.is-visible > [data-i="3"] { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
   .reveal.is-visible > [data-i="4"] { transition-delay: 0.33s; opacity: 1; transform: translateY(0); }
   .reveal.is-visible > [data-i="5"] { transition-delay: 0.40s; opacity: 1; transform: translateY(0); }
+}
+
+/* =================================================================
+   VALUE BRIDGE — V "settles" with a single quiet gold ring once the
+   multiplication walk completes. Runs once; killed by reduced-motion.
+================================================================= */
+@keyframes v-settle {
+  0%   { box-shadow: 0 0 0 0 rgb(var(--gold) / 0); }
+  35%  { box-shadow: 0 0 0 7px rgb(var(--gold) / 0.16); }
+  100% { box-shadow: 0 0 0 0 rgb(var(--gold) / 0); }
+}
+.v-settle {
+  animation: v-settle 0.9s var(--ease-out) both;
 }
 
 /* =================================================================

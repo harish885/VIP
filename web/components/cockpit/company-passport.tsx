@@ -17,6 +17,8 @@ interface Props {
   meta?: ReactNode;
   /** Optional CTA cluster (re-run / reset / open diagnostic). */
   actions?: ReactNode;
+  /** Optional identity mark (the capital fingerprint, once diagnosed). */
+  glyph?: ReactNode;
   /** When true the panel renders the full identity strip; on the
    *  dashboard hero we usually hide it because the workspace owns the
    *  identity. */
@@ -36,6 +38,7 @@ export function CompanyPassport({
   status,
   meta,
   actions,
+  glyph,
   variant = 'full',
 }: Props) {
   const aidaRdRatio =
@@ -51,9 +54,12 @@ export function CompanyPassport({
               <PassportStatus status={status} />
               {meta}
             </div>
-            <h1 className="mt-3 font-serif text-[28px] font-medium leading-[1.05] tracking-tight text-text sm:text-[34px]">
-              {snapshot.company_name}
-            </h1>
+            <div className="mt-3 flex items-center gap-3.5">
+              {glyph}
+              <h1 className="min-w-0 font-serif text-[28px] font-medium leading-[1.05] tracking-tight text-text sm:text-[34px]">
+                {snapshot.company_name}
+              </h1>
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-dim">
               {snapshot.province && (
                 <span className="inline-flex items-center gap-1.5">
