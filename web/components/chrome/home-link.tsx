@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
+import { BrandMark } from '@/components/chrome/brand-mark';
 
 /**
  * HomeLink — the top-left "VIP" home button.
@@ -33,10 +34,7 @@ export function HomeLink({
       aria-label="VIP · Home"
       className={cn(base, placement, className)}
     >
-      <span
-        aria-hidden
-        className="block h-[20px] w-[20px] shrink-0 rounded-[5px] border border-text/10 bg-text"
-      />
+      <BrandMark size={20} />
       <span className="text-[12px] tracking-[0.22em] sm:text-[13px]">VIP</span>
     </Link>
   );
