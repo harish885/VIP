@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BookOpen, Sparkles, Search, LogOut } from 'lucide-react';
 import { HomeLink } from '@/components/chrome/home-link';
 import { CommandPalette } from '@/components/chrome/command-palette';
+import { ThemeToggle } from '@/components/chrome/theme-toggle';
 import { getUser } from '@/lib/auth';
 import { signOutAction } from '@/app/(auth)/actions';
 
@@ -41,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <BookOpen size={13} />
               <span className="hidden sm:inline">Method</span>
             </Link>
+            <ThemeToggle />
 
             {user && (
               <div className="ml-1 flex items-center gap-1.5 border-l border-line pl-2.5 sm:ml-2 sm:pl-3">

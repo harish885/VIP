@@ -229,7 +229,7 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
                     onClick={() => pick(s)}
                     className={cn(
                       'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors',
-                      i === activeIndex ? 'bg-cyan/[0.10]' : 'hover:bg-white/[0.04]',
+                      i === activeIndex ? 'bg-cyan/[0.10]' : 'hover:bg-bg-2/60',
                     )}
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-cyan/25 to-blue/25 text-cyan">

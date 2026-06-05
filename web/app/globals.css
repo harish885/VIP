@@ -50,6 +50,59 @@
     /* Eases */
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Theme-aware non-token surfaces */
+    --glass-bg:        255 255 255;
+    color-scheme: light;
+  }
+
+  /* ===============================================================
+     DARK THEME — same workstation register, inverted. Accents are
+     brightened one step so role colours keep WCAG AA on dark panels.
+     Activated by data-theme="dark" on <html> (set pre-paint by the
+     inline script in app/layout.tsx; toggled by ThemeToggle).
+  ================================================================ */
+  :root[data-theme='dark'] {
+    /* Surfaces */
+    --bg:            14  16  20;      /* #0e1014  page bg */
+    --bg-1:          21  24  29;      /* #15181d  raised surface */
+    --bg-2:          28  32  38;      /* #1c2026  card */
+    --bg-3:          38  43  51;      /* #262b33  pressed card */
+
+    /* Borders */
+    --line:          44  50  58;      /* #2c323a */
+    --line-2:        62  69  79;      /* #3e454f */
+    --line-faint:    33  38  45;      /* #21262d */
+
+    /* Text */
+    --ink:          233 236 240;
+    --ink-soft:     200 205 212;
+    --text:         233 236 240;      /* #e9ecf0 */
+    --text-dim:     158 165 178;      /* #9ea5b2 */
+    --text-faint:   126 133 146;      /* #7e8592 */
+
+    /* Accents */
+    --gold:         212 162  76;      /* #d4a24c */
+    --gold-2:       228 186 110;
+    --cyan:          78 178 190;
+    --cyan-2:       110 200 210;
+    --purple:       138 134 230;
+    --purple-2:     160 156 240;
+    --green:         88 178 128;
+    --green-2:      120 200 152;
+    --red:          224 110 102;
+    --amber:        212 162  76;
+    --orange:       216 140  88;
+    --blue:         108 156 216;
+
+    /* Capital colours */
+    --cap-fin:      108 156 216;
+    --cap-tech:     140 144 235;
+    --cap-human:    216 140  88;
+    --cap-rel:       96 180 130;
+
+    --glass-bg:      21  24  29;
+    color-scheme: dark;
   }
 
   html {
@@ -77,14 +130,14 @@
 @layer components {
   /* Glass surface — translucent panel with restrained blur */
   .glass {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgb(var(--glass-bg) / 0.7);
     border: 1px solid rgb(var(--line) / 1);
     border-radius: 0.5rem;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
   .glass-strong {
-    background-color: rgba(255, 255, 255, 0.88);
+    background-color: rgb(var(--glass-bg) / 0.88);
     border: 1px solid rgb(var(--line-2) / 1);
     border-radius: 0.5rem;
     backdrop-filter: blur(14px);
@@ -103,12 +156,15 @@
     font-size: clamp(2.125rem, 5vw, 4rem);
   }
 
-  /* Headline gradient (charcoal → mid-grey, light theme) */
+  /* Headline gradient (charcoal → mid-grey; inverted on dark) */
   .text-gradient-headline {
     background-image: linear-gradient(135deg, #1a1c20 0%, #44474f 55%, #6c6f78 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  :root[data-theme='dark'] .text-gradient-headline {
+    background-image: linear-gradient(135deg, #f2f4f7 0%, #c3c8d1 55%, #9aa0ab 100%);
   }
 
   /* Gold gradient accent (kept on serif italic for editorial feel) */

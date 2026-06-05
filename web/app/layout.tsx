@@ -72,10 +72,30 @@ export const viewport: Viewport = {
 //   - (auth)      → centered card, just the brand mark
 //   - (app)       → app top bar with user menu
 // =================================================================
+// Runs before paint: applies the persisted theme (or the system
+// preference) so dark-mode users never see a white flash. Kept as a
+// plain string — no dependencies, must not throw.
+const THEME_SCRIPT = `
+try {
+  var t = localStorage.getItem('vip-theme');
+  if (t !== 'light' && t !== 'dark') {
+    t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.dataset.theme = t;
+} catch (e) {}
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
-      <body className="bg-bg text-text font-sans antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${sans.variable} ${serif.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="bg-bg text-text font-sans antialiased">
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {children}
+      </body>
     </html>
   );
 }

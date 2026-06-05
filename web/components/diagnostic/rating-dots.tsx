@@ -41,7 +41,7 @@ export function RatingDots({
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 isSelected && 'scale-110 border-purple bg-purple text-bg shadow-[0_0_14px_rgba(168,85,247,0.55)]',
                 !isSelected && isInRange && 'border-purple/60 bg-purple/[0.20]',
-                !isInRange && 'border-line bg-white/[0.04] hover:border-line-2 hover:bg-white/[0.08]',
+                !isInRange && 'border-line bg-text/[0.03] hover:border-line-2 hover:bg-text/[0.06]',
               )}
             >
               <span

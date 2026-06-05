@@ -1,4 +1,5 @@
 import { HomeLink } from '@/components/chrome/home-link';
+import { ThemeToggle } from '@/components/chrome/theme-toggle';
 
 /**
  * Auth route-group layout — centered card on a calm gradient background.
@@ -21,6 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       />
 
       <HomeLink variant="fixed" />
+      <ThemeToggle className="fixed right-4 top-6 z-50 sm:right-8" />
 
       <div className="relative z-10 w-full max-w-[440px]">{children}</div>
     </div>
