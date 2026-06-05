@@ -62,7 +62,7 @@ export default function PricingPage() {
 
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[11px] uppercase tracking-[0.18em] text-text-faint">
         <span>VIP · Value Intelligence Platform</span>
-        <Link href="/method" className="inline-flex items-center gap-1.5 hover:text-text-dim">
+        <Link href="/how-it-works" className="inline-flex items-center gap-1.5 hover:text-text-dim">
           Method detail <ArrowRight size={11} />
         </Link>
       </footer>

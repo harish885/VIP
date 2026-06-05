@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Building2, MapPin, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { formatThkMillions } from '@/lib/format';
+import { industryFromNace } from '@/lib/industry';
 
 interface Suggestion {
   tax_code: string;
@@ -245,7 +246,11 @@ export function SearchBar({ initialQuery = '' }: SearchBarProps) {
                             <MapPin size={9} /> {s.province}
                           </span>
                         )}
-                        {s.nace_rev_2 && <span>· NACE {s.nace_rev_2}</span>}
+                        {s.nace_rev_2 && (
+                          <span className="truncate">
+                            · {industryFromNace(s.nace_rev_2)?.label ?? `NACE ${s.nace_rev_2}`}
+                          </span>
+                        )}
                         {s.employees !== null && (
                           <span>· {Math.round(s.employees)} emp.</span>
                         )}

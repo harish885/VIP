@@ -7,6 +7,8 @@ import { loadCompanyWorkspace, type CompanyWorkspaceData, type DiagnosisStatus }
 import { fromValuationRow, type DashboardData } from '@/lib/dashboard-data';
 import { CompanyWorkspace } from '@/components/company-workspace/workspace';
 import { CompanyEmptyState } from '@/components/company-workspace/empty-state';
+import { CompareView, type CompareSide } from '@/components/company-workspace/compare-view';
+import { ComparePicker } from '@/components/companies/compare-picker';
 
 export const metadata = { title: 'Company · VIP' };
 export const dynamic = 'force-dynamic';
@@ -28,7 +30,7 @@ export default async function CompanyPage({
   searchParams,
 }: {
   params: { taxCode: string };
-  searchParams?: { submitted?: string };
+  searchParams?: { submitted?: string; vs?: string };
 }) {
   const taxCode = decodeURIComponent(params.taxCode);
   const service = createServiceClient();
@@ -45,20 +47,63 @@ export default async function CompanyPage({
     preferSubmissionId,
   });
 
+  // Optional comparator (?vs=<taxCode>) — loaded server-side so the
+  // comparison is shareable as a URL and never fakes missing data.
+  const vsTaxCode = searchParams?.vs ? decodeURIComponent(searchParams.vs) : null;
+  let compare: { a: CompareSide; b: CompareSide } | null = null;
+  if (vsTaxCode && vsTaxCode !== taxCode) {
+    const vsSnapshot = await getCompanySnapshot(service, vsTaxCode);
+    if (vsSnapshot) {
+      const vsWorkspace = await loadCompanyWorkspace(service, vsTaxCode, {
+        userId: user?.id ?? null,
+        preferSubmissionId: null,
+      });
+      compare = {
+        a: { snapshot, taxCode, valuation: workspace?.valuation ?? null },
+        b: { snapshot: vsSnapshot, taxCode: vsTaxCode, valuation: vsWorkspace?.valuation ?? null },
+      };
+    }
+  }
+
+  const compareStrip = (
+    <div className="mx-auto mt-2 flex max-w-[1180px] flex-wrap items-center justify-between gap-3 px-4 pb-6 sm:px-6">
+      <div className="font-mono text-[10px] font-bold uppercase tracking-eyebrow text-text-faint">
+        Benchmark
+      </div>
+      <ComparePicker taxCode={taxCode} vsName={compare?.b.snapshot.company_name ?? null} />
+    </div>
+  );
+
+  const compareBlock = compare && (
+    <div className="mx-auto max-w-[1180px] px-4 pb-16 sm:px-6">
+      <CompareView a={compare.a} b={compare.b} />
+    </div>
+  );
+
   if (!workspace) {
-    return <CompanyEmptyState snapshot={snapshot} taxCode={taxCode} />;
+    return (
+      <>
+        <CompanyEmptyState snapshot={snapshot} taxCode={taxCode} />
+        {compareStrip}
+        {compareBlock}
+      </>
+    );
   }
 
   const data = workspaceToDashboardData(workspace, snapshot, Boolean(submittedId));
   return (
-    <CompanyWorkspace
-      data={data}
-      snapshot={snapshot}
-      taxCode={taxCode}
-      status={workspace.status}
-      lastRunISO={workspace.valuation.computed_at}
-      freshSubmission={Boolean(submittedId)}
-    />
+    <>
+      <CompanyWorkspace
+        data={data}
+        snapshot={snapshot}
+        taxCode={taxCode}
+        status={workspace.status}
+        lastRunISO={workspace.valuation.computed_at}
+        freshSubmission={Boolean(submittedId)}
+      />
+      {compareStrip}
+      {compareBlock}
+    </>
   );
 }
 

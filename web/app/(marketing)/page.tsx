@@ -122,7 +122,7 @@ export default function MarketingHome() {
           <Link href="/pricing" className="inline-flex items-center gap-1.5 hover:text-text-dim">
             Pricing <ArrowRight size={11} />
           </Link>
-          <Link href="/method" className="inline-flex items-center gap-1.5 hover:text-text-dim">
+          <Link href="/how-it-works" className="inline-flex items-center gap-1.5 hover:text-text-dim">
             Method detail <ArrowRight size={11} />
           </Link>
         </span>

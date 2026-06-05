@@ -614,12 +614,6 @@ export function Explainer({ story }: { story: ExplainerStory }) {
                 Explore companies
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                href="/method"
-                className="inline-flex items-center gap-2 rounded-full border border-line-2 bg-bg-1 px-5 py-3 text-sm font-medium text-text transition hover:bg-bg-2"
-              >
-                Method detail
-              </Link>
             </div>
           </div>
         </footer>

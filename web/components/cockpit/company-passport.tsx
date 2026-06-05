@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/vip-ui/status-badge';
 import { SourceBadge } from '@/components/vip-ui/source-badge';
 import { cn } from '@/lib/cn';
 import { formatEurCompact, thkToEur } from '@/lib/format';
+import { industryFromNace } from '@/lib/industry';
 
 interface Props {
   snapshot: AidaSnapshot;
@@ -52,6 +53,12 @@ export function CompanyPassport({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <PassportStatus status={status} />
+              {industryFromNace(snapshot.nace_rev_2) && (
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan/35 bg-cyan/[0.07] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-cyan">
+                  <Factory size={10} />
+                  {industryFromNace(snapshot.nace_rev_2)!.label}
+                </span>
+              )}
               {meta}
             </div>
             <div className="mt-3 flex items-center gap-3.5">

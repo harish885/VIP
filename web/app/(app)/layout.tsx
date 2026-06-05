@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookOpen, Sparkles, Search, LogOut } from 'lucide-react';
+import { BookOpen, Search, LogOut } from 'lucide-react';
 import { HomeLink } from '@/components/chrome/home-link';
 import { CommandPalette } from '@/components/chrome/command-palette';
 import { ThemeToggle } from '@/components/chrome/theme-toggle';
@@ -35,12 +35,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span className="hidden sm:inline">Companies</span>
             </Link>
             <Link href="/how-it-works" aria-label="How it works" title="How it works" className={NAV_LINK_CLASSES}>
-              <Sparkles size={13} />
-              <span className="hidden sm:inline">How it works</span>
-            </Link>
-            <Link href="/method" aria-label="Method" title="Method" className={NAV_LINK_CLASSES}>
               <BookOpen size={13} />
-              <span className="hidden sm:inline">Method</span>
+              <span className="hidden sm:inline">How it works</span>
             </Link>
             <ThemeToggle />
 
