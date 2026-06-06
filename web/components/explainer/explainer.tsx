@@ -427,8 +427,41 @@ export function Explainer({ story }: { story: ExplainerStory }) {
       <Chapter
         n={6}
         title={CHAPTERS[5]}
-        lede={`The engine simulates all ${story.actionCatalogueCount} catalogue actions through the same valuation math and keeps the three with the highest return on value.`}
+        lede={`The engine doesn't hand out generic advice. It keeps a library of ${story.actionCatalogueCount} concrete actions, tests which ones this company actually needs, prices each one through the same valuation math, and keeps the best three.`}
       >
+        {/* How an action becomes a recommendation */}
+        <div className="mb-6 grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Trigger", "Each action has a condition. ‘Reduce client concentration’ only fires when top-3 clients exceed 40%. No weakness, no suggestion — so advice is never generic."],
+            ["Price it", "Apply the action's lever (e.g. SQF +0.12) to the live scores, re-run the exact same V = EBITDA × M × SQF × GF, and read off how much V moves."],
+            ["Rank by ROV", "Return on Value = uplift ÷ (effort × months), tilted by the owner's stated goal. Big, cheap, fast, on-objective wins."],
+            ["Keep three", "Sort every firing action by ROV, take the top three, number them 1–3. Anything with zero uplift is dropped."],
+          ].map((c, i) => (
+            <div key={c[0]} className="rounded-lg border border-line bg-bg-1 p-3.5">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gold/50 font-mono text-[10px] font-bold text-gold">{i + 1}</span>
+                <span className="text-[13px] font-semibold text-text">{c[0]}</span>
+              </div>
+              <p className="mt-2 text-[11.5px] leading-[1.55] text-text-dim">{c[1]}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-6 rounded-md bg-bg-2/70 px-4 py-3.5 text-[12.5px] leading-relaxed text-text-dim">
+          <span className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-gold">The ROV score</span>
+          <div className="mt-2 font-mono text-[12.5px] text-text">
+            ROV = ΔV% ÷ (effort × months) × goal&nbsp;weight
+          </div>
+          <p className="mt-2 text-[12px] italic text-text-faint">
+            In words: how much value an action adds, divided by how hard and slow it is, nudged up if it matches
+            what the owner said they want (exit, growth, succession…). Each lever (SQF / GF) is clamped to its
+            safe range before V is recomputed, so no single action can run the number away.
+          </p>
+        </div>
+
+        <div className="mb-3 font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-text-faint">
+          The three that won for {story.company.name}
+        </div>
         <ol className="divide-y divide-line-faint">
           {story.recommendations.map((action) => (
             <li key={action.id} className="flex items-start gap-4 py-3.5 first:pt-0 last:pb-0">
