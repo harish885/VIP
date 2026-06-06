@@ -125,7 +125,21 @@ const CHAPTERS = [
   'Four capitals, one quality factor',
   'From quality to value',
   'The three moves that matter',
+  'The whole chain, worked',
 ] as const;
+
+const GLOSSARY: [string, string][] = [
+  ['EBITDA', 'Yearly operating profit before interest, tax and accounting effects — a clean proxy for the cash the business generates.'],
+  ['Sector multiple (M)', 'Euros buyers pay per euro of profit in your industry, minus a 25% discount because private firms are harder to sell.'],
+  ['Percentile (pXX)', 'Your rank against peers. p70 = better than 70% of similar companies on that measure.'],
+  ['Capital score', 'A 0–100 grade for one of the four value dimensions (financial, technological, human, relational).'],
+  ['CQS', 'Composite Quality Score — the four capital scores blended by weight into a single 0–100 number.'],
+  ['SQF', 'Strategic Quality Factor — CQS turned into a multiplier from 0.6 to 1.4. Below 1.0 drags value down, above 1.0 lifts it.'],
+  ['GF', 'Growth Factor — a 0.7–1.5 multiplier for growth rate, lifecycle stage and how easily the business scales.'],
+  ['Value Gap', 'The percentage jump from today’s value to the value after the Top-3 actions — the upside you can act on.'],
+  ['ROV', 'Return on Value — how much value an action adds relative to its effort and time. The Top-3 are the highest-ROV moves.'],
+  ['Risk index', 'LOW / MEDIUM / HIGH, set by counting fragility flags such as heavy client concentration or founder dependency.'],
+];
 
 /**
  * Explainer — /how-it-works.
@@ -256,6 +270,14 @@ export function Explainer({ story }: { story: ExplainerStory }) {
         title={CHAPTERS[2]}
         lede={`An 8% margin is excellent in one niche and weak in another. Every signal is ranked inside ${story.comparison.peerGroupLabel} (${String(story.comparison.peerGroupSize)} companies) before it is allowed to mean anything.`}
       >
+        <div className="mb-5 rounded-md bg-bg-2/70 px-4 py-3 text-[12.5px] leading-relaxed text-text-dim">
+          <span className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-gold">How to read a percentile</span>
+          <div className="mt-1">
+            A score of <strong className="font-semibold text-text">p70</strong> means the company beats 70 out of
+            100 similar firms on that measure. p50 is dead average; p90 is top-tier. We rank against the closest
+            peer group first, and widen to the broader NACE sector only if that pool is too thin to be reliable.
+          </div>
+        </div>
         <div className="space-y-4">
           {story.comparison.metrics.map((metric) => (
             <div key={metric.label}>
@@ -320,9 +342,64 @@ export function Explainer({ story }: { story: ExplainerStory }) {
             ))}
           </div>
         </div>
-        <div className="mt-6 rounded-md bg-bg-2/70 px-4 py-3 font-mono text-[12.5px] leading-relaxed text-text">
-          CQS {vm.qualityScore}/100 → SQF = 0.6 + ({vm.qualityScore}/100) × 0.8 ={' '}
-          <span className="font-semibold text-gold">{vm.sqf.toFixed(2)}</span>
+        {/* Per-capital breakdown — every metric inside each capital, with its weight */}
+        <div className="mt-7">
+          <div className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-text-faint">
+            Inside each capital — the measures and their weights
+          </div>
+          <p className="mt-1.5 max-w-[64ch] text-[12.5px] leading-6 text-text-dim">
+            Each capital score is a weighted average of a few benchmarked measures. A weight is just how much
+            that measure counts toward the capital — they add up to 100%. Here is the full recipe, with
+            {' '}{story.company.name}&rsquo;s actual numbers.
+          </p>
+          <div className="mt-4 grid gap-x-8 gap-y-5 lg:grid-cols-2">
+            {story.capitalAssemblies.map((capital) => (
+              <div key={capital.key} className="rounded-lg border border-line bg-bg-1 p-4">
+                <div className="flex items-baseline justify-between">
+                  <span className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-text">
+                    <span aria-hidden className={cn('h-2.5 w-2.5 rounded-full', CAPITAL_DOT[capital.key])} />
+                    {capital.name}
+                  </span>
+                  <span className="font-mono text-[11.5px] text-text-faint">
+                    score <span className="font-semibold text-text">{capital.score}</span> · {capital.pillarWeight}% of CQS
+                  </span>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {capital.signals.map((sig) => (
+                    <div key={sig.label} className="flex items-center gap-3">
+                      <span className="w-[42px] shrink-0 font-mono text-[10.5px] font-semibold text-text-faint">
+                        {sig.weight}%
+                      </span>
+                      <span className="flex-1 truncate text-[12px] text-text-dim">{sig.label}</span>
+                      <div className="h-[5px] w-[64px] shrink-0 overflow-hidden rounded-full bg-bg-3">
+                        <div className={cn('h-full rounded-full', CAPITAL_DOT[capital.key])} style={{ width: `${Math.max(3, sig.score)}%` }} />
+                      </div>
+                      <span className="w-[26px] shrink-0 text-right font-mono text-[10.5px] font-semibold text-text">
+                        {sig.score}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-md bg-bg-2/70 px-4 py-3.5 text-[12.5px] leading-relaxed text-text-dim">
+          <span className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-gold">Capitals → quality → multiplier</span>
+          <div className="mt-2 font-mono text-[12.5px] text-text">
+            CQS = {capLine(story.capitalAssemblies)}  ={' '}
+            <span className="font-semibold">{vm.qualityScore}</span>/100
+          </div>
+          <div className="mt-1.5 font-mono text-[12.5px] text-text">
+            SQF = 0.6 + ({vm.qualityScore}/100) × 0.8 ={' '}
+            <span className="font-semibold text-gold">{vm.sqf.toFixed(2)}</span>
+            <span className="text-text-faint"> · clamped to 0.6–1.4</span>
+          </div>
+          <p className="mt-2 text-[12px] italic text-text-faint">
+            In words: blend the four capital scores by their weights to get one 0–100 quality number, then
+            convert it to a multiplier where 50/100 is neutral (×1.0), the floor is ×0.6 and the ceiling is ×1.4.
+          </p>
         </div>
       </Chapter>
 
@@ -378,6 +455,58 @@ export function Explainer({ story }: { story: ExplainerStory }) {
           <strong className="font-medium text-text">{fmtMoney(vm.valueCurrent)}</strong> toward{' '}
           <strong className="font-medium text-text">{fmtMoney(vm.valuePotential)}</strong> (+{vm.valueGapPct}%).
         </Aside>
+      </Chapter>
+
+      {/* ── 07 · The whole chain, worked ─────────────────────────── */}
+      <Chapter
+        n={7}
+        title={CHAPTERS[6]}
+        lede={`One number, traced end to end. Here is exactly how ${story.company.name}'s answers and filing become a single euro figure — nothing hidden.`}
+      >
+        <ol className="space-y-3">
+          {[
+            ["Read the filing", `EBITDA ${fmtMoney(vm.ebitda)} and 3 years of revenue come straight from AIDA. The owner types none of it.`],
+            ["Derive the measures", `Turn raw data + the 19 answers into ~16 comparable measures (margin, CAGR, recurring %, concentration, digital maturity…).`],
+            ["Rank vs peers", `Score each measure against the peer group — e.g. EBITDA margin lands at ${pctOf(story, 'EBITDA margin')}, meaning it beats that share of similar firms.`],
+            ["Build four capitals", `Blend the ranked measures by weight into Financial ${capScore(story, 'fin')}, Technological ${capScore(story, 'tech')}, Human ${capScore(story, 'human')}, Relational ${capScore(story, 'rel')}.`],
+            ["Blend into quality", `Weight the four capitals (35/20/25/20) into one Composite Quality Score of ${vm.qualityScore}/100.`],
+            ["Convert to SQF", `0.6 + (${vm.qualityScore}/100) × 0.8 = ${vm.sqf.toFixed(2)} — the quality multiplier.`],
+            ["Price the growth", `CAGR + lifecycle + scalability give a Growth Factor of ${vm.gf.toFixed(2)}.`],
+            ["Multiply", `${fmtMoney(vm.ebitda)} × ${vm.multiple.toFixed(1)} × ${vm.sqf.toFixed(2)} × ${vm.gf.toFixed(2)} = ${fmtMoney(vm.valueCurrent)}.`],
+          ].map((row, i) => (
+            <li key={row[0]} className="flex items-start gap-4">
+              <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gold/50 font-mono text-[11px] font-bold text-gold">
+                {i + 1}
+              </span>
+              <div className="min-w-0 flex-1 border-b border-line-faint pb-3">
+                <div className="text-[13.5px] font-semibold text-text">{row[0]}</div>
+                <div className="mt-0.5 max-w-[72ch] text-[12.5px] leading-6 text-text-dim">{row[1]}</div>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-5 rounded-lg border border-gold/40 bg-gold/[0.07] px-5 py-4">
+          <span className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-gold">Result</span>
+          <div className="mt-1 font-serif text-[26px] font-medium text-text">
+            {fmtMoney(vm.valueCurrent)}
+            <span className="ml-3 text-[14px] font-normal text-text-faint">
+              range {fmtMoney(vm.valueLow)} – {fmtMoney(vm.valueHigh)}
+            </span>
+          </div>
+        </div>
+
+        {/* Glossary */}
+        <div className="mt-8">
+          <div className="font-mono text-[9.5px] font-bold uppercase tracking-eyebrow text-text-faint">Every term, in one place</div>
+          <div className="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+            {GLOSSARY.map((g) => (
+              <div key={g[0]} className="border-b border-line-faint pb-2.5">
+                <div className="text-[13px] font-semibold text-text">{g[0]}</div>
+                <div className="mt-0.5 text-[12px] leading-6 text-text-dim">{g[1]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </Chapter>
 
       {/* ── Close ────────────────────────────────────────────────── */}
@@ -486,4 +615,19 @@ function FormulaStone({
 
 function fmtMoney(value: number): string {
   return formatEurCompact(value, { decimals: 1, zero: '€0' });
+}
+
+function capScore(story: ExplainerStory, key: CapitalAssembly['key'] | 'fin' | 'tech' | 'human' | 'rel'): number {
+  const map: Record<string, CapitalAssembly['key']> = { fin: 'financial', tech: 'technological', human: 'human', rel: 'relational' };
+  const realKey = (map[key] ?? key) as CapitalAssembly['key'];
+  return story.capitalAssemblies.find((c) => c.key === realKey)?.score ?? 0;
+}
+
+function pctOf(story: ExplainerStory, label: string): string {
+  const m = story.comparison.metrics.find((x) => x.label.toLowerCase().includes(label.toLowerCase()));
+  return m ? `p${Math.round(m.percentile)}` : 'its peer rank';
+}
+
+function capLine(assemblies: CapitalAssembly[]): string {
+  return assemblies.map((c) => `${c.score}×${c.pillarWeight}%`).join(' + ');
 }

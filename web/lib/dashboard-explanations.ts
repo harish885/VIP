@@ -46,6 +46,7 @@ export function buildExplanations(
   const v_current: Explanation = {
     title: 'Company value (V)',
     source: 'Computed — V = EBITDA × M × SQF × GF',
+    plain: 'Start with your yearly profit, multiply by what similar companies sell for, then nudge it up or down for how strong and how fast-growing your business is. That nudged number is what your company is worth.',
     steps: [
       { label: 'EBITDA (normalised)', value: fmtEur(eb), note: 'Pulled from AIDA — last available financial year.' },
       { label: 'Sector multiple (M)', value: `${m.toFixed(1)}×`, note: naceCode ? `NACE ${naceCode} base multiple, after 25% illiquidity discount for unlisted SMEs.` : 'Sector base multiple after illiquidity discount.' },
@@ -62,6 +63,7 @@ export function buildExplanations(
   const v_range: Explanation = {
     title: 'Value range',
     source: 'Computed — uncertainty band around V',
+    plain: 'No honest valuation is a single exact number. This is the sensible low-to-high window a buyer would likely land in.',
     steps: [
       { label: 'V (point estimate)', value: fmtMoney(v) },
       { label: 'Low', value: `V × 0.90 = ${fmtMoney(valuation.v_low_eur)}`, note: '10% downside band for execution risk and market timing.' },
@@ -77,6 +79,7 @@ export function buildExplanations(
   const v_potential: Explanation = {
     title: 'Potential V (after Top-3 actions)',
     source: 'Computed — V if all 3 priority actions executed',
+    plain: 'What your company could be worth if you carried out the three recommended moves. It is today’s value plus the uplift each action is expected to add.',
     steps: [
       { label: 'V (current)', value: fmtMoney(v) },
       { label: 'Top-3 uplift (sum of ΔV%)', value: `+${upliftSum.toFixed(1)}%`, note: 'Each action moves SQF and/or GF; engine re-runs valuation to get ΔV.' },
@@ -91,6 +94,7 @@ export function buildExplanations(
   const value_gap: Explanation = {
     title: 'Value gap',
     source: 'Computed — distance from V to V potential',
+    plain: 'How much value is currently being left on the table — the percentage jump from where you are today to where you could be.',
     steps: [
       { label: 'V potential', value: fmtMoney(valuation.v_potential_eur) },
       { label: 'V current', value: fmtMoney(v) },
@@ -109,6 +113,7 @@ export function buildExplanations(
   const quality_score: Explanation = {
     title: 'Quality Score',
     source: 'Computed — weighted average of four capitals',
+    plain: 'A 0–100 report card on how well-built your company is, blending its money, technology, people and relationships — with money counting the most.',
     steps: [
       { label: 'Financial × 35%',     value: `${fin} × 0.35 = ${(fin * 0.35).toFixed(1)}` },
       { label: 'Technological × 20%', value: `${tech} × 0.20 = ${(tech * 0.20).toFixed(1)}` },
@@ -130,6 +135,7 @@ export function buildExplanations(
   const risk_index: Explanation = {
     title: 'Risk signal',
     source: 'Computed — count of fragility flags fired',
+    plain: 'How shaky the business looks to an outsider. We count the warning signs (like leaning on one big client); more flags means higher risk.',
     steps: [
       { label: 'Flags fired', value: String(flagCount), note: flagLabel },
       { note: bucketRule },
@@ -149,6 +155,7 @@ export function buildExplanations(
   const ebitda: Explanation = {
     title: 'EBITDA (normalised)',
     source: 'AIDA / Bureau van Dijk — official filings',
+    plain: 'Your core yearly profit before tax, interest and accounting effects — roughly the cash the business throws off. Taken straight from your public filing, so you type nothing.',
     steps: snapshot
       ? [
           { label: 'AIDA company', value: snapshot.company_name },
@@ -169,6 +176,7 @@ export function buildExplanations(
   const m_sector: Explanation = {
     title: 'Sector multiple (M)',
     source: 'European mid-market deal databases, illiquidity-discounted',
+    plain: 'How many euros buyers typically pay for each euro of profit in your industry. We then knock 25% off because a private company is harder to sell than a listed one.',
     steps: [
       { label: 'NACE / sector lookup', value: naceCode ? `NACE ${naceCode}` : (company.sector || '—'),
         note: 'Calibrated against Argos Mid-Market Index, EY Capital Briefing, Mergermarket — comparable European SMEs.' },
@@ -187,6 +195,7 @@ export function buildExplanations(
   const sqf_exp: Explanation = {
     title: 'Strategic Quality Factor (SQF)',
     source: 'Computed — quality multiplier on V (0.6 – 1.4)',
+    plain: 'A quality dial from 0.6 to 1.4. Below 1.0 your structure drags value down; above 1.0 it lifts value up. A weak company shrinks its multiple, a strong one stretches it.',
     steps: [
       { label: 'Composite Quality Score (CQS)', value: `${cqs} / 100`, note: 'Weighted average of the four capital scores.' },
       { label: 'Formula', value: '0.6 + (CQS / 100) × 0.8' },
@@ -212,6 +221,7 @@ export function buildExplanations(
   const gf_exp: Explanation = {
     title: 'Growth Factor (GF)',
     source: 'Computed — growth multiplier on V (0.7 – 1.5)',
+    plain: 'A growth dial. Companies that are growing, young, and easy to scale get a premium; flat or declining ones get a discount.',
     steps: [
       { label: 'Revenue CAGR (2-year)', value: `${cagr.toFixed(1)}%`,
         note: simulationBaseline.revenue_y_1 > 0
@@ -293,10 +303,18 @@ function buildCapitalExplanation(
   return {
     title: `${c.name} capital`,
     source: 'Computed — weighted mean of peer-relative percentiles',
+    plain: `${CAPITAL_PLAIN[c.key] ?? 'How this part of the business compares to similar companies.'} Scored 0–100, where 100 means top of the peer pack.`,
     steps,
     result: `${c.score} / 100`,
   };
 }
+
+const CAPITAL_PLAIN: Record<string, string> = {
+  fin: 'Your money engine: profitability, growth, how much revenue repeats, and how spread-out your clients are.',
+  tech: 'Your technology backbone: how digital and automated you are, and whether you own systems or data others don’t.',
+  human: 'Your people and organisation: can the business run without the founder, and is the team built to scale?',
+  rel: 'Your relationships: the quality of your clients, partners, brand and network.',
+};
 
 const CAPITAL_RECIPES: Record<string, { formula: string; qInputs: { field: string; label: string; note?: string }[] }> = {
   fin: {
@@ -334,6 +352,7 @@ function buildActionExplanation(a: DashboardAction, vBase: number): Explanation 
   return {
     title: `Priority action — ${a.title}`,
     source: 'Computed — Return on Value (ROV) ranking',
+    plain: `If you make this change, the engine re-runs your whole valuation and estimates it would add about +${a.v_uplift_pct.toFixed(1)}% to your company’s value — roughly ${fmtMoney(deltaEur)}. It made the Top-3 because that’s a lot of value for the effort.`,
     steps: [
       { label: 'Capital impact', value: a.capital_impact || '—', note: 'Which capital this action moves and by how much.' },
       { label: 'Engine simulates new SQF / GF', note: 'Applies the action’s ΔSQF / ΔGF to the baseline scoring result.' },

@@ -22,6 +22,8 @@ export interface ExplanationStep {
 export interface Explanation {
   title: string;
   source: string;
+  /** One plain-English sentence: what this number means, no jargon. */
+  plain?: string;
   steps: ExplanationStep[];
   result?: string;
 }
@@ -172,6 +174,15 @@ export function InfoButton({
               <div className="mt-1 text-[11px] leading-snug text-text-faint">
                 {explanation.source}
               </div>
+
+              {explanation.plain && (
+                <div className="mt-3 rounded-md border-l-2 border-gold/60 bg-gold/[0.06] px-3 py-2 text-[12.5px] leading-relaxed text-text-dim">
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-eyebrow text-gold">
+                    In plain terms
+                  </span>
+                  <div className="mt-1">{explanation.plain}</div>
+                </div>
+              )}
 
               {explanation.steps.length > 0 && (
                 <ol className="mt-4 space-y-3">
